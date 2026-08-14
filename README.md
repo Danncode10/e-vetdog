@@ -64,4 +64,4 @@ Create a non-draft GitHub Project in Board/Kanban layout with these statuses:
 Backlog → Ready → In progress → Done
 ```
 
-Then run `/masterplan-init` to produce and sync the Phase 0 plan.
+Copy its canonical URL (for example, `https://github.com/users/your-owner/projects/1`) into `GITHUB_PROJECT_URL` in `.env.local`. Omit any `/views/...` suffix or query string. Then run `/masterplan-init` to produce and sync the Phase 0 plan. The command derives the owner, project number, and API ID automatically.
