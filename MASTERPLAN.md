@@ -16,7 +16,7 @@
   - **Acceptance criteria:** Email and redirect settings are documented and applied; branded templates are ready; Google sign-in is configured and verified in the template flow.
   - **Run:** `/setup-auth`
 
-- [ ] **[P0.3] Apply the E-VetDoc overview to the template UI**
+- [x] **[P0.3] Apply the E-VetDoc overview to the template UI**
   - **Goal:** Establish the calm, clinic-oriented visual direction, semantic color system, landing-page copy, and template visual cleanup.
   - **Dependencies:** Product context is approved.
   - **Acceptance criteria:** The template clearly communicates E-VetDoc’s audience and purpose; UI changes follow the responsive, accessible Shadcn/Tailwind design rules.
