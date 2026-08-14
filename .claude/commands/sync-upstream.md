@@ -10,6 +10,7 @@ Pull selective updates from the DannFlow upstream repo without merging or rebasi
 
 > **Branch flow (the "serving plate stays clean" rule).** Synced changes never land on the current branch. They always land on a fresh `feat/sync-upstream-<short-sha>` branch, created from the project's `base_branch` and opened back into that branch (normally `main`). `dev` is not required or used by this command.
 
+**Successful-output rule:** after the PR is created, output **only its GitHub PR URL**. Do not end with a summary, compare URL, branch name, or next steps.
 
 **Two modes** — file-level is the default and recommended:
 
