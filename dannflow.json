@@ -1,5 +1,7 @@
 {
-  "dannflow_commit": "latest_commit_hash_in_dannflow",
-  "synced_at": "YYYY-MM-DDT00:00:00Z",
-  "repo": "https://github.com/Danncode10/DannFlow"
+  "dannflow_commit": "6f4921dccd354cdc4318e09fb75804cef12114e5",
+  "synced_at": "2026-08-14T02:01:49Z",
+  "repo": "https://github.com/Danncode10/DannFlow",
+  "base_branch": "main",
+  "dev_branch": "dev"
 }

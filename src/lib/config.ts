@@ -1,8 +1,8 @@
 export const siteConfig = {
-  name: process.env.NEXT_PUBLIC_SITE_NAME || "my-app",
-  githubUrl: process.env.NEXT_PUBLIC_GITHUB_URL || "https://github.com/Danncode10",
-  description: "The backbone template for your next million-dollar idea.",
-  url: process.env.NEXT_PUBLIC_SITE_URL || "https://dannflow.vercel.app",
+  name: process.env.NEXT_PUBLIC_SITE_NAME || "E-VetDoc",
+  githubUrl: process.env.NEXT_PUBLIC_GITHUB_URL || "https://github.com/Danncode10/e-vetdog",
+  description: "A single-clinic veterinary management system for pet owners, veterinarians, appointments, medical records, invoicing, and receipts.",
+  url: process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
 } as const;
 
 /**
