@@ -40,6 +40,12 @@
   - **Acceptance criteria:** SEO, marketing, and code-quality review findings are resolved or documented with follow-up work for a later phase.
   - **Run:** `/seo-check`, `/marketing-check`, `/review`
 
+- [x] **[P0.7] Create Phase 0 setup and handover guide**
+  - **Goal:** Provide a clear, safe handover guide for another developer to configure and verify E-VetDoc's local environment, Supabase services, authentication, email delivery, Google OAuth, visual direction, and final quality checks.
+  - **Dependencies:** None. The guide must clearly distinguish completed, pending, and production-only steps.
+  - **Acceptance criteria:** The guide names every required dashboard location and local command; contains copy-paste values only where safe; links to reusable email templates; never contains credentials; and includes a verification and handover checklist.
+  - **Run:** Review `docs/handover/phase-0-setup-handover.md`.
+
 ---
 
 ## **PHASE 1: Foundation and access**
