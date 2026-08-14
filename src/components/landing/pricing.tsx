@@ -6,47 +6,47 @@ import { Typewriter } from "./typewriter";
 
 const PLANS = [
   {
-    name: "Starter",
-    price: "$0",
-    suffix: "/mo",
-    description: "For solo builders getting started.",
+    name: "Appointments",
+    price: "Ask",
+    suffix: " the clinic",
+    description: "Request care for a linked pet and follow the appointment status.",
     features: [
-      "Full starter template",
-      "Supabase auth & database",
-      "Checkpoint system",
-      "Community support",
+      "Appointment requests",
+      "Schedule updates",
+      "Walk-in support",
+      "Visit details",
     ],
-    cta: "Get started",
+    cta: "Sign in",
     highlight: false,
   },
   {
-    name: "Pro",
-    price: "$29",
-    suffix: "/mo",
-    description: "For serious builders shipping products.",
+    name: "Clinical care",
+    price: "Ask",
+    suffix: " the clinic",
+    description: "Keep each consultation connected to the history that matters.",
     features: [
-      "Everything in Starter",
-      "Priority AI support",
-      "Advanced MCP integrations",
-      "Premium templates",
-      "Team collaboration",
+      "Pet health history",
+      "Clinical encounters",
+      "Treatment notes",
+      "Signed records",
+      "Prescriptions",
     ],
-    cta: "Start free trial",
+    cta: "Sign in",
     highlight: true,
   },
   {
-    name: "Enterprise",
-    price: "Custom",
-    suffix: "",
-    description: "For teams and organizations.",
+    name: "Billing support",
+    price: "Ask",
+    suffix: " the clinic",
+    description: "Understand invoices, payments, and receipts without added complexity.",
     features: [
-      "Everything in Pro",
-      "Dedicated support",
-      "Custom integrations",
-      "SLA guarantee",
-      "White-label options",
+      "Itemized invoices",
+      "Cash payment records",
+      "Printable receipts",
+      "Payment corrections",
+      "Owner access",
     ],
-    cta: "Contact sales",
+    cta: "Contact clinic",
     highlight: false,
   },
 ];
@@ -81,13 +81,13 @@ export function Pricing({ isAuthed }: PricingProps) {
           className="text-center mb-20"
         >
           <span className="inline-flex items-center gap-2 rounded-full border border-white/[0.06] bg-white/[0.02] px-3 py-1 text-[10px] font-medium text-foreground/70 uppercase tracking-[0.2em]">
-            Pricing
+            Clinic services
           </span>
           <h2 className="mt-6 text-4xl sm:text-5xl font-semibold text-foreground tracking-[-0.02em]">
-            <Typewriter text="Simple, transparent pricing" speed={40} />
+            <Typewriter text="Care made clear, from visit to receipt" speed={40} />
           </h2>
           <p className="mt-5 text-[15px] text-muted-foreground max-w-md mx-auto">
-            Start free. Scale when you&apos;re ready.
+            Current consultation and service fees are available directly from the clinic.
           </p>
         </motion.div>
 
@@ -187,7 +187,7 @@ export function Pricing({ isAuthed }: PricingProps) {
                   {/* CTA */}
                   <a
                     href={
-                      plan.name === "Enterprise"
+                      plan.name === "Billing support"
                         ? "#"
                         : isAuthed
                         ? "/dashboard"

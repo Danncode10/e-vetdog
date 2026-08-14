@@ -1,42 +1,42 @@
 @import "tailwindcss";
 
 @theme {
-  /* Brand — refined purple with a touch more vibrance */
-  --color-primary: #7C5CFF;
-  --color-primary-foreground: #ffffff;
+  /* Brand — calm clinical teal */
+  --color-primary: #2FA99A;
+  --color-primary-foreground: #F4FFFC;
 
-  /* Page — deeper OLED-black for Linear/Vercel feel */
-  --color-background: #050507;
-  --color-foreground: #EEEAFF;
+  /* Page — deep clinic-night surfaces */
+  --color-background: #071513;
+  --color-foreground: #E8F5F1;
 
   /* Cards / panels — slightly lifted from background */
-  --color-card: #0C0C14;
-  --color-card-foreground: #EEEAFF;
+  --color-card: #0D211D;
+  --color-card-foreground: #E8F5F1;
 
   /* Muted (subtle backgrounds + secondary text) */
-  --color-muted: #14141F;
-  --color-muted-foreground: #8983A8;
+  --color-muted: #14302B;
+  --color-muted-foreground: #9AB8B1;
 
   /* Accent (hover / highlight states) */
-  --color-accent: #1A1330;
-  --color-accent-foreground: #EEEAFF;
+  --color-accent: #16443C;
+  --color-accent-foreground: #E8F5F1;
 
   /* Secondary chips / badges */
-  --color-secondary: #14141F;
-  --color-secondary-foreground: #EEEAFF;
+  --color-secondary: #14302B;
+  --color-secondary-foreground: #E8F5F1;
 
   /* Destructive / error */
   --color-destructive: #ef4444;
   --color-destructive-foreground: #ffffff;
 
   /* Popover / dropdown */
-  --color-popover: #0C0C14;
-  --color-popover-foreground: #EEEAFF;
+  --color-popover: #0D211D;
+  --color-popover-foreground: #E8F5F1;
 
   /* Form elements — hairline borders */
-  --color-input: #25223D;
-  --color-ring: #7C5CFF;
-  --color-border: #1F1C33;
+  --color-input: #245047;
+  --color-ring: #2FA99A;
+  --color-border: #1D3B35;
 
   /* Radius */
   --radius-5xl: 3rem;

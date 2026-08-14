@@ -38,7 +38,7 @@ export function Footer() {
               Product
             </h4>
             <ul className="space-y-2.5">
-              {["Features", "Pricing", "Changelog", "Docs"].map((item) => (
+              {["Appointments", "Pet records", "Invoices", "Owner portal"].map((item) => (
                 <li key={item}>
                   <a
                     href="#"
@@ -54,10 +54,10 @@ export function Footer() {
           {/* Company */}
           <div>
             <h4 className="text-[10px] font-semibold text-foreground/60 mb-4 uppercase tracking-[0.2em]">
-              Company
+              Clinic information
             </h4>
             <ul className="space-y-2.5">
-              {["About", "Blog", "Careers", "Contact"].map((item) => (
+              {["Clinic Name", "Clinic Address", "Clinic Hours", "Contact"].map((item) => (
                 <li key={item}>
                   <a
                     href="#"
@@ -73,10 +73,10 @@ export function Footer() {
           {/* Legal */}
           <div>
             <h4 className="text-[10px] font-semibold text-foreground/60 mb-4 uppercase tracking-[0.2em]">
-              Legal
+              Resources
             </h4>
             <ul className="space-y-2.5">
-              {["Privacy", "Terms", "License"].map((item) => (
+              {["Privacy", "Terms", "Help"].map((item) => (
                 <li key={item}>
                   <a
                     href="#"

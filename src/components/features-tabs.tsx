@@ -19,48 +19,48 @@ import type { Database as DatabaseType } from "@/types/supabase";
 const FEATURES = [
   {
     icon: Database,
-    title: "Supabase integration",
+    title: "Connected pet records",
     description:
-      "Auth, database, and real-time built in. Type-safe queries powered by auto-generated TypeScript definitions.",
+      "Keep pet details, appointment history, and care information together for the people who need it.",
     span: "lg:col-span-2 lg:row-span-2",
     // Paint-only radial corner glow — no filter:blur cost on scroll
     glow: "radial-gradient(circle at 80% 20%, rgba(124,92,255,0.18), transparent 50%)",
   },
   {
     icon: Zap,
-    title: "AI-native architecture",
+    title: "Appointment coordination",
     description:
-      "Built for Vibe Coding. Describe what you want — your AI builds it using your typed services.",
+      "Make requests, schedule visits, and keep clinic staff and pet owners aligned on what comes next.",
     span: "lg:col-span-2",
     glow: "radial-gradient(circle at 80% 20%, rgba(245,158,11,0.15), transparent 50%)",
   },
   {
     icon: Shield,
-    title: "Auth & RLS ready",
-    description: "Login, signup, and role-based access out of the box.",
+    title: "Role-aware access",
+    description: "Owner, veterinarian, and admin access stays focused on the right information.",
     span: "",
     glow: "radial-gradient(circle at 80% 20%, rgba(16,185,129,0.15), transparent 50%)",
   },
   {
     icon: Terminal,
-    title: "Checkpoint system",
-    description: "One command to snapshot your database. Instant rollback.",
+    title: "Clinical history",
+    description: "Capture encounters, treatments, and signed clinical records with a clear audit trail.",
     span: "",
     glow: "radial-gradient(circle at 80% 20%, rgba(249,115,22,0.15), transparent 50%)",
   },
   {
     icon: GitBranch,
-    title: "Git-first workflow",
+    title: "Clear billing",
     description:
-      "Clean commits, branch strategies, and AI-assisted reviews via GitHub MCP.",
+      "Create itemized invoices, record in-clinic payments, and provide printable receipts.",
     span: "lg:col-span-2",
     glow: "radial-gradient(circle at 80% 20%, rgba(139,92,246,0.15), transparent 50%)",
   },
   {
     icon: Layers,
-    title: "Clean architecture",
+    title: "Owner portal",
     description:
-      "UI, services, types, prompts — each in its own lane.",
+      "Give owners a simple view of their linked pets, appointments, records, invoices, and receipts.",
     span: "lg:col-span-2",
     glow: "radial-gradient(circle at 80% 20%, rgba(236,72,153,0.15), transparent 50%)",
   },
@@ -474,4 +474,3 @@ export function FeaturesTabs({
     </div>
   );
 }
-

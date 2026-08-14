@@ -1,36 +1,36 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { GitBranch, Sparkles, Rocket } from "lucide-react";
+import { CalendarDays, Stethoscope, ReceiptText } from "lucide-react";
 import { Typewriter } from "./typewriter";
 
 const STEPS = [
   {
     step: "01",
-    icon: GitBranch,
-    title: "Clone & configure",
+    icon: CalendarDays,
+    title: "Request a visit",
     description:
-      "Fork the repo, drop your Supabase credentials into .env.local, and you're live in under two minutes.",
-    snippet: "git clone dannflow && npm i",
+      "Owners select a linked pet and request the care they need, while staff keep every detail organized.",
+    snippet: "appointment requested",
     // Paint-only radial gradient (no filter:blur cost during scroll)
     glow: "radial-gradient(ellipse at 70% 50%, rgba(124,92,255,0.25), transparent 60%)",
   },
   {
     step: "02",
-    icon: Sparkles,
-    title: "Describe your vision",
+    icon: Stethoscope,
+    title: "Document care clearly",
     description:
-      "Use feature prompts in src/prompts/features/. Your AI reads schema, types, and services automatically.",
-    snippet: "/new-feature lead-capture",
+      "Veterinarians review a pet's history, record the encounter, and sign final clinical notes with confidence.",
+    snippet: "clinical record updated",
     glow: "radial-gradient(ellipse at 70% 50%, rgba(245,158,11,0.22), transparent 60%)",
   },
   {
     step: "03",
-    icon: Rocket,
-    title: "Ship & scale",
+    icon: ReceiptText,
+    title: "Keep billing connected",
     description:
-      "Deploy to Vercel with one click. Checkpoint system means you can always roll back safely.",
-    snippet: "vercel deploy --prod",
+      "Staff create clear invoices and receipts, so owners can follow each part of their pet's care journey.",
+    snippet: "receipt ready to print",
     glow: "radial-gradient(ellipse at 70% 50%, rgba(16,185,129,0.22), transparent 60%)",
   },
 ];
@@ -60,7 +60,7 @@ export function HowItWorks() {
             How it works
           </span>
           <h2 className="mt-6 text-4xl sm:text-5xl font-semibold text-foreground tracking-[-0.02em]">
-            <Typewriter text="Three steps to your next project" speed={40} />
+            <Typewriter text="A better rhythm for every visit" speed={40} />
           </h2>
         </motion.div>
 
@@ -128,11 +128,11 @@ export function HowItWorks() {
                             />
                           </div>
                           <span className="text-[10px] font-mono uppercase tracking-[0.15em] text-muted-foreground">
-                            terminal
+                            clinic flow
                           </span>
                         </div>
                         <span className="text-[9px] font-mono text-muted-foreground/60">
-                          ~ / project
+                          ~ / e-vetdoc
                         </span>
                       </div>
 
@@ -146,7 +146,7 @@ export function HowItWorks() {
                           />
                         </div>
                         <div className="text-muted-foreground/60 text-[11px] pl-4">
-                          <span className="text-emerald-400">✓</span> ready in 1.4s
+                          <span className="text-emerald-400">✓</span> ready for care
                         </div>
                       </div>
                     </div>

@@ -19,7 +19,7 @@ interface HeroProps {
   isAuthed: boolean;
 }
 
-const HERO_HEADLINE = "The AI-native starter for shipping faster.";
+const HERO_HEADLINE = "Better care starts with a clearer clinic day.";
 const HERO_TYPING_SPEED = 70; // ~3s total for 42-char headline
 
 export function Hero({ isAuthed }: HeroProps) {
@@ -135,7 +135,7 @@ export function Hero({ isAuthed }: HeroProps) {
           <span className="flex items-center gap-1.5 rounded-full bg-primary/10 border border-primary/20 px-2 py-0.5 text-[10px] font-semibold text-primary uppercase tracking-[0.15em]">
             New
           </span>
-          <span>Secure Supabase templates for focused projects</span>
+          <span>One connected workspace for your clinic and pet owners</span>
           <ArrowRight className="h-3 w-3 transition-transform duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:translate-x-1" />
         </motion.a>
 
@@ -166,9 +166,8 @@ export function Hero({ isAuthed }: HeroProps) {
           }}
           className="mt-8 max-w-xl text-[17px] text-muted-foreground leading-relaxed"
         >
-          A production-grade Next.js + Supabase template with project-scoped
-          RLS, type-safe services, and an AI-driven workflow that turns
-          natural language into shipped features.
+          E-VetDoc brings appointments, patient history, clinical records,
+          invoices, and receipts into one dependable place for everyday care.
         </motion.p>
 
         {/* CTAs — visible but blurred during typing, pops in after */}
@@ -187,7 +186,7 @@ export function Hero({ isAuthed }: HeroProps) {
           className="mt-10 flex flex-col sm:flex-row items-start sm:items-center gap-5 sm:gap-7"
         >
           <MagneticCTA href={isAuthed ? "/dashboard" : "/login"}>
-            Get started free
+            Access E-VetDoc
           </MagneticCTA>
 
           <a
@@ -198,7 +197,7 @@ export function Hero({ isAuthed }: HeroProps) {
           >
             <GitHubIcon className="h-3.5 w-3.5" />
             <span className="border-b border-white/[0.15] group-hover:border-white/[0.4] transition-colors pb-0.5">
-              View on GitHub
+              Learn about E-VetDoc
             </span>
             <ArrowUpRight className="h-3.5 w-3.5 transition-transform duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
           </a>
@@ -220,17 +219,17 @@ export function Hero({ isAuthed }: HeroProps) {
           className="mt-16 flex flex-col gap-5"
         >
           <p className="text-[11px] font-mono uppercase tracking-[0.2em] text-muted-foreground/60">
-            Built for teams shipping production software
+            Built for the people behind every visit
           </p>
           {/* Grid (not flex) for universal gap support across browsers */}
           <div className="grid grid-cols-3 sm:grid-cols-6 gap-x-8 gap-y-4 max-w-2xl">
             {[
-              "Vercel",
-              "Supabase",
-              "Tailwind",
-              "Shadcn",
-              "TanStack",
-              "Upstash",
+              "Owners",
+              "Pets",
+              "Appointments",
+              "Records",
+              "Invoices",
+              "Receipts",
             ].map((logo) => (
               <span
                 key={logo}

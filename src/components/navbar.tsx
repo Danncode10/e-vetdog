@@ -22,7 +22,7 @@ import type { User } from "@supabase/supabase-js";
 const navLinks = [
   { label: "Features", href: "/#features" },
   { label: "How it works", href: "/#how-it-works" },
-  { label: "Pricing", href: "/#pricing" },
+  { label: "Clinic access", href: "/#pricing" },
   // Blog link only shown when the blog feature is enabled
   ...(isFeatureEnabled("blog") ? [{ label: "Blog", href: "/blog" }] : []),
 ];
@@ -162,7 +162,7 @@ export function Navbar({ user }: { user: User | null }) {
                   href="/login"
                   className="group flex items-center gap-1.5 pl-3.5 pr-1.5 py-1.5 text-[13px] font-medium rounded-full bg-foreground text-background hover:bg-foreground/90 active:scale-[0.97] transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] shadow-[0_2px_8px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.15)]"
                 >
-                  Get started
+                  Sign in
                   <span className="flex h-5 w-5 items-center justify-center rounded-full bg-background/10 group-hover:bg-background/20 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all duration-300">
                     <ArrowUpRight className="w-3 h-3" />
                   </span>
@@ -255,7 +255,7 @@ export function Navbar({ user }: { user: User | null }) {
                     href="/login"
                     className="flex items-center justify-center gap-2 w-full py-4 rounded-2xl bg-foreground text-background font-semibold text-sm"
                   >
-                    Get started
+                    Sign in
                     <ArrowUpRight className="w-4 h-4" />
                   </a>
                 )}
