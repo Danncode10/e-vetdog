@@ -175,6 +175,10 @@ Do not swap these URLs.
 
 An account listed as a Google test user reaches `/dashboard` after clicking **Continue with Google**.
 
+### E-VetDoc verification record
+
+Completed on 2026-08-14. A permitted Google test user successfully signed in through Google and Supabase and reached `/dashboard`. No OAuth credential or environment value is recorded in this repository.
+
 ## P0.5 — Hand over hero media
 
 **Purpose:** Deliver approved visual assets without changing the existing hero behavior by accident.

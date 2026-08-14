@@ -22,7 +22,7 @@
   - **Acceptance criteria:** The landing and sign-in pages clearly communicate E-VetDoc’s audience and purpose; UI changes follow the responsive, accessible Shadcn/Tailwind design rules.
   - **Run:** `/design-project`
 
-- [ ] **[P0.4] Configure Google OAuth sign-in**
+- [x] **[P0.4] Configure Google OAuth sign-in**
   - **Goal:** Configure and verify Google sign-in through Google Cloud and Supabase Auth for E-VetDoc.
   - **Dependencies:** [P0.1], [P0.2], [P0.3].
   - **Acceptance criteria:** Google Cloud consent-screen audience and Web client are configured; the Google-to-Supabase callback URI and Supabase-to-app redirect URL are correct; the Supabase Google provider is enabled; a permitted test user signs in and reaches `/dashboard`.
