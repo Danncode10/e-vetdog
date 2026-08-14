@@ -19,7 +19,7 @@ interface HeroProps {
   isAuthed: boolean;
 }
 
-const HERO_HEADLINE = "Your pet’s care, all in one place.";
+const HERO_HEADLINE = "Your pet’s care,\nall in one place.";
 const HERO_TYPING_SPEED = 70; // ~3s total for 42-char headline
 
 export function Hero({ isAuthed }: HeroProps) {
@@ -86,7 +86,7 @@ export function Hero({ isAuthed }: HeroProps) {
           fill
           priority
           sizes="100vw"
-          className="object-cover object-[85%_center] brightness-110 contrast-[1.03] sm:object-[62%_center]"
+          className="object-cover object-[58%_center] brightness-110 contrast-[1.03] sm:object-[62%_center]"
         />
       </div>
       <HeroVideoBackground enabled={videoEnabled} />
@@ -140,7 +140,7 @@ export function Hero({ isAuthed }: HeroProps) {
         </motion.a>
 
         {/* Headline — typewriter reveal (~3s total) */}
-        <h1 className="mt-8 max-w-[18ch] text-[2.75rem] sm:text-6xl md:text-7xl lg:text-[5rem] font-semibold tracking-[-0.035em] leading-[0.98] text-foreground">
+        <h1 className="mt-8 max-w-[18ch] whitespace-pre-line text-[2.75rem] sm:text-6xl md:text-7xl lg:text-[5rem] font-semibold tracking-[-0.035em] leading-[0.98] text-foreground">
           <Typewriter
             text={HERO_HEADLINE}
             speed={HERO_TYPING_SPEED}
@@ -332,7 +332,7 @@ function HeroVideoBackground({ enabled }: HeroVideoBackgroundProps) {
       onLoadedData={handleVideoReady}
       onEnded={handleEnded}
       onError={() => setIsReady(false)}
-      className={`pointer-events-none absolute inset-0 -z-10 h-full w-full object-cover object-[85%_center] brightness-110 contrast-[1.03] sm:object-[62%_center] transition-opacity duration-1000 ease-out ${
+      className={`pointer-events-none absolute inset-0 -z-10 h-full w-full object-cover object-[58%_center] brightness-110 contrast-[1.03] sm:object-[62%_center] transition-opacity duration-1000 ease-out ${
         enabled && isReady ? "opacity-100" : "opacity-0"
       }`}
       src={videoSource}
