@@ -18,7 +18,7 @@ export function Footer() {
           {/* Brand */}
           <div className="col-span-2 md:col-span-1">
             <div className="flex items-center gap-2 mb-4">
-              <div className="relative flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-[#5B3FE0] shadow-[0_2px_8px_rgba(124,92,255,0.4),inset_0_1px_0_rgba(255,255,255,0.2)]">
+              <div className="relative flex h-7 w-7 items-center justify-center rounded-lg bg-primary shadow-sm">
                 <span className="text-[11px] font-black text-primary-foreground">
                   D
                 </span>

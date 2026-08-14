@@ -19,7 +19,7 @@ interface HeroProps {
   isAuthed: boolean;
 }
 
-const HERO_HEADLINE = "Better care starts with a clearer clinic day.";
+const HERO_HEADLINE = "Your pet’s care, all in one place.";
 const HERO_TYPING_SPEED = 70; // ~3s total for 42-char headline
 
 export function Hero({ isAuthed }: HeroProps) {
@@ -147,7 +147,7 @@ export function Hero({ isAuthed }: HeroProps) {
             delay={200}
             onComplete={handleTypingComplete}
             skipAnimation={typingDone}
-            highlight={{ start: 4, end: 21 }}
+            highlight={{ start: 17, end: 33 }}
           />
         </h1>
 
@@ -166,8 +166,8 @@ export function Hero({ isAuthed }: HeroProps) {
           }}
           className="mt-8 max-w-xl text-[17px] text-muted-foreground leading-relaxed"
         >
-          E-VetDoc brings appointments, patient history, clinical records,
-          invoices, and receipts into one dependable place for everyday care.
+          Request visits, follow your pet&apos;s care, and keep important health
+          information close whenever you need it.
         </motion.p>
 
         {/* CTAs — visible but blurred during typing, pops in after */}
@@ -219,7 +219,7 @@ export function Hero({ isAuthed }: HeroProps) {
           className="mt-16 flex flex-col gap-5"
         >
           <p className="text-[11px] font-mono uppercase tracking-[0.2em] text-muted-foreground/60">
-            Built for the people behind every visit
+            Made for pet owners who want care to feel simpler
           </p>
           {/* Grid (not flex) for universal gap support across browsers */}
           <div className="grid grid-cols-3 sm:grid-cols-6 gap-x-8 gap-y-4 max-w-2xl">
@@ -228,8 +228,8 @@ export function Hero({ isAuthed }: HeroProps) {
               "Pets",
               "Appointments",
               "Records",
-              "Invoices",
-              "Receipts",
+              "Visit updates",
+              "Care notes",
             ].map((logo) => (
               <span
                 key={logo}
@@ -381,14 +381,14 @@ function ProductPreview({ typingDone }: { typingDone: boolean }) {
         style={{ perspective: "1500px" }}
       >
         <TiltCard>
-          <div className="relative overflow-hidden rounded-[calc(2rem-0.375rem)] border border-white/[0.04] bg-card inner-highlight">
-            <div className="flex items-center justify-between border-b border-white/[0.04] bg-background/40 px-4 py-3 sm:px-5">
+          <div className="relative overflow-hidden rounded-[calc(2rem-0.375rem)] border border-border bg-card shadow-sm">
+            <div className="flex items-center justify-between border-b border-border bg-muted/60 px-4 py-3 sm:px-5">
               <div className="flex items-center gap-1.5">
-                <div className="h-2.5 w-2.5 rounded-full bg-white/10" />
-                <div className="h-2.5 w-2.5 rounded-full bg-white/10" />
-                <div className="h-2.5 w-2.5 rounded-full bg-white/10" />
+                <div className="h-2.5 w-2.5 rounded-full bg-muted-foreground/30" />
+                <div className="h-2.5 w-2.5 rounded-full bg-muted-foreground/30" />
+                <div className="h-2.5 w-2.5 rounded-full bg-muted-foreground/30" />
               </div>
-              <div className="flex items-center gap-2 rounded-md border border-white/[0.04] bg-white/[0.03] px-2 py-1 sm:px-3">
+              <div className="flex items-center gap-2 rounded-md border border-border bg-muted px-2 py-1 sm:px-3">
                 <div className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
                 <span className="text-[9px] font-mono text-muted-foreground sm:text-[10px]">{siteConfig.name}.app/dashboard</span>
               </div>
@@ -401,7 +401,7 @@ function ProductPreview({ typingDone }: { typingDone: boolean }) {
                   {[Terminal, Database, Shield, Zap].map((Icon, index) => (
                     <div key={index} className={`flex items-center gap-2 rounded-lg px-3 py-2 text-[11px] ${index === 0 ? "border border-primary/20 bg-primary/10 text-primary" : "text-muted-foreground"}`}>
                       <Icon className="h-3 w-3" strokeWidth={1.5} />
-                      <span className="font-medium">{["Overview", "Database", "Auth", "API"][index]}</span>
+                  <span className="font-medium">{["My pets", "Appointments", "Care history", "My profile"][index]}</span>
                     </div>
                   ))}
                 </div>
@@ -409,11 +409,11 @@ function ProductPreview({ typingDone }: { typingDone: boolean }) {
                 <div className="col-span-9 space-y-3">
                   <div className="grid grid-cols-3 gap-3">
                     {[
-                      { label: "MRR", val: "$48.2k", delta: "+12.4%" },
-                      { label: "Active orgs", val: "1,247", delta: "+8.2%" },
-                      { label: "Uptime", val: "99.99%", delta: "30d" },
+                      { label: "My pets", val: "2", delta: "linked profiles" },
+                      { label: "Next visit", val: "Tue", delta: "10:30 AM" },
+                      { label: "Care updates", val: "3", delta: "new notes" },
                     ].map((stat) => (
-                      <div key={stat.label} className="rounded-xl border border-white/[0.04] bg-white/[0.02] p-3">
+                      <div key={stat.label} className="rounded-xl border border-border bg-muted/50 p-3">
                         <p className="text-[9px] uppercase tracking-[0.15em] text-muted-foreground">{stat.label}</p>
                         <p className="mt-1.5 text-base font-semibold tabular-nums text-foreground">{stat.val}</p>
                         <p className="mt-0.5 font-mono text-[9px] text-emerald-400">{stat.delta}</p>
@@ -421,8 +421,8 @@ function ProductPreview({ typingDone }: { typingDone: boolean }) {
                     ))}
                   </div>
 
-                  <div className="relative h-32 overflow-hidden rounded-xl border border-white/[0.04] bg-white/[0.02] p-3">
-                    <p className="mb-2 text-[9px] uppercase tracking-[0.15em] text-muted-foreground">Revenue · last 12 weeks</p>
+                  <div className="relative h-32 overflow-hidden rounded-xl border border-border bg-muted/50 p-3">
+                    <p className="mb-2 text-[9px] uppercase tracking-[0.15em] text-muted-foreground">Your pet&apos;s care timeline</p>
                     <div className="flex h-16 items-end justify-between gap-1">
                       {[40, 60, 35, 75, 55, 85, 70, 90, 65, 80, 50, 95].map((height, index) => (
                         <div key={index} style={{ height: `${height}%` }} className="flex-1 rounded-sm bg-gradient-to-t from-primary/40 to-primary/80" />
@@ -432,11 +432,11 @@ function ProductPreview({ typingDone }: { typingDone: boolean }) {
 
                   <div className="space-y-1.5">
                     {[
-                      { user: "stripe-checkout", action: "POST /api/webhooks · 200 OK" },
-                      { user: "auth.signIn", action: "INSERT auth.sessions · RLS pass" },
-                      { user: "pages.update", action: "UPDATE pages · org_id matched" },
+                      { user: "Bella", action: "Vaccination visit · confirmed" },
+                      { user: "Milo", action: "Care note · ready to review" },
+                      { user: "Clinic team", action: "Appointment reminder · sent" },
                     ].map((row, index) => (
-                      <div key={index} className="flex items-center justify-between rounded-lg border border-white/[0.03] bg-white/[0.015] p-2.5">
+                      <div key={index} className="flex items-center justify-between rounded-lg border border-border bg-muted/40 p-2.5">
                         <div className="flex items-center gap-2.5">
                           <span className="rounded border border-emerald-500/20 bg-emerald-500/10 px-1.5 py-0.5 font-mono text-[8px] uppercase tracking-wider text-emerald-400">ok</span>
                           <div>

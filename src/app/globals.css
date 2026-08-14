@@ -1,42 +1,42 @@
 @import "tailwindcss";
 
 @theme {
-  /* Brand — calm clinical teal */
-  --color-primary: #2FA99A;
+  /* Brand — calm clinic teal */
+  --color-primary: #0F766E;
   --color-primary-foreground: #F4FFFC;
 
-  /* Page — deep clinic-night surfaces */
-  --color-background: #071513;
-  --color-foreground: #E8F5F1;
+  /* Page — bright, reassuring clinic surfaces */
+  --color-background: #F7FBFA;
+  --color-foreground: #15332C;
 
   /* Cards / panels — slightly lifted from background */
-  --color-card: #0D211D;
-  --color-card-foreground: #E8F5F1;
+  --color-card: #FFFFFF;
+  --color-card-foreground: #15332C;
 
   /* Muted (subtle backgrounds + secondary text) */
-  --color-muted: #14302B;
-  --color-muted-foreground: #9AB8B1;
+  --color-muted: #EAF4F1;
+  --color-muted-foreground: #5C756D;
 
   /* Accent (hover / highlight states) */
-  --color-accent: #16443C;
-  --color-accent-foreground: #E8F5F1;
+  --color-accent: #D8EFEB;
+  --color-accent-foreground: #15332C;
 
   /* Secondary chips / badges */
-  --color-secondary: #14302B;
-  --color-secondary-foreground: #E8F5F1;
+  --color-secondary: #EAF4F1;
+  --color-secondary-foreground: #15332C;
 
   /* Destructive / error */
   --color-destructive: #ef4444;
   --color-destructive-foreground: #ffffff;
 
   /* Popover / dropdown */
-  --color-popover: #0D211D;
-  --color-popover-foreground: #E8F5F1;
+  --color-popover: #FFFFFF;
+  --color-popover-foreground: #15332C;
 
   /* Form elements — hairline borders */
-  --color-input: #245047;
-  --color-ring: #2FA99A;
-  --color-border: #1D3B35;
+  --color-input: #BFD9D2;
+  --color-ring: #0F766E;
+  --color-border: #D5E7E2;
 
   /* Radius */
   --radius-5xl: 3rem;
@@ -78,19 +78,19 @@
   /* Static dot grid background — no animation */
   .bg-grid {
     background-image:
-      radial-gradient(circle at center, rgba(124, 92, 255, 0.18) 1px, transparent 1px);
+      radial-gradient(circle at center, color-mix(in srgb, var(--color-primary) 22%, transparent) 1px, transparent 1px);
     background-size: 32px 32px;
     background-position: 0 0;
   }
   .bg-grid-sm {
     background-image:
-      radial-gradient(circle at center, rgba(238, 234, 255, 0.06) 1px, transparent 1px);
+      radial-gradient(circle at center, color-mix(in srgb, var(--color-primary) 14%, transparent) 1px, transparent 1px);
     background-size: 24px 24px;
   }
 
   /* Static gradient text — no infinite animation (perf) */
   .gradient-text-primary {
-    background: linear-gradient(135deg, #B4A6FF 0%, #7C5CFF 60%, #B4A6FF 100%);
+    background: linear-gradient(135deg, var(--color-primary) 0%, #2B9A8E 60%, var(--color-primary) 100%);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;

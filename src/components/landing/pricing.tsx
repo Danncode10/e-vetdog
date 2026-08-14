@@ -6,47 +6,47 @@ import { Typewriter } from "./typewriter";
 
 const PLANS = [
   {
-    name: "Appointments",
-    price: "Ask",
-    suffix: " the clinic",
-    description: "Request care for a linked pet and follow the appointment status.",
+    name: "Plan a visit",
+    price: "One",
+    suffix: " clear request",
+    description: "Choose your pet, share what they need, and send your request to the clinic.",
     features: [
-      "Appointment requests",
-      "Schedule updates",
-      "Walk-in support",
-      "Visit details",
+      "Choose a linked pet",
+      "Share your reason for visiting",
+      "Receive schedule updates",
+      "Keep visit details handy",
     ],
     cta: "Sign in",
     highlight: false,
   },
   {
-    name: "Clinical care",
-    price: "Ask",
-    suffix: " the clinic",
-    description: "Keep each consultation connected to the history that matters.",
+    name: "Stay in the loop",
+    price: "Every",
+    suffix: " step of the way",
+    description: "See the information your clinic has shared about your pet’s care.",
     features: [
-      "Pet health history",
-      "Clinical encounters",
-      "Treatment notes",
-      "Signed records",
-      "Prescriptions",
+      "Appointment status",
+      "Permitted care notes",
+      "Visit history",
+      "Prescription details",
+      "Clinic updates",
     ],
     cta: "Sign in",
     highlight: true,
   },
   {
-    name: "Billing support",
-    price: "Ask",
-    suffix: " the clinic",
-    description: "Understand invoices, payments, and receipts without added complexity.",
+    name: "Care for every family",
+    price: "Share",
+    suffix: " what matters",
+    description: "Give each authorized pet owner a secure, personal view of their pet’s care.",
     features: [
-      "Itemized invoices",
-      "Cash payment records",
-      "Printable receipts",
-      "Payment corrections",
-      "Owner access",
+      "Multiple authorized owners",
+      "A secure owner portal",
+      "Linked pet profiles",
+      "Care information by permission",
+      "One familiar clinic",
     ],
-    cta: "Contact clinic",
+    cta: "Learn more",
     highlight: false,
   },
 ];
@@ -81,13 +81,13 @@ export function Pricing({ isAuthed }: PricingProps) {
           className="text-center mb-20"
         >
           <span className="inline-flex items-center gap-2 rounded-full border border-white/[0.06] bg-white/[0.02] px-3 py-1 text-[10px] font-medium text-foreground/70 uppercase tracking-[0.2em]">
-            Clinic services
+            For pet owners
           </span>
           <h2 className="mt-6 text-4xl sm:text-5xl font-semibold text-foreground tracking-[-0.02em]">
-            <Typewriter text="Care made clear, from visit to receipt" speed={40} />
+            <Typewriter text="Everything your pet needs, closer to you" speed={40} />
           </h2>
           <p className="mt-5 text-[15px] text-muted-foreground max-w-md mx-auto">
-            Current consultation and service fees are available directly from the clinic.
+            E-VetDoc keeps the connection between your pet, your clinic, and your family simple.
           </p>
         </motion.div>
 
@@ -128,7 +128,7 @@ export function Pricing({ isAuthed }: PricingProps) {
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
                     <div className="flex items-center gap-1.5 rounded-full bg-foreground text-background px-3 py-1 text-[10px] font-semibold tracking-wide shadow-[0_4px_16px_rgba(124,92,255,0.4)]">
                       <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-                      Most popular
+                      Made for pet owners
                     </div>
                   </div>
                 )}
@@ -187,7 +187,7 @@ export function Pricing({ isAuthed }: PricingProps) {
                   {/* CTA */}
                   <a
                     href={
-                      plan.name === "Billing support"
+                      plan.name === "Care for every family"
                         ? "#"
                         : isAuthed
                         ? "/dashboard"

@@ -1,4 +1,4 @@
-import { getUserProfile, getVibeCheckData } from "@/services/dashboard";
+import { getUserProfile } from "@/services/dashboard";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { FeaturesTabs } from "@/components/features-tabs";
@@ -8,15 +8,11 @@ import { Pricing } from "@/components/landing/pricing";
 import { CtaBanner } from "@/components/landing/cta-banner";
 import { Typewriter } from "@/components/landing/typewriter";
 import { BlogPreview } from "@/components/landing/blog-preview";
-import { creatorRepos } from "@/lib/config";
 
 
 export default async function Home() {
   const session = await getUserProfile();
   const user = session?.user || null;
-  const profile = session?.profile;
-  const profiles = await getVibeCheckData() || [];
-  const repos = creatorRepos;
 
   return (
     <>
@@ -51,11 +47,7 @@ export default async function Home() {
             </p>
           </div>
 
-          <FeaturesTabs
-            profiles={profiles}
-            repos={repos}
-            currentRole={profile?.role}
-          />
+          <FeaturesTabs />
         </div>
       </section>
 
