@@ -4,7 +4,7 @@
 
 ## **PHASE 0: DannFlow template readiness**
 
-- [ ] **[P0.1] Connect the Supabase template environment**
+- [x] **[P0.1] Connect the Supabase template environment**
   - **Goal:** Complete the template’s Supabase environment configuration and verify the tracked baseline migration against the E-VetDoc project.
   - **Dependencies:** A valid `DATABASE_URL` for Supabase project `zmdtwhqirmkptzobufio` must be available in `.env.local`.
   - **Acceptance criteria:** Required environment values are present locally; the baseline migration completes; public tables and functions are verified; generated Supabase types are current.
