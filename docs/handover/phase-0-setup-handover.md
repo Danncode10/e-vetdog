@@ -225,15 +225,107 @@ The checks pass or every known failure has an assigned follow-up issue.
 
 When a setting, provider, URL, or workflow changes, update this file in the same pull request. Never add credentials. Update the status of the matching `MASTERPLAN.md` task and GitHub Project card when the work is actually complete.
 
-## Production switch-over
+## P0.8 — Deploy E-VetDoc on Vercel and connect authentication
 
-Only after the production domain exists:
+**Purpose:** Publish the app safely and register its final HTTPS origin with every authentication provider that sends users back to the app.
 
-1. Change Supabase **Site URL** to the production origin.
-2. Add production `/auth/callback` and `/reset-password` redirect URLs in Supabase.
-3. Add the production origin to Google Cloud's Authorized JavaScript origins.
-4. Add the approved production domain to Google Auth Platform Branding.
-5. Run the three auth tests again against production.
+### Before you deploy
+
+1. Run the production checks locally:
+
+   ```bash
+   pnpm lint
+   pnpm build
+   ```
+
+2. Choose one **canonical production origin**. Prefer a verified custom domain, such as `https://app.example.com`. If one is not ready, use the Vercel production URL, such as `https://e-vetdoc.vercel.app`, temporarily. Do not use a branch or commit preview URL as the production origin.
+3. Keep the origin exact: HTTPS, no path, and no trailing slash in dashboard fields. In this section, replace `<PRODUCTION_ORIGIN>` with that value.
+
+### A. Create the Vercel project
+
+1. In Vercel, choose **Add New → Project**, import the E-VetDoc Git repository, and select the correct team/account.
+2. Confirm Vercel detects **Next.js**. Keep the repository root as the Root Directory unless the app later moves into a monorepo subdirectory.
+3. Before deploying, open **Project → Settings → Environment Variables**. Copy values from your private `.env.local`; never upload the file itself or commit it.
+4. Add the variables below to **Production**. Add the same safe runtime values to **Preview** only when preview deployments need to authenticate against this Supabase project.
+
+   | Variable | Vercel environment | Notes |
+   | --- | --- | --- |
+   | `NEXT_PUBLIC_SUPABASE_URL` | Production; Preview if tested | Safe to expose to the browser; copy the project URL. |
+   | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Production; Preview if tested | Safe to expose to the browser; use the publishable/anon key. |
+   | `SUPABASE_SERVICE_ROLE_KEY` | Production only, unless a protected preview needs it | Secret; never prefix it with `NEXT_PUBLIC_`. |
+   | `NEXT_PUBLIC_SITE_NAME` | Production; Preview if tested | `E-VetDoc`. |
+   | `NEXT_PUBLIC_SITE_URL` | Production | `<PRODUCTION_ORIGIN>`; this app reads it for its canonical site configuration. |
+   | `NEXT_PUBLIC_GITHUB_URL` | Production; Preview if tested | Product/project GitHub URL, if the existing configuration uses it. |
+   | `UPSTASH_REDIS_REST_URL` | Production when rate limiting is enabled | Server-only secret value. |
+   | `UPSTASH_REDIS_REST_TOKEN` | Production when rate limiting is enabled | Server-only secret value. |
+
+   Do **not** add `DATABASE_URL`, `SUPABASE_PROJECT_ID`, or GitHub Project board variables unless a future Vercel build or runtime feature explicitly reads them. Migrations run from the controlled local/CI workflow, not during a Vercel app deployment.
+5. Click **Deploy**. Once it succeeds, open the production deployment and copy its domain. If you later add a custom domain in **Project → Settings → Domains**, make that custom HTTPS domain the canonical origin and repeat sections B–D with it.
+
+### B. Register the deployed origin in Supabase
+
+1. Open **Supabase → Authentication → URL Configuration**.
+2. Set **Site URL** to:
+
+   ```text
+   <PRODUCTION_ORIGIN>
+   ```
+
+3. Add these exact **Redirect URLs** while retaining the localhost URLs for development:
+
+   ```text
+   <PRODUCTION_ORIGIN>/auth/callback
+   <PRODUCTION_ORIGIN>/reset-password
+   ```
+
+4. For Vercel previews, add this only if preview authentication is intentionally supported; replace the placeholder with the actual Vercel team or account slug:
+
+   ```text
+   https://*-<VERCEL_TEAM_OR_ACCOUNT_SLUG>.vercel.app/**
+   ```
+
+   Keep production URLs exact. Do not use a broad wildcard for the production domain.
+
+### C. Register the deployed origin in Google Cloud
+
+1. Open **Google Cloud → Google Auth Platform → Clients**, then open the existing E-VetDoc Web client.
+2. Under **Authorized JavaScript origins**, add:
+
+   ```text
+   <PRODUCTION_ORIGIN>
+   ```
+
+3. Leave the **Authorized redirect URI** pointed to Supabase:
+
+   ```text
+   https://<SUPABASE_PROJECT_REF>.supabase.co/auth/v1/callback
+   ```
+
+   Do not add `<PRODUCTION_ORIGIN>/auth/callback` as a Google redirect URI. Google returns to Supabase first; Supabase then returns to the app callback URL allow-listed in section B.
+4. If the production domain is custom, add it to **Google Auth Platform → Branding → Authorized domains** when the dashboard requires it, then complete any required brand verification before a public launch.
+
+### D. Redeploy and verify
+
+1. Redeploy the Vercel production deployment after changing environment variables; Vercel applies new values only to newly created deployments.
+2. At `<PRODUCTION_ORIGIN>`, test with accounts and an inbox you control:
+   - Sign up and confirm the email returns to the app.
+   - Request a password reset and complete it.
+   - Use **Continue with Google** and confirm the user reaches `/dashboard`.
+3. In Vercel, inspect the deployment logs for configuration errors. Do not paste credentials into logs, tickets, or screenshots.
+
+### Done when
+
+The canonical production URL is deployed, its Vercel production variables are configured, and all three authentication flows return to the intended production app route.
+
+### Deployment URL map
+
+| Platform | Setting | Value |
+| --- | --- | --- |
+| Vercel | `NEXT_PUBLIC_SITE_URL` (Production) | `<PRODUCTION_ORIGIN>` |
+| Supabase | Site URL | `<PRODUCTION_ORIGIN>` |
+| Supabase | Redirect URLs | `<PRODUCTION_ORIGIN>/auth/callback`, `<PRODUCTION_ORIGIN>/reset-password` |
+| Google Cloud | Authorized JavaScript origin | `<PRODUCTION_ORIGIN>` |
+| Google Cloud | Authorized redirect URI | `https://<SUPABASE_PROJECT_REF>.supabase.co/auth/v1/callback` |
 
 ## Helpful references
 
