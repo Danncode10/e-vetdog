@@ -28,7 +28,7 @@
   - **Acceptance criteria:** Google Cloud consent-screen audience and Web client are configured; the Google-to-Supabase callback URI and Supabase-to-app redirect URL are correct; the Supabase Google provider is enabled; a permitted test user signs in and reaches `/dashboard`.
   - **Run:** `/setup-auth`
 
-- [ ] **[P0.5] Prepare hero media direction and handoff**
+- [x] **[P0.5] Prepare hero media direction and handoff**
   - **Goal:** Define the hero-media brief that supports E-VetDoc’s reassuring clinic experience.
   - **Dependencies:** [P0.3].
   - **Acceptance criteria:** A reusable asset brief specifies subject, composition, tone, accessibility considerations, and required formats; assets are ready for template integration.
