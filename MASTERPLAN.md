@@ -10,7 +10,7 @@
   - **Acceptance criteria:** Required environment values are present locally; the baseline migration completes; public tables and functions are verified; generated Supabase types are current.
   - **Run:** `/setup-supabase`
 
-- [ ] **[P0.2] Configure template email authentication and redirects**
+- [x] **[P0.2] Configure template email authentication and redirects**
   - **Goal:** Configure Supabase email authentication, Gmail SMTP delivery, confirmation and recovery redirects, and branded email templates for E-VetDoc.
   - **Dependencies:** [P0.1].
   - **Acceptance criteria:** Email confirmation is enabled; SMTP delivery works; local redirect settings are applied; branded confirmation and reset templates are saved; email confirmation and password reset both complete successfully.
