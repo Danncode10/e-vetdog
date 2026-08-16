@@ -34,7 +34,7 @@
   - **Acceptance criteria:** A reusable asset brief specifies subject, composition, tone, accessibility considerations, and required formats; assets are ready for template integration.
   - **Run:** `/hero-bg`
 
-- [ ] **[P0.6] Complete template visual and quality review**
+- [x] **[P0.6] Complete template visual and quality review**
   - **Goal:** Review the configured template for discoverability, marketing clarity, and implementation quality before product modules are planned.
   - **Dependencies:** [P0.2], [P0.3], [P0.4], [P0.5].
   - **Acceptance criteria:** SEO, marketing, and code-quality review findings are resolved or documented with follow-up work for a later phase.
