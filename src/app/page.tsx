@@ -8,14 +8,28 @@ import { Pricing } from "@/components/landing/pricing";
 import { CtaBanner } from "@/components/landing/cta-banner";
 import { Typewriter } from "@/components/landing/typewriter";
 import { BlogPreview } from "@/components/landing/blog-preview";
+import { siteConfig } from "@/lib/config";
 
 
 export default async function Home() {
   const session = await getUserProfile();
   const user = session?.user || null;
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    name: siteConfig.name,
+    applicationCategory: "BusinessApplication",
+    operatingSystem: "Web",
+    description: siteConfig.description,
+    url: siteConfig.url,
+  };
 
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <Navbar user={user} />
 
       <Hero isAuthed={!!user} />

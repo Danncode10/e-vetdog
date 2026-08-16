@@ -46,7 +46,7 @@ const PLANS = [
       "Care information by permission",
       "One familiar clinic",
     ],
-    cta: "Learn more",
+    cta: "Access your care",
     highlight: false,
   },
 ];
@@ -186,13 +186,7 @@ export function Pricing({ isAuthed }: PricingProps) {
 
                   {/* CTA */}
                   <a
-                    href={
-                      plan.name === "Care for every family"
-                        ? "#"
-                        : isAuthed
-                        ? "/dashboard"
-                        : "/login"
-                    }
+                    href={isAuthed ? "/dashboard" : "/login"}
                     className={`group/cta flex items-center justify-center gap-2 w-full py-3 rounded-full text-[13px] font-medium transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.97] ${
                       plan.highlight
                         ? "bg-foreground text-background hover:opacity-90 shadow-[0_4px_20px_rgba(124,92,255,0.25),inset_0_1px_0_rgba(255,255,255,0.2)]"
