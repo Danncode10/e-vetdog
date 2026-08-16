@@ -73,7 +73,7 @@ export function LeadsTab() {
           <div className="p-12 text-center"><Loader2 className="w-5 h-5 animate-spin inline" /></div>
         ) : (leads ?? []).length === 0 ? (
           <div className="p-12 text-center text-[13px] text-muted-foreground">
-            No leads yet. Once your contact form is wired up, they'll appear here.
+            No leads yet. Once your contact form is wired up, they&apos;ll appear here.
           </div>
         ) : (
           <div className="divide-y divide-border">

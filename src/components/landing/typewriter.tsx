@@ -63,12 +63,14 @@ export function Typewriter({
     // be loading while the browser restores the hash scroll position.
     const isAnchorNavigation = window.location.hash.length > 0;
     if (reduce || skipAnimation || isAnchorNavigation) {
-      setShown(text.length);
-      if (!completedRef.current) {
-        completedRef.current = true;
-        onCompleteRef.current?.();
-      }
-      return;
+      const frame = requestAnimationFrame(() => {
+        setShown(text.length);
+        if (!completedRef.current) {
+          completedRef.current = true;
+          onCompleteRef.current?.();
+        }
+      });
+      return () => cancelAnimationFrame(frame);
     }
 
     const startAt = performance.now() + delay;

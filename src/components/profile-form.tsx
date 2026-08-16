@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { updateProfile } from "@/services/users";
 import { User, Calendar, CircleUser, Loader2, CheckCircle2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +14,22 @@ type Profile = Database["public"]["Tables"]["profiles"]["Row"] | null;
 const inputClass =
   "w-full bg-secondary border border-border rounded-2xl py-4 pl-12 pr-5 text-sm font-semibold text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/20 transition-all";
 
+function ageFromBirthday(birthday: string): string | null {
+  if (!birthday) return null;
+
+  const birthDate = new Date(birthday);
+  if (Number.isNaN(birthDate.getTime())) return null;
+
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const monthDifference = today.getMonth() - birthDate.getMonth();
+  if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+
+  return age >= 0 ? String(age) : null;
+}
+
 export function ProfileForm({ profile }: { profile: Profile }) {
   const [success, setSuccess] = useState(false);
   const queryClient = useQueryClient();
@@ -25,19 +41,14 @@ export function ProfileForm({ profile }: { profile: Profile }) {
     gender: profile?.gender || "",
   });
 
-  // Auto-calculate age from birthday
-  useEffect(() => {
-    if (formData.birthday) {
-      const birthDate = new Date(formData.birthday);
-      const today = new Date();
-      let age = today.getFullYear() - birthDate.getFullYear();
-      const m = today.getMonth() - birthDate.getMonth();
-      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
-      if (age >= 0 && formData.age !== String(age)) {
-        setFormData(prev => ({ ...prev, age: String(age) }));
-      }
-    }
-  }, [formData.birthday]);
+  const handleBirthdayChange = (birthday: string) => {
+    const calculatedAge = ageFromBirthday(birthday);
+    setFormData((current) => ({
+      ...current,
+      birthday,
+      age: calculatedAge ?? current.age,
+    }));
+  };
 
   const mutation = useMutation({
     mutationFn: (data: typeof formData) =>
@@ -138,7 +149,7 @@ export function ProfileForm({ profile }: { profile: Profile }) {
               <input
                 type="date"
                 value={formData.birthday}
-                onChange={(e) => setFormData({ ...formData, birthday: e.target.value })}
+                onChange={(e) => handleBirthdayChange(e.target.value)}
                 className={inputClass}
               />
             </div>

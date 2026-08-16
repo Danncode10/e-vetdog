@@ -73,7 +73,7 @@ export function GalleryTab() {
         <div className="p-12 text-center"><Loader2 className="w-5 h-5 animate-spin inline" /></div>
       ) : (items ?? []).length === 0 ? (
         <div className="bg-card border border-dashed border-border rounded-2xl p-12 text-center text-[13px] text-muted-foreground">
-          No gallery items yet. Click "Add Image" to upload one.
+          No gallery items yet. Click &quot;Add Image&quot; to upload one.
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
