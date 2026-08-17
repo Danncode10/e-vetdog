@@ -250,7 +250,7 @@ When a setting, provider, URL, or workflow changes, update this file in the same
 
    | Variable | Vercel environment | Notes |
    | --- | --- | --- |
-   | `NEXT_PUBLIC_SUPABASE_URL` | Production; Preview if tested | Safe to expose to the browser; copy the project URL. |
+   | `NEXT_PUBLIC_SUPABASE_URL` | Production; Preview if tested | Safe to expose to the browser; must stay `https://zmdtwhqirmkptzobufio.supabase.co`. Never replace it with the Vercel app URL. |
    | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Production; Preview if tested | Safe to expose to the browser; use the publishable/anon key. |
    | `SUPABASE_SERVICE_ROLE_KEY` | Production only, unless a protected preview needs it | Secret; never prefix it with `NEXT_PUBLIC_`. |
    | `NEXT_PUBLIC_SITE_NAME` | Production; Preview if tested | `E-VetDoc`. |
@@ -266,7 +266,7 @@ When a setting, provider, URL, or workflow changes, update this file in the same
 
 The first successful Vercel deployment reveals the production domain; it does **not** complete P0.8. As soon as the domain is known, complete these actions before calling the deployment ready:
 
-1. The initial deployment uses the current `NEXT_PUBLIC_SITE_URL` copied from `.env.local`. In **Vercel → Project → Settings → Environment Variables**, replace that Production value with the exact production origin, then redeploy production. The deployment that first revealed the URL cannot contain this replacement value.
+1. The initial deployment uses the current `NEXT_PUBLIC_SITE_URL` copied from `.env.local`. In **Vercel → Project → Settings → Environment Variables**, replace only that Production value with the complete production origin including `https://` (for example, `https://e-vetdog-chi.vercel.app`), then redeploy production. Do not change `NEXT_PUBLIC_SUPABASE_URL`: it must remain `https://zmdtwhqirmkptzobufio.supabase.co`. The deployment that first revealed the URL cannot contain this replacement value.
 2. Complete sections B and C below with that same exact origin.
 3. Complete the three production authentication tests in section D.
 
@@ -283,7 +283,7 @@ Current E-VetDoc deployment record (2026-08-17):
 ### B. Register the deployed origin in Supabase
 
 1. Open **Supabase → Authentication → URL Configuration**.
-2. During testing, keep **Site URL** as `http://localhost:3000` when local development is the intended fallback. This does not prevent production testing when the production redirect URLs below are allow-listed. Set Site URL to `<PRODUCTION_ORIGIN>` only when production becomes the intended public-launch fallback for authentication emails and templates.
+2. During testing, keep **Site URL** as `http://localhost:3000` when local development is the intended fallback. This does not prevent production testing when the production redirect URLs below are allow-listed. Set Site URL to the complete `<PRODUCTION_ORIGIN>` only when production becomes the intended public-launch fallback for authentication emails and templates. It must include `https://`; a bare domain is invalid.
 
 3. Add these exact **Redirect URLs** while retaining the localhost URLs for development:
 
@@ -335,6 +335,7 @@ The canonical production URL is deployed, its Vercel production variables are co
 
 | Platform | Setting | Value |
 | --- | --- | --- |
+| Vercel | `NEXT_PUBLIC_SUPABASE_URL` | `https://zmdtwhqirmkptzobufio.supabase.co` — never the production app URL |
 | Vercel | `NEXT_PUBLIC_SITE_URL` (Production) | `<PRODUCTION_ORIGIN>` |
 | Supabase | Site URL | Keep the intended fallback during testing; set `<PRODUCTION_ORIGIN>` at public launch |
 | Supabase | Redirect URLs | `<PRODUCTION_ORIGIN>/auth/callback`, `<PRODUCTION_ORIGIN>/reset-password` |
