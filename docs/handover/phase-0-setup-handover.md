@@ -277,7 +277,7 @@ Current E-VetDoc deployment record (2026-08-17):
 | Canonical production origin | `https://e-vetdog-chi.vercel.app` |
 | Vercel `NEXT_PUBLIC_SITE_URL` | Pending confirmation |
 | Supabase production URL configuration | Pending confirmation |
-| Google Cloud production JavaScript origin | Pending confirmation |
+| Google Cloud production JavaScript origin | Added to the existing Web application client on 2026-08-17 |
 | Production authentication tests | Pending |
 
 ### B. Register the deployed origin in Supabase
@@ -302,14 +302,14 @@ Current E-VetDoc deployment record (2026-08-17):
 
 ### C. Register the deployed origin in Google Cloud
 
-1. Open **Google Cloud → Google Auth Platform → Clients**, then open the existing E-VetDoc Web client.
-2. Under **Authorized JavaScript origins**, add:
+1. In Google Cloud, search for **Google Auth Platform**, open **Clients**, then open the existing E-VetDoc **Web application** client.
+2. Under **Authorized JavaScript origins**, click **Add URI** and add:
 
    ```text
    <PRODUCTION_ORIGIN>
    ```
 
-3. Leave the **Authorized redirect URI** pointed to Supabase:
+3. Leave the **Authorized redirect URI** pointed to Supabase, then click **Save**:
 
    ```text
    https://<SUPABASE_PROJECT_REF>.supabase.co/auth/v1/callback

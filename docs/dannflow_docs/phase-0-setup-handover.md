@@ -231,9 +231,9 @@ When a setting, provider, URL, or workflow changes, update this file in the same
 
 ### C. Register the deployed origin in Google Cloud
 
-1. Open **Google Cloud → Google Auth Platform → Clients**, then the existing Web client.
-2. Add `<PRODUCTION_ORIGIN>` under **Authorized JavaScript origins**.
-3. Keep the **Authorized redirect URI** pointed to Supabase:
+1. In Google Cloud, search for **Google Auth Platform**, open **Clients**, then open the existing **Web application** client.
+2. Under **Authorized JavaScript origins**, click **Add URI** and enter `<PRODUCTION_ORIGIN>` with no path.
+3. Keep the **Authorized redirect URI** pointed to Supabase, then click **Save**:
 
    ```text
    https://<SUPABASE_PROJECT_REF>.supabase.co/auth/v1/callback
