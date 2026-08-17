@@ -245,7 +245,7 @@ When a setting, provider, URL, or workflow changes, update this file in the same
 
 1. In Vercel, choose **Add New → Project**, import the E-VetDoc Git repository, and select the correct team/account.
 2. Confirm Vercel detects **Next.js**. Keep the repository root as the Root Directory unless the app later moves into a monorepo subdirectory.
-3. Before deploying, open **Project → Settings → Environment Variables**. Copy values from your private `.env.local`; never upload the file itself or commit it.
+3. Before deploying, open **Project → Settings → Environment Variables**. Copy only the required deployment runtime values from your private `.env.local`; never upload or copy the entire file, commit it, or share its values in chat.
 4. Add the variables below to **Production**. Add the same safe runtime values to **Preview** only when preview deployments need to authenticate against this Supabase project.
 
    | Variable | Vercel environment | Notes |
@@ -254,13 +254,31 @@ When a setting, provider, URL, or workflow changes, update this file in the same
    | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Production; Preview if tested | Safe to expose to the browser; use the publishable/anon key. |
    | `SUPABASE_SERVICE_ROLE_KEY` | Production only, unless a protected preview needs it | Secret; never prefix it with `NEXT_PUBLIC_`. |
    | `NEXT_PUBLIC_SITE_NAME` | Production; Preview if tested | `E-VetDoc`. |
-   | `NEXT_PUBLIC_SITE_URL` | Production | `<PRODUCTION_ORIGIN>`; this app reads it for its canonical site configuration. |
+   | `NEXT_PUBLIC_SITE_URL` | Production | Copy the current `.env.local` value for the initial deployment; after Vercel gives the production domain, replace it with `<PRODUCTION_ORIGIN>`. This app reads it for its canonical site configuration. |
    | `NEXT_PUBLIC_GITHUB_URL` | Production; Preview if tested | Product/project GitHub URL, if the existing configuration uses it. |
    | `UPSTASH_REDIS_REST_URL` | Production when rate limiting is enabled | Server-only secret value. |
    | `UPSTASH_REDIS_REST_TOKEN` | Production when rate limiting is enabled | Server-only secret value. |
 
    Do **not** add `DATABASE_URL`, `SUPABASE_PROJECT_ID`, or GitHub Project board variables unless a future Vercel build or runtime feature explicitly reads them. Migrations run from the controlled local/CI workflow, not during a Vercel app deployment.
 5. Click **Deploy**. Once it succeeds, open the production deployment and copy its domain. If you later add a custom domain in **Project → Settings → Domains**, make that custom HTTPS domain the canonical origin and repeat sections B–D with it.
+
+### Required post-deployment URL handoff
+
+The first successful Vercel deployment reveals the production domain; it does **not** complete P0.8. As soon as the domain is known, complete these actions before calling the deployment ready:
+
+1. The initial deployment uses the current `NEXT_PUBLIC_SITE_URL` copied from `.env.local`. In **Vercel → Project → Settings → Environment Variables**, replace that Production value with the exact production origin, then redeploy production. The deployment that first revealed the URL cannot contain this replacement value.
+2. Complete sections B and C below with that same exact origin.
+3. Complete the three production authentication tests in section D.
+
+Current E-VetDoc deployment record (2026-08-17):
+
+| Item | Value / status |
+| --- | --- |
+| Canonical production origin | `https://e-vetdog-chi.vercel.app` |
+| Vercel `NEXT_PUBLIC_SITE_URL` | Pending confirmation |
+| Supabase production URL configuration | Pending confirmation |
+| Google Cloud production JavaScript origin | Pending confirmation |
+| Production authentication tests | Pending |
 
 ### B. Register the deployed origin in Supabase
 
