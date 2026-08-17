@@ -283,11 +283,7 @@ Current E-VetDoc deployment record (2026-08-17):
 ### B. Register the deployed origin in Supabase
 
 1. Open **Supabase → Authentication → URL Configuration**.
-2. Set **Site URL** to:
-
-   ```text
-   <PRODUCTION_ORIGIN>
-   ```
+2. During testing, keep **Site URL** as `http://localhost:3000` when local development is the intended fallback. This does not prevent production testing when the production redirect URLs below are allow-listed. Set Site URL to `<PRODUCTION_ORIGIN>` only when production becomes the intended public-launch fallback for authentication emails and templates.
 
 3. Add these exact **Redirect URLs** while retaining the localhost URLs for development:
 
@@ -340,7 +336,7 @@ The canonical production URL is deployed, its Vercel production variables are co
 | Platform | Setting | Value |
 | --- | --- | --- |
 | Vercel | `NEXT_PUBLIC_SITE_URL` (Production) | `<PRODUCTION_ORIGIN>` |
-| Supabase | Site URL | `<PRODUCTION_ORIGIN>` |
+| Supabase | Site URL | Keep the intended fallback during testing; set `<PRODUCTION_ORIGIN>` at public launch |
 | Supabase | Redirect URLs | `<PRODUCTION_ORIGIN>/auth/callback`, `<PRODUCTION_ORIGIN>/reset-password` |
 | Google Cloud | Authorized JavaScript origin | `<PRODUCTION_ORIGIN>` |
 | Google Cloud | Authorized redirect URI | `https://<SUPABASE_PROJECT_REF>.supabase.co/auth/v1/callback` |
