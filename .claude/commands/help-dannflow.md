@@ -173,6 +173,7 @@ graph TD
   Setup --> IC["/init-claude"]
   Setup --> IU["/init-update"]
   Setup --> AD["/adopt-dannflow"]
+  Setup --> SV["/setup-vercel"]
 
   Planning["Planning & Tasks"] --> MPI
   Planning --> MM["/make-masterplan <phase>"]
