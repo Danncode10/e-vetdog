@@ -41,7 +41,7 @@ function getAuthErrorMessage(err: unknown) {
     return 'Use a stronger password before creating your account.';
   }
   if (message.includes('provider') || message.includes('oauth')) {
-    return 'Google login is not configured yet. Check the Supabase provider and redirect URLs.';
+    return 'Google sign-in is unavailable right now. Please check the provider settings and try again.';
   }
 
   return err.message;
@@ -197,7 +197,7 @@ export default function AuthPage() {
           height: 560,
           borderRadius: '50%',
           background: 'var(--color-primary)',
-          opacity: 0.15,
+          opacity: 0.04,
           filter: 'blur(110px)',
           animation: 'float 9s ease-in-out infinite',
         }} />
@@ -209,7 +209,7 @@ export default function AuthPage() {
           height: 480,
           borderRadius: '50%',
           background: 'var(--color-primary)',
-          opacity: 0.08,
+          opacity: 0.03,
           filter: 'blur(110px)',
           animation: 'float 11s ease-in-out infinite reverse',
         }} />
@@ -247,7 +247,7 @@ export default function AuthPage() {
               position: 'absolute',
               inset: 0,
               pointerEvents: 'none',
-              background: 'linear-gradient(145deg, rgba(108, 71, 255,0.05) 0%, transparent 55%)',
+              background: 'linear-gradient(145deg, color-mix(in srgb, var(--color-primary) 8%, transparent) 0%, transparent 55%)',
             }} />
 
             {/* Orbital Ring */}
@@ -258,7 +258,7 @@ export default function AuthPage() {
               width: 180,
               height: 180,
               borderRadius: '50%',
-              border: '1px solid rgba(108, 71, 255,0.125)',
+              border: '1px solid color-mix(in srgb, var(--color-primary) 18%, transparent)',
               pointerEvents: 'none',
             }}>
               <div style={{
@@ -272,7 +272,7 @@ export default function AuthPage() {
                 marginTop: -3.5,
                 marginLeft: -3.5,
                 animation: 'orbit 5s linear infinite',
-                boxShadow: '0 0 8px var(--color-primary)',
+                boxShadow: 'none',
               }} />
             </div>
 
@@ -289,48 +289,48 @@ export default function AuthPage() {
                   justifyContent: 'center',
                   fontWeight: 'bold',
                   fontSize: 14,
-                  color: 'white',
-                  boxShadow: '0 0 18px rgba(108, 71, 255,0.333)',
-                }}>D</div>
-                <span style={{ fontSize: 18, fontWeight: 'bold', letterSpacing: -0.025, color: '#F0EEFF' }}>DannFlow</span>
+                  color: 'var(--color-primary-foreground)',
+                  boxShadow: '0 8px 18px color-mix(in srgb, var(--color-primary) 18%, transparent)',
+                }}>E</div>
+                <span style={{ fontSize: 18, fontWeight: 'bold', letterSpacing: -0.025, color: 'var(--color-foreground)' }}>E-VetDoc</span>
                 <span style={{
                   padding: '2px 7px',
                   borderRadius: 5,
-                  background: 'rgba(108, 71, 255,0.125)',
-                  border: '1px solid rgba(108, 71, 255,0.25)',
+                  background: 'var(--color-accent)',
+                  border: '1px solid var(--color-border)',
                   fontSize: 10,
                   color: 'var(--color-primary)',
                   letterSpacing: 0.06,
-                }}>v2.0</span>
+                }}>Clinic portal</span>
               </div>
 
               {/* Headline */}
               <h1 style={{ fontSize: 32, fontWeight: 'bold', lineHeight: 1.18, marginBottom: 14, letterSpacing: -0.03 }}>
-                Ship your idea.
+                Care for every pet.
                 <br />
                 <span style={{
-                  background: 'linear-gradient(90deg, var(--color-primary), #60A5FA, var(--color-primary))',
+                  background: 'linear-gradient(90deg, var(--color-primary), var(--color-primary), var(--color-primary))',
                   backgroundSize: '200% auto',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
                   animation: 'shimmer 3s linear infinite',
-                }}>Not boilerplate.</span>
+                }}>With clarity.</span>
               </h1>
 
-              <p style={{ fontSize: 13.5, color: '#9490B5', lineHeight: 1.7, maxWidth: 290, marginBottom: 36 }}>
-                The AI-native Next.js boilerplate for builders who ship. Plug in your vision — we handle the rest.
+              <p style={{ fontSize: 13.5, color: 'var(--color-muted-foreground)', lineHeight: 1.7, maxWidth: 290, marginBottom: 36 }}>
+                One secure workspace for appointments, pet records, billing, and the people who care for them.
               </p>
 
               {/* Features */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                {['Next.js 15 + Supabase auth built-in', 'AI-native architecture & MCP ready', 'Deploy to Vercel in under 2 minutes', 'Checkpoint rollback system'].map((f, i) => (
+                {['Secure accounts for pet owners', 'Role-aware access for clinic staff', 'Appointments and records in one place', 'Clear billing and receipt history'].map((f, i) => (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
                     <div style={{
                       width: 20,
                       height: 20,
                       borderRadius: 6,
-                      background: 'rgba(108, 71, 255,0.09)',
-                      border: '1px solid rgba(108, 71, 255,0.22)',
+                      background: 'var(--color-accent)',
+                      border: '1px solid var(--color-border)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -339,7 +339,7 @@ export default function AuthPage() {
                     }}>
                       <Check size={11} />
                     </div>
-                    <span style={{ fontSize: 13, color: '#C4C0E0', lineHeight: 1.4 }}>{f}</span>
+                    <span style={{ fontSize: 13, color: 'var(--color-muted-foreground)', lineHeight: 1.4 }}>{f}</span>
                   </div>
                 ))}
               </div>
@@ -352,8 +352,8 @@ export default function AuthPage() {
               gap: 10,
               padding: '13px 15px',
               borderRadius: 10,
-              background: 'rgba(108, 71, 255,0.04)',
-              border: '1px solid rgba(108, 71, 255,0.133)',
+              background: 'var(--color-accent)',
+              border: '1px solid var(--color-border)',
               position: 'relative',
               zIndex: 1,
             }}>
@@ -361,12 +361,12 @@ export default function AuthPage() {
                 width: 7,
                 height: 7,
                 borderRadius: '50%',
-                background: '#22C55E',
+                background: 'var(--color-primary)',
                 flexShrink: 0,
-                boxShadow: '0 0 7px #22C55E',
+                boxShadow: 'none',
                 animation: 'pulse-dot 2s ease-in-out infinite',
               }} />
-              <span style={{ fontSize: 11, color: '#9490B5' }}>All systems operational</span>
+              <span style={{ fontSize: 11, color: 'var(--color-muted-foreground)' }}>Secure clinic workspace</span>
             </div>
           </div>
         )}
@@ -394,26 +394,26 @@ export default function AuthPage() {
                   justifyContent: 'center',
                   fontWeight: 'bold',
                   fontSize: 13,
-                  color: 'white',
-                  boxShadow: '0 0 18px rgba(108, 71, 255,0.333)',
-                }}>D</div>
-                <span style={{ fontSize: 17, fontWeight: 'bold', letterSpacing: -0.025, color: '#F0EEFF' }}>DannFlow</span>
+                  color: 'var(--color-primary-foreground)',
+                  boxShadow: '0 8px 18px color-mix(in srgb, var(--color-primary) 18%, transparent)',
+                }}>E</div>
+                <span style={{ fontSize: 17, fontWeight: 'bold', letterSpacing: -0.025, color: 'var(--color-foreground)' }}>E-VetDoc</span>
                 <span style={{
                   padding: '2px 7px',
                   borderRadius: 5,
-                  background: 'rgba(108, 71, 255,0.125)',
-                  border: '1px solid rgba(108, 71, 255,0.25)',
+                  background: 'var(--color-accent)',
+                  border: '1px solid var(--color-border)',
                   fontSize: 10,
                   color: 'var(--color-primary)',
                   letterSpacing: 0.06,
-                }}>v2.0</span>
+                }}>Clinic portal</span>
               </div>
             )}
             {/* Tabs */}
             {mode !== 'recovery' && (
             <div style={{
               display: 'flex',
-              background: '#13131F',
+              background: 'var(--color-muted)',
               borderRadius: 11,
               padding: 3,
               marginBottom: 32,
@@ -431,11 +431,11 @@ export default function AuthPage() {
                     border: 'none',
                     borderRadius: 8,
                     cursor: 'pointer',
-                    color: mode === m ? '#fff' : '#9490B5',
+                    color: mode === m ? 'var(--color-primary-foreground)' : 'var(--color-muted-foreground)',
                     fontWeight: 600,
                     fontSize: 13,
                     transition: 'all 0.2s',
-                    boxShadow: mode === m ? '0 2px 10px rgba(108, 71, 255,0.314)' : 'none',
+                    boxShadow: mode === m ? '0 4px 12px color-mix(in srgb, var(--color-primary) 22%, transparent)' : 'none',
                   }}
                 >
                   {m === 'login' ? 'Sign In' : 'Create Account'}
@@ -446,17 +446,17 @@ export default function AuthPage() {
 
             {/* Heading */}
             <div style={{ marginBottom: 24 }}>
-              <h2 style={{ fontSize: 26, fontWeight: 'bold', letterSpacing: -0.025, marginBottom: 5, color: '#F0EEFF' }}>
-                {mode === 'login' ? 'Welcome back' : mode === 'signup' ? 'Start building' : 'Reset password'}
+              <h2 style={{ fontSize: 26, fontWeight: 'bold', letterSpacing: -0.025, marginBottom: 5, color: 'var(--color-foreground)' }}>
+                {mode === 'login' ? 'Welcome back' : mode === 'signup' ? 'Create your account' : 'Reset your password'}
               </h2>
-              <p style={{ fontSize: 13, color: '#9490B5', lineHeight: 1.55 }}>
+              <p style={{ fontSize: 13, color: 'var(--color-muted-foreground)', lineHeight: 1.55 }}>
                 {mode === 'login'
-                  ? 'Access Mission Control — your launchpad awaits.'
+                  ? 'Sign in to manage appointments, care records, and clinic updates.'
                   : mode === 'signup'
-                    ? 'Create your account and ship your first idea today.'
+                    ? 'Create an account to access your pet care information securely.'
                     : email
-                      ? `Send a secure setup link to ${email}.`
-                      : 'Enter your account email and we will send a secure setup link.'}
+                      ? `Send a secure reset link to ${email}.`
+                      : 'Enter your account email and we will send a secure reset link.'}
               </p>
             </div>
 
@@ -471,11 +471,11 @@ export default function AuthPage() {
                 animation: 'fadeUp 0.35s ease both',
               }}>
                 <div style={{ fontSize: 28, marginBottom: 10 }}>✓</div>
-                <p style={{ fontWeight: 600, marginBottom: 5, color: '#F0EEFF' }}>
+                <p style={{ fontWeight: 600, marginBottom: 5, color: 'var(--color-foreground)' }}>
                   Reset email sent
                 </p>
-                <p style={{ fontSize: 12, color: '#9490B5', lineHeight: 1.55 }}>
-                  We sent a setup link to {resetSentTo}. Make sure this is your email, then open the link to create a new password.
+                <p style={{ fontSize: 12, color: 'var(--color-muted-foreground)', lineHeight: 1.55 }}>
+                  We sent a reset link to {resetSentTo}. Open it to choose a new password.
                 </p>
                 <button
                   type="button"
@@ -503,22 +503,22 @@ export default function AuthPage() {
                 animation: 'fadeUp 0.35s ease both',
               }}>
                 <div style={{ fontSize: 28, marginBottom: 10 }}>✓</div>
-                <p style={{ fontWeight: 600, marginBottom: 5, color: '#F0EEFF' }}>
+                <p style={{ fontWeight: 600, marginBottom: 5, color: 'var(--color-foreground)' }}>
                   {mode === 'login' ? 'Welcome back!' : 'Account created!'}
                 </p>
-                <p style={{ fontSize: 12, color: '#9490B5' }}>
-                  {mode === 'login' ? 'Redirecting to Mission Control...' : 'Check your email for confirmation.'}
+                <p style={{ fontSize: 12, color: 'var(--color-muted-foreground)' }}>
+                  {mode === 'login' ? 'Opening your clinic workspace…' : 'Check your email to confirm your account.'}
                 </p>
               </div>
             ) : (
               <form key={formKey} onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                 {mode === 'signup' && (
                   <div style={{ animation: 'slideIn 0.25s ease both' }}>
-                    <label style={{ display: 'block', fontSize: 11, fontWeight: 600, letterSpacing: 0.08, textTransform: 'uppercase', color: '#9490B5', marginBottom: 6 }}>
+                    <label style={{ display: 'block', fontSize: 11, fontWeight: 600, letterSpacing: 0.08, textTransform: 'uppercase', color: 'var(--color-muted-foreground)', marginBottom: 6 }}>
                       Full name
                     </label>
                     <div style={{ position: 'relative' }}>
-                      <User size={15} style={{ position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)', color: '#9490B5', pointerEvents: 'none' }} />
+                      <User size={15} style={{ position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-muted-foreground)', pointerEvents: 'none' }} />
                       <input
                         id="name"
                         name="name"
@@ -527,17 +527,17 @@ export default function AuthPage() {
                         value={name}
                         onChange={e => setName(e.target.value)}
                         onFocus={clearAuthError}
-                        placeholder="Dann Lopez"
+                        placeholder="Full name"
                         style={{
                           width: '100%',
                           paddingLeft: 40,
                           paddingRight: 14,
                           paddingTop: 12,
                           paddingBottom: 12,
-                          background: 'rgba(19,19,31,0.8)',
+                          background: 'var(--color-card)',
                           border: '1px solid var(--color-border)',
                           borderRadius: 9,
-                          color: '#F0EEFF',
+                          color: 'var(--color-foreground)',
                           fontSize: 14,
                           outline: 'none',
                           transition: 'all 0.18s',
@@ -549,11 +549,11 @@ export default function AuthPage() {
                 )}
 
                 <div>
-                  <label style={{ display: 'block', fontSize: 11, fontWeight: 600, letterSpacing: 0.08, textTransform: 'uppercase', color: '#9490B5', marginBottom: 6 }}>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 600, letterSpacing: 0.08, textTransform: 'uppercase', color: 'var(--color-muted-foreground)', marginBottom: 6 }}>
                     Email address
                   </label>
                   <div style={{ position: 'relative' }}>
-                    <Mail size={15} style={{ position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)', color: '#9490B5', pointerEvents: 'none' }} />
+                    <Mail size={15} style={{ position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-muted-foreground)', pointerEvents: 'none' }} />
                     <input
                       id="email"
                       name="email"
@@ -566,7 +566,7 @@ export default function AuthPage() {
                         setResetSentTo('');
                       }}
                       onFocus={clearAuthError}
-                      placeholder="dann@example.com"
+                      placeholder="you@example.com"
                       required
                       style={{
                         width: '100%',
@@ -574,10 +574,10 @@ export default function AuthPage() {
                         paddingRight: 14,
                         paddingTop: 12,
                         paddingBottom: 12,
-                        background: 'rgba(19,19,31,0.8)',
+                        background: 'var(--color-card)',
                         border: '1px solid var(--color-border)',
                         borderRadius: 9,
-                        color: '#F0EEFF',
+                        color: 'var(--color-foreground)',
                         fontSize: 14,
                         outline: 'none',
                         transition: 'all 0.18s',
@@ -589,11 +589,11 @@ export default function AuthPage() {
 
                 {mode !== 'recovery' && (
                 <div>
-                  <label style={{ display: 'block', fontSize: 11, fontWeight: 600, letterSpacing: 0.08, textTransform: 'uppercase', color: '#9490B5', marginBottom: 6 }}>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 600, letterSpacing: 0.08, textTransform: 'uppercase', color: 'var(--color-muted-foreground)', marginBottom: 6 }}>
                     Password
                   </label>
                   <div style={{ position: 'relative' }}>
-                    <Lock size={15} style={{ position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)', color: '#9490B5', pointerEvents: 'none' }} />
+                    <Lock size={15} style={{ position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-muted-foreground)', pointerEvents: 'none' }} />
                     <input
                       id="password"
                       name="password"
@@ -613,10 +613,10 @@ export default function AuthPage() {
                         paddingRight: 40,
                         paddingTop: 12,
                         paddingBottom: 12,
-                        background: 'rgba(19,19,31,0.8)',
+                        background: 'var(--color-card)',
                         border: '1px solid var(--color-border)',
                         borderRadius: 9,
-                        color: '#F0EEFF',
+                        color: 'var(--color-foreground)',
                         fontSize: 14,
                         outline: 'none',
                         transition: 'all 0.18s',
@@ -634,7 +634,7 @@ export default function AuthPage() {
                         background: 'none',
                         border: 'none',
                         cursor: 'pointer',
-                        color: '#9490B5',
+                        color: 'var(--color-muted-foreground)',
                         padding: 0,
                         display: 'flex',
                         alignItems: 'center',
@@ -668,7 +668,7 @@ export default function AuthPage() {
 
                 {mode === 'login' && (
                   <div style={{ textAlign: 'right', marginTop: -4 }}>
-                    <button type="button" onClick={() => switchMode('recovery')} style={{ fontSize: 11, color: '#9490B5', textDecoration: 'none', letterSpacing: 0.05, transition: 'color 0.2s', cursor: 'pointer', background: 'transparent', border: 'none', padding: 0 }} onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-primary)'} onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.color = '#9490B5'}>
+                    <button type="button" onClick={() => switchMode('recovery')} style={{ fontSize: 11, color: 'var(--color-muted-foreground)', textDecoration: 'none', letterSpacing: 0.05, transition: 'color 0.2s', cursor: 'pointer', background: 'transparent', border: 'none', padding: 0 }} onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-primary)'} onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-muted-foreground)'}>
                       FORGOT PASSWORD?
                     </button>
                   </div>
@@ -694,22 +694,22 @@ export default function AuthPage() {
                     width: '100%',
                     padding: '13px 0',
                     marginTop: 2,
-                    background: loading ? 'rgba(108, 71, 255,0.375)' : 'linear-gradient(135deg, var(--color-primary), var(--color-primary))',
+                    background: loading ? 'color-mix(in srgb, var(--color-primary) 45%, var(--color-muted))' : 'var(--color-primary)',
                     border: 'none',
                     borderRadius: 10,
                     cursor: loading ? 'not-allowed' : 'pointer',
-                    color: '#fff',
+                    color: 'var(--color-primary-foreground)',
                     fontWeight: 700,
                     fontSize: 14,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: 8,
-                    boxShadow: loading ? 'none' : `0 4px 18px rgba(108, 71, 255,0.267), 0 0 0 1px rgba(255,255,255,0.06)`,
+                    boxShadow: loading ? 'none' : '0 8px 18px color-mix(in srgb, var(--color-primary) 18%, transparent)',
                     transition: 'all 0.18s',
                   }}
-                  onMouseEnter={e => { if (!loading) { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = `0 6px 24px rgba(108, 71, 255,0.333), 0 0 0 1px rgba(255,255,255,0.1)`; } }}
-                  onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = `0 4px 18px rgba(108, 71, 255,0.267), 0 0 0 1px rgba(255,255,255,0.06)`; }}
+                  onMouseEnter={e => { if (!loading) { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 10px 22px color-mix(in srgb, var(--color-primary) 22%, transparent)'; } }}
+                  onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 8px 18px color-mix(in srgb, var(--color-primary) 18%, transparent)'; }}
                 >
                   {loading ? (
                     <>
@@ -725,7 +725,7 @@ export default function AuthPage() {
                 </button>
 
                 {mode === 'signup' && (
-                  <p style={{ fontSize: 11, color: '#5A5680', textAlign: 'center', lineHeight: 1.55 }}>
+                  <p style={{ fontSize: 11, color: 'var(--color-muted-foreground)', textAlign: 'center', lineHeight: 1.55 }}>
                     By signing up you agree to the{' '}
                     <Link href="#" style={{ color: 'var(--color-primary)', textDecoration: 'none' }}>Terms</Link>{' '}and{' '}
                     <Link href="#" style={{ color: 'var(--color-primary)', textDecoration: 'none' }}>Privacy Policy</Link>.
@@ -745,7 +745,7 @@ export default function AuthPage() {
                   background: 'transparent',
                   border: '1px solid var(--color-border)',
                   borderRadius: 10,
-                  color: '#9490B5',
+                  color: 'var(--color-muted-foreground)',
                   cursor: 'pointer',
                   fontWeight: 600,
                   fontSize: 13,
@@ -757,17 +757,17 @@ export default function AuthPage() {
             <>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '22px 0' }}>
               <div style={{ flex: 1, height: 1, background: 'var(--color-border)' }} />
-              <span style={{ fontSize: 10, color: '#5A5680' }}>OR</span>
+              <span style={{ fontSize: 10, color: 'var(--color-muted-foreground)' }}>OR</span>
               <div style={{ flex: 1, height: 1, background: 'var(--color-border)' }} />
             </div>
 
             <button type="button" disabled={oauthLoading || loading} onClick={handleGoogleSignIn} style={{
               width: '100%',
               padding: '12px 0',
-              background: '#13131F',
+              background: 'var(--color-card)',
               border: '1px solid var(--color-border)',
               borderRadius: 10,
-              color: '#F0EEFF',
+              color: 'var(--color-foreground)',
               cursor: 'pointer',
               fontWeight: 600,
               fontSize: 13,
@@ -776,7 +776,7 @@ export default function AuthPage() {
               justifyContent: 'center',
               gap: 9,
               transition: 'all 0.18s',
-            }} onMouseEnter={e => { e.currentTarget.style.borderColor = '#4A4670'; e.currentTarget.style.background = '#1A1A2E'; }} onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--color-border)'; e.currentTarget.style.background = '#13131F'; }}>
+            }} onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--color-primary)'; e.currentTarget.style.background = 'var(--color-muted)'; }} onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--color-border)'; e.currentTarget.style.background = 'var(--color-card)'; }}>
               {oauthLoading ? <Loader2 size={16} style={{ animation: 'spin 0.75s linear infinite' }} /> : <GoogleIcon />}
               Continue with Google
             </button>
@@ -797,13 +797,12 @@ export default function AuthPage() {
         alignItems: 'center',
         flexWrap: 'wrap',
         gap: 8,
-        background: 'rgba(10,10,15,0.75)',
-        backdropFilter: 'blur(10px)',
+        background: 'var(--color-muted)',
       }}>
-        <span style={{ fontSize: 11, color: '#5A5680' }}>© 2026 DannFlow</span>
+        <span style={{ fontSize: 11, color: 'var(--color-muted-foreground)' }}>© 2026 E-VetDoc</span>
         <div style={{ display: 'flex', gap: 18 }}>
-          {['Privacy', 'Terms', 'Docs'].map(l => (
-            <Link key={l} href="#" style={{ fontSize: 11, color: '#5A5680', textDecoration: 'none', transition: 'color 0.2s', cursor: 'pointer' }} onMouseEnter={e => e.currentTarget.style.color = 'var(--color-primary)'} onMouseLeave={e => e.currentTarget.style.color = '#5A5680'}>{l}</Link>
+          {['Privacy', 'Terms'].map(l => (
+            <Link key={l} href="#" style={{ fontSize: 11, color: 'var(--color-muted-foreground)', textDecoration: 'none', transition: 'color 0.2s', cursor: 'pointer' }} onMouseEnter={e => e.currentTarget.style.color = 'var(--color-primary)'} onMouseLeave={e => e.currentTarget.style.color = 'var(--color-muted-foreground)'}>{l}</Link>
           ))}
         </div>
       </div>

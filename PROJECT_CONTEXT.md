@@ -246,4 +246,8 @@ The database schema is authored in `db/schema/` using Drizzle. Generate a review
 
 Project initialization and product context are in place. The database migration is pending correction of the `DATABASE_URL` password. Once migrated, create a non-draft GitHub Project board with `Backlog`, `Ready`, `In progress`, and `Done`, then run `/masterplan-init` to build the ordered Phase 0 work plan.
 
+### Authentication decisions
+
+- New owner accounts must confirm their email address before access is granted.
+
 *Last updated: 2026-08-14*

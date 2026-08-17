@@ -57,9 +57,10 @@ Codex uses `.codex/commands/claude-command.md` as a bridge. The source-of-truth 
 | Command | Says |
 |---|---|
 | `/new-project ["name"]` | Starts a new DannFlow project from the starter. |
-| `/masterplan-init` | Links an existing Kanban-style GitHub Project and creates detailed Phase 0 cards for an initialized SaaS. |
+| `/masterplan-init` | Links an existing Kanban-style GitHub Project and creates detailed Phase 0 readiness cards, including Vercel deployment setup. |
 | `/setup-supabase` | Guides the existing template's Supabase environment values and dashboard settings without changing schema. |
 | `/setup-auth` | Configures the existing template's email auth, Google sign-in, redirects, and branded emails without changing schema. |
+| `/setup-vercel [production-origin]` | Deploys the app on Vercel and registers its canonical production URL with Supabase Auth and Google OAuth. |
 | `/business-init` | Captures business/project context. |
 | `/init-claude` | Refreshes Claude project context, skills, and command docs. |
 | `/init-update` | Updates the local DannFlow command/runtime setup. |
@@ -82,7 +83,7 @@ Codex uses `.codex/commands/claude-command.md` as a bridge. The source-of-truth 
 |---|---|
 | `/new-feature <name>` | Scaffolds a feature with service, types, page, and form patterns. |
 | `/new-page <route>` | Scaffolds a Next.js App Router page. |
-| `/design-project ["section"]` | Replaces starter placeholders with project-specific design. |
+| `/design-project ["section"]` | Applies approved product copy and semantic theme tokens while preserving the existing template, interactions, and hero media. |
 | `/ui [target]` | Rewrites UI for responsiveness, accessibility, and semantic tokens. |
 
 ### Database & Supabase
@@ -172,6 +173,7 @@ graph TD
   Setup --> IC["/init-claude"]
   Setup --> IU["/init-update"]
   Setup --> AD["/adopt-dannflow"]
+  Setup --> SV["/setup-vercel"]
 
   Planning["Planning & Tasks"] --> MPI
   Planning --> MM["/make-masterplan <phase>"]

@@ -181,7 +181,7 @@ export function BlogTab() {
         <div>
           <h2 className="text-2xl font-semibold text-foreground tracking-tight">Blog Posts</h2>
           <p className="mt-1 text-[14px] text-muted-foreground">
-            Write and publish posts to improve your site's SEO.
+            Write and publish posts to improve your site&apos;s SEO.
           </p>
         </div>
         <button

@@ -6,47 +6,47 @@ import { Typewriter } from "./typewriter";
 
 const PLANS = [
   {
-    name: "Starter",
-    price: "$0",
-    suffix: "/mo",
-    description: "For solo builders getting started.",
+    name: "Plan a visit",
+    price: "One",
+    suffix: " clear request",
+    description: "Choose your pet, share what they need, and send your request to the clinic.",
     features: [
-      "Full starter template",
-      "Supabase auth & database",
-      "Checkpoint system",
-      "Community support",
+      "Choose a linked pet",
+      "Share your reason for visiting",
+      "Receive schedule updates",
+      "Keep visit details handy",
     ],
-    cta: "Get started",
+    cta: "Sign in",
     highlight: false,
   },
   {
-    name: "Pro",
-    price: "$29",
-    suffix: "/mo",
-    description: "For serious builders shipping products.",
+    name: "Stay in the loop",
+    price: "Every",
+    suffix: " step of the way",
+    description: "See the information your clinic has shared about your pet’s care.",
     features: [
-      "Everything in Starter",
-      "Priority AI support",
-      "Advanced MCP integrations",
-      "Premium templates",
-      "Team collaboration",
+      "Appointment status",
+      "Permitted care notes",
+      "Visit history",
+      "Prescription details",
+      "Clinic updates",
     ],
-    cta: "Start free trial",
+    cta: "Sign in",
     highlight: true,
   },
   {
-    name: "Enterprise",
-    price: "Custom",
-    suffix: "",
-    description: "For teams and organizations.",
+    name: "Care for every family",
+    price: "Share",
+    suffix: " what matters",
+    description: "Give each authorized pet owner a secure, personal view of their pet’s care.",
     features: [
-      "Everything in Pro",
-      "Dedicated support",
-      "Custom integrations",
-      "SLA guarantee",
-      "White-label options",
+      "Multiple authorized owners",
+      "A secure owner portal",
+      "Linked pet profiles",
+      "Care information by permission",
+      "One familiar clinic",
     ],
-    cta: "Contact sales",
+    cta: "Access your care",
     highlight: false,
   },
 ];
@@ -81,13 +81,13 @@ export function Pricing({ isAuthed }: PricingProps) {
           className="text-center mb-20"
         >
           <span className="inline-flex items-center gap-2 rounded-full border border-white/[0.06] bg-white/[0.02] px-3 py-1 text-[10px] font-medium text-foreground/70 uppercase tracking-[0.2em]">
-            Pricing
+            For pet owners
           </span>
           <h2 className="mt-6 text-4xl sm:text-5xl font-semibold text-foreground tracking-[-0.02em]">
-            <Typewriter text="Simple, transparent pricing" speed={40} />
+            <Typewriter text="Everything your pet needs, closer to you" speed={40} />
           </h2>
           <p className="mt-5 text-[15px] text-muted-foreground max-w-md mx-auto">
-            Start free. Scale when you&apos;re ready.
+            E-VetDoc keeps the connection between your pet, your clinic, and your family simple.
           </p>
         </motion.div>
 
@@ -128,7 +128,7 @@ export function Pricing({ isAuthed }: PricingProps) {
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
                     <div className="flex items-center gap-1.5 rounded-full bg-foreground text-background px-3 py-1 text-[10px] font-semibold tracking-wide shadow-[0_4px_16px_rgba(124,92,255,0.4)]">
                       <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-                      Most popular
+                      Made for pet owners
                     </div>
                   </div>
                 )}
@@ -186,13 +186,7 @@ export function Pricing({ isAuthed }: PricingProps) {
 
                   {/* CTA */}
                   <a
-                    href={
-                      plan.name === "Enterprise"
-                        ? "#"
-                        : isAuthed
-                        ? "/dashboard"
-                        : "/login"
-                    }
+                    href={isAuthed ? "/dashboard" : "/login"}
                     className={`group/cta flex items-center justify-center gap-2 w-full py-3 rounded-full text-[13px] font-medium transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.97] ${
                       plan.highlight
                         ? "bg-foreground text-background hover:opacity-90 shadow-[0_4px_20px_rgba(124,92,255,0.25),inset_0_1px_0_rgba(255,255,255,0.2)]"

@@ -461,10 +461,10 @@ function Sep() {
 }
 
 function Toolbar({ editor, budget }: { editor: ReturnType<typeof useEditor>; budget: ImageBudget }) {
-  if (!editor) return null;
-
   const imgInputRef = useRef<HTMLInputElement>(null);
   const [imgUploading, setImgUploading] = useState(false);
+
+  if (!editor) return null;
 
   const handleInlineImageFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

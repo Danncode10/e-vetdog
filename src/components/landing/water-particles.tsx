@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 
 interface WaterParticlesProps {
   /** When true, particles fade in and become active. */
@@ -20,15 +20,9 @@ interface WaterParticlesProps {
  */
 export function WaterParticles({ active, count = 120 }: WaterParticlesProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     if (!active) return;
-    setMounted(true);
-  }, [active]);
-
-  useEffect(() => {
-    if (!mounted) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d", { alpha: true });
@@ -227,7 +221,7 @@ export function WaterParticles({ active, count = 120 }: WaterParticlesProps) {
       window.removeEventListener("mousemove", onMove);
       window.removeEventListener("mouseout", onLeave);
     };
-  }, [mounted, count]);
+  }, [active, count]);
 
   return (
     <div
@@ -235,13 +229,11 @@ export function WaterParticles({ active, count = 120 }: WaterParticlesProps) {
       className="pointer-events-none absolute inset-0 transition-opacity duration-1000 ease-out"
       style={{ opacity: active ? 1 : 0 }}
     >
-      {mounted && (
-        <canvas
-          ref={canvasRef}
-          className="absolute inset-0 h-full w-full"
-          style={{ display: "block" }}
-        />
-      )}
+      <canvas
+        ref={canvasRef}
+        className="absolute inset-0 h-full w-full"
+        style={{ display: "block" }}
+      />
     </div>
   );
 }

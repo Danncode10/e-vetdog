@@ -10,7 +10,7 @@ Drop `.md` files in this folder to add custom slash commands. Each file becomes 
 | `/masterplan-init [--project-url <url>]` | **Initialize execution planning.** Accepts a GitHub Project URL, requires an existing Kanban-style board, then creates detailed Phase 0 cards. |
 | `/setup-supabase` | Guides the existing DannFlow template's Supabase environment values and dashboard settings without designing or changing project database schema. |
 | `/setup-auth` | Configures and verifies the template's email auth, Google sign-in, redirects, and branded Supabase email templates without changing schema. |
-| `/design-project ["section"]` | **Then design it.** Claude reads README + `PROJECT_CONTEXT` + code configuration and replaces template copy and design with a bespoke project. |
+| `/design-project ["section"]` | Applies approved product copy and semantic theme tokens to the existing template only; preserves all layout, interactions, animations, and hero media. |
 | `/init-claude` | Reads `README.md` + scans `src/` + `package.json`, then auto-rewrites `CLAUDE.md`, `SKILLS.md`, and refreshes this README to match the actual project state. |
 | `/help-dannflow` | Report-only command catalog. Shows how to run DannFlow commands in Claude and through the Codex bridge, grouped by category with a Mermaid graph. |
 | `/ask-command` | Meta-router. Describe what you want in plain English; it searches all commands here and returns the best one + a ready-to-paste prompt. |
@@ -37,7 +37,7 @@ Drop `.md` files in this folder to add custom slash commands. Each file becomes 
 | `/auto-docs` | Broader superset of `/sync-commands`. Audits commands, skills, npm scripts, env vars, tech stack, and folder structure for documentation drift. `--fix` auto-patches the safe categories. |
 | `/init-update` | Update your DannFlow project to the latest version — pull new commands, scripts, guide, skills, and more while preserving your code. Interactive menu or `--all` for one-command full update. |
 | `/adopt-dannflow [--no-protect\|--force]` | Bootstrap a non-DannFlow repo into a first-class DannFlow project: detect shape, install + prove CI, write `dannflow.json`, create the `dev` branch, then run the first sync. Run once per repo. |
-| `/sync-upstream [path|--commits [N]]` | Pull selective file or commit updates from DannFlow upstream. Lands changes on a `feat/sync-*` branch → PR into `dev`. File-level diff is the default — safe for forked-and-rewritten repos with no common git ancestry. Opt-in commit-level cherry-pick with `--commits`. |
+| `/sync-upstream [path|--commits [N]]` | Pull selective file or commit updates from DannFlow upstream. Always creates a `feat/sync-*` branch → PR into the configured base branch (normally `main`). File-level diff is the default — safe for forked-and-rewritten repos with no common git ancestry. Opt-in commit-level cherry-pick with `--commits`. |
 | `/sync-to-upstream [path\|--dry-run]` | Contribute local improvements back UP to DannFlow. Classifies changes as generic vs. business-specific, then opens a clean PR into DannFlow `main`. |
 | `/update-dannflow [--init]` | Smart entry point — auto-detects your `dannflow.json` version anchor and pulls the latest upstream updates. Creates the anchor if missing. |
 | `/no-conflict` | Audits repo for conflicts between documentation (README, CLAUDE.md) and actual code — technology versions, features, commands, RLS enforcement, semantic tokens, folder structure. Reports only. |

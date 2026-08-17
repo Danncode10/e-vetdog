@@ -1,5 +1,12 @@
 import { siteConfig } from "@/lib/config";
 
+const productLinks = [
+  { label: "Appointments", href: "/#how-it-works" },
+  { label: "Pet records", href: "/#features" },
+  { label: "Invoices", href: "/#features" },
+  { label: "Owner portal", href: "/#pricing" },
+];
+
 export function Footer() {
   return (
     <footer className="relative border-t border-white/[0.04] bg-background overflow-hidden">
@@ -14,11 +21,11 @@ export function Footer() {
       />
 
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-10">
+        <div className="grid gap-10 sm:grid-cols-2">
           {/* Brand */}
-          <div className="col-span-2 md:col-span-1">
+          <div>
             <div className="flex items-center gap-2 mb-4">
-              <div className="relative flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-[#5B3FE0] shadow-[0_2px_8px_rgba(124,92,255,0.4),inset_0_1px_0_rgba(255,255,255,0.2)]">
+              <div className="relative flex h-7 w-7 items-center justify-center rounded-lg bg-primary shadow-sm">
                 <span className="text-[11px] font-black text-primary-foreground">
                   D
                 </span>
@@ -38,51 +45,13 @@ export function Footer() {
               Product
             </h4>
             <ul className="space-y-2.5">
-              {["Features", "Pricing", "Changelog", "Docs"].map((item) => (
-                <li key={item}>
+              {productLinks.map((item) => (
+                <li key={item.label}>
                   <a
-                    href="#"
+                    href={item.href}
                     className="text-[13px] text-muted-foreground hover:text-foreground transition-colors duration-300"
                   >
-                    {item}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Company */}
-          <div>
-            <h4 className="text-[10px] font-semibold text-foreground/60 mb-4 uppercase tracking-[0.2em]">
-              Company
-            </h4>
-            <ul className="space-y-2.5">
-              {["About", "Blog", "Careers", "Contact"].map((item) => (
-                <li key={item}>
-                  <a
-                    href="#"
-                    className="text-[13px] text-muted-foreground hover:text-foreground transition-colors duration-300"
-                  >
-                    {item}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Legal */}
-          <div>
-            <h4 className="text-[10px] font-semibold text-foreground/60 mb-4 uppercase tracking-[0.2em]">
-              Legal
-            </h4>
-            <ul className="space-y-2.5">
-              {["Privacy", "Terms", "License"].map((item) => (
-                <li key={item}>
-                  <a
-                    href="#"
-                    className="text-[13px] text-muted-foreground hover:text-foreground transition-colors duration-300"
-                  >
-                    {item}
+                    {item.label}
                   </a>
                 </li>
               ))}
@@ -99,6 +68,7 @@ export function Footer() {
               href={siteConfig.githubUrl}
               target="_blank"
               rel="noopener noreferrer"
+              aria-label="View the E-VetDoc source repository on GitHub"
               className="flex h-9 w-9 items-center justify-center rounded-full border border-white/[0.06] bg-white/[0.02] text-muted-foreground hover:text-foreground hover:bg-white/[0.05] transition-all duration-300"
             >
               <svg

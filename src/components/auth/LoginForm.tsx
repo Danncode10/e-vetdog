@@ -28,8 +28,8 @@ export default function LoginForm() {
       } else {
         router.refresh();
       }
-    } catch (err: any) {
-      setError(err.message || 'An unknown error occurred');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'An unknown error occurred');
     } finally {
       setLoading(false);
     }

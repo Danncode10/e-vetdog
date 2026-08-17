@@ -18,6 +18,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { siteConfig } from "@/lib/config";
@@ -103,14 +104,14 @@ export function DashboardShell({ user, profile }: DashboardShellProps) {
       `}>
 
         <div className="h-14 flex items-center justify-between px-3 border-b border-border shrink-0">
-          <a href="/" className={`flex items-center gap-2.5 overflow-hidden ${collapsed ? "md:justify-center md:w-full" : ""}`}>
+          <Link href="/" className={`flex items-center gap-2.5 overflow-hidden ${collapsed ? "md:justify-center md:w-full" : ""}`}>
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-primary/70 shadow-[0_2px_8px_rgba(220,38,38,0.4)] shrink-0">
               <span className="text-[11px] font-black text-white">{siteConfig.name.charAt(0)}</span>
             </div>
             <span className={`text-sm font-bold tracking-tight text-foreground whitespace-nowrap ${collapsed ? "md:hidden" : ""}`}>
               {siteConfig.name}
             </span>
-          </a>
+          </Link>
           <button onClick={() => setSidebarOpen(false)} className="md:hidden p-1 text-muted-foreground hover:text-foreground rounded-md">
             <X className="w-4 h-4" />
           </button>

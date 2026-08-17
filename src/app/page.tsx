@@ -1,4 +1,4 @@
-import { getUserProfile, getVibeCheckData } from "@/services/dashboard";
+import { getUserProfile } from "@/services/dashboard";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { FeaturesTabs } from "@/components/features-tabs";
@@ -8,18 +8,28 @@ import { Pricing } from "@/components/landing/pricing";
 import { CtaBanner } from "@/components/landing/cta-banner";
 import { Typewriter } from "@/components/landing/typewriter";
 import { BlogPreview } from "@/components/landing/blog-preview";
-import { creatorRepos } from "@/lib/config";
+import { siteConfig } from "@/lib/config";
 
 
 export default async function Home() {
   const session = await getUserProfile();
   const user = session?.user || null;
-  const profile = session?.profile;
-  const profiles = await getVibeCheckData() || [];
-  const repos = creatorRepos;
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    name: siteConfig.name,
+    applicationCategory: "BusinessApplication",
+    operatingSystem: "Web",
+    description: siteConfig.description,
+    url: siteConfig.url,
+  };
 
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <Navbar user={user} />
 
       <Hero isAuthed={!!user} />
@@ -43,19 +53,15 @@ export default async function Home() {
               Features
             </span>
             <h2 className="mt-6 text-4xl sm:text-5xl font-semibold text-foreground tracking-[-0.02em]">
-              <Typewriter text="Everything you need to launch" speed={40} />
+              <Typewriter text="Care, coordinated in one place" speed={40} />
             </h2>
 
             <p className="mt-5 text-[15px] text-muted-foreground max-w-xl mx-auto leading-relaxed">
-              One template. Every essential built in.
+              A clear workspace for pet owners, veterinarians, and clinic staff.
             </p>
           </div>
 
-          <FeaturesTabs
-            profiles={profiles}
-            repos={repos}
-            currentRole={profile?.role}
-          />
+          <FeaturesTabs />
         </div>
       </section>
 
