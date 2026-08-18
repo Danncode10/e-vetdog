@@ -57,8 +57,10 @@ export async function updateProfile(updates: {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Not authenticated');
 
-  const { success } = await verifyRateLimit(user.id, "profile-update");
-  if (!success) throw new Error("Rate limit exceeded. Try again in 10 seconds.");
+  const rateLimit = await verifyRateLimit(user.id, "profile-update");
+  if (!rateLimit.success && rateLimit.reason !== "redis_not_configured") {
+    throw new Error("Rate limit exceeded. Try again in 10 seconds.");
+  }
 
   const { data, error } = await supabase
     .from('profiles')

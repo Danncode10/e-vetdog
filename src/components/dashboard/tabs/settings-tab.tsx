@@ -1,11 +1,10 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
-import { Loader2, User as UserIcon, Shield } from "lucide-react";
-import { getProfile } from "@/services/users";
+import { User as UserIcon, Shield } from "lucide-react";
 import { ProfileForm } from "@/components/profile-form";
 import { SecurityForm } from "@/components/security-form";
 import { useState } from "react";
+import type { Database } from "@/types/supabase";
 
 const SECTIONS = [
   { id: "profile",  label: "Profile",      icon: UserIcon },
@@ -13,14 +12,15 @@ const SECTIONS = [
 ] as const;
 
 type SectionId = typeof SECTIONS[number]["id"];
+type Profile = Database["public"]["Tables"]["profiles"]["Row"] | null;
 
-export function SettingsTab() {
+interface SettingsTabProps {
+  profile: Profile;
+  onProfileUpdated: (profile: Profile) => void;
+}
+
+export function SettingsTab({ profile, onProfileUpdated }: SettingsTabProps) {
   const [section, setSection] = useState<SectionId>("profile");
-
-  const { data: profile, isLoading } = useQuery({
-    queryKey: ["profiles-db"],
-    queryFn: getProfile,
-  });
 
   return (
     <div className="space-y-6">
@@ -47,10 +47,16 @@ export function SettingsTab() {
       </div>
 
       <div className="bg-card border border-border rounded-2xl p-6">
-        {isLoading ? (
-          <Loader2 className="w-5 h-5 animate-spin inline" />
+        {section === "profile" && profile ? (
+          <ProfileForm profile={profile} onProfileUpdated={onProfileUpdated} />
         ) : section === "profile" ? (
-          <ProfileForm profile={profile} />
+          <div className="flex min-h-48 flex-col items-center justify-center gap-2 text-center">
+            <UserIcon className="h-8 w-8 text-muted-foreground" aria-hidden="true" />
+            <h3 className="text-lg font-semibold text-foreground">Profile unavailable</h3>
+            <p className="max-w-md text-sm text-muted-foreground">
+              Your account is signed in, but its profile record is not available yet. Refresh the page and contact the clinic if this continues.
+            </p>
+          </div>
         ) : section === "security" ? (
           <SecurityForm />
         ) : null}

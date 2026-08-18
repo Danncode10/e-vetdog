@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { updateProfile } from "@/services/users";
 import { User, Phone, MapPin, ShieldAlert, Loader2, CheckCircle2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import type { Database } from "@/types/supabase";
 
@@ -20,9 +21,15 @@ const ROLE_LABELS: Record<string, string> = {
   owner: "Owner",
 };
 
-export function ProfileForm({ profile }: { profile: Profile }) {
+export function ProfileForm({
+  profile,
+  onProfileUpdated,
+}: {
+  profile: Profile;
+  onProfileUpdated: (profile: Profile) => void;
+}) {
   const [success, setSuccess] = useState(false);
-  const queryClient = useQueryClient();
+  const router = useRouter();
 
   const [formData, setFormData] = useState({
     full_name: profile?.full_name || "",
@@ -34,24 +41,15 @@ export function ProfileForm({ profile }: { profile: Profile }) {
 
   const mutation = useMutation({
     mutationFn: (data: typeof formData) => updateProfile({ ...data }),
-    onMutate: async () => {
-      await queryClient.cancelQueries({ queryKey: ["profiles-db"] });
-      const previousProfiles = queryClient.getQueryData(["profiles-db"]);
-      setSuccess(true);
-      setTimeout(() => setSuccess(false), 3000);
-      return { previousProfiles };
-    },
-    onError: (err: Error, _newProfile, context) => {
-      if (context?.previousProfiles) {
-        queryClient.setQueryData(["profiles-db"], context.previousProfiles);
-      }
+    onError: (err: Error) => {
       toast.error(err.message || "Failed to update profile. Rate limit exceeded.");
     },
-    onSuccess: () => {
+    onSuccess: (updatedProfile) => {
+      onProfileUpdated(updatedProfile);
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
       toast.success("Profile updated successfully!");
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["profiles-db"] });
+      router.refresh();
     },
   });
 

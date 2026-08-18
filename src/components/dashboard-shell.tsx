@@ -21,6 +21,7 @@ import { createClient } from "@/utils/supabase/client";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { siteConfig } from "@/lib/config";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
+import type { Database } from "@/types/supabase";
 
 import { getEnabledTabs, isFeatureEnabled, type DashboardTabId } from "@/lib/dashboard-features";
 import { OverviewTab } from "@/components/dashboard/tabs/overview-tab";
@@ -40,12 +41,13 @@ const ICONS: Record<DashboardTabId, LucideIcon> = {
 
 interface DashboardShellProps {
   user: SupabaseUser;
-  profile: { full_name?: string | null; role?: string | null } | null;
+  profile: Database["public"]["Tables"]["profiles"]["Row"] | null;
 }
 
 export function DashboardShell({ user, profile }: DashboardShellProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [currentProfile, setCurrentProfile] = React.useState(profile);
   const enabledTabs = React.useMemo(() => getEnabledTabs(), []);
   const validIds = React.useMemo(() => new Set(enabledTabs.map((t) => t.id)), [enabledTabs]);
 
@@ -59,7 +61,7 @@ export function DashboardShell({ user, profile }: DashboardShellProps) {
   const [collapsed, setCollapsed] = React.useState(false);
   const [userMenuOpen, setUserMenuOpen] = React.useState(false);
 
-  const displayName = profile?.full_name || user.email?.split("@")[0] || "there";
+  const displayName = currentProfile?.full_name || user.email?.split("@")[0] || "there";
   const initials = displayName.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase();
 
   const setTab = React.useCallback((tab: DashboardTabId) => {
@@ -228,7 +230,7 @@ export function DashboardShell({ user, profile }: DashboardShellProps) {
           {activeTab === "pets"         && <PetsTab />}
           {activeTab === "owners"       && <OwnersTab />}
           {activeTab === "appointments" && <AppointmentsTab />}
-          {activeTab === "settings"     && <SettingsTab />}
+          {activeTab === "settings"     && <SettingsTab profile={currentProfile} onProfileUpdated={setCurrentProfile} />}
         </main>
       </div>
     </div>
