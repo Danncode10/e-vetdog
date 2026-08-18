@@ -58,7 +58,7 @@
 
 **Exit state:** Admins can provision staff, owners can complete onboarding and manage only linked pets, staff can find the registry, and role/RLS isolation is verified.
 
-- [ ] **[P1.1] Reconcile the template schema with E-VetDoc identity**
+- [x] **[P1.1] Reconcile the template schema with E-VetDoc identity**
   - **Goal:** Replace the template's `admin | user` role model with the approved E-VetDoc identity model, reconcile generic dashboard tables that overlap the domain, and document any compatibility migration.
   - **Dependencies:** [P0.1].
   - **Acceptance criteria:** Roles are consistently `admin`, `veterinarian`, and `owner`; the authority model for any dual-role staff is explicit; legacy `user` data has a safe mapping; no competing appointment/service model is introduced.

@@ -10,7 +10,7 @@ The template `admin | user` identity model is reconciled to `admin | veterinaria
 - [x] Live Supabase schema lists `profiles`, `notifications`, `services`, `pets`, and `pet_owners`, all with RLS enabled.
 - [x] Generated Supabase types match the connected schema's three role values.
 - [x] The live profile-update policy includes a role-unchanged check while allowing the owner’s own contact-detail updates.
-- [ ] Apply the tracked migration history on a fresh, populated development database before production use.
+- [x] Tracked migrations were applied to a disposable database with legacy records: `admin` remained `admin`, `user` became `owner`, and new users defaulted to `owner`.
 
 ## Manual verification
 
