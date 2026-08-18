@@ -3,11 +3,9 @@
 import * as React from "react";
 import {
   LayoutDashboard,
-  Tag,
-  Inbox,
-  Calendar,
-  BookOpen,
-  BarChart3,
+  PawPrint,
+  Users,
+  CalendarDays,
   Settings,
   LogOut,
   Home,
@@ -26,21 +24,17 @@ import type { User as SupabaseUser } from "@supabase/supabase-js";
 
 import { getEnabledTabs, isFeatureEnabled, type DashboardTabId } from "@/lib/dashboard-features";
 import { OverviewTab } from "@/components/dashboard/tabs/overview-tab";
-import { ServicesTab } from "@/components/dashboard/tabs/services-tab";
-import { LeadsTab } from "@/components/dashboard/tabs/leads-tab";
-import { BookingsTab } from "@/components/dashboard/tabs/bookings-tab";
-import { BlogTab } from "@/components/dashboard/tabs/blog-tab";
-import { AnalyticsTab } from "@/components/dashboard/tabs/analytics-tab";
+import { PetsTab } from "@/components/dashboard/tabs/pets-tab";
+import { OwnersTab } from "@/components/dashboard/tabs/owners-tab";
+import { AppointmentsTab } from "@/components/dashboard/tabs/appointments-tab";
 import { SettingsTab } from "@/components/dashboard/tabs/settings-tab";
 import { NotificationsBell } from "@/components/dashboard/notifications-bell";
 
 const ICONS: Record<DashboardTabId, LucideIcon> = {
   overview: LayoutDashboard,
-  services: Tag,
-  leads: Inbox,
-  bookings: Calendar,
-  blog: BookOpen,
-  analytics: BarChart3,
+  pets: PawPrint,
+  owners: Users,
+  appointments: CalendarDays,
   settings: Settings,
 };
 
@@ -230,13 +224,11 @@ export function DashboardShell({ user, profile }: DashboardShellProps) {
         </header>
 
         <main className="flex-1 overflow-y-auto p-6 md:p-8">
-          {activeTab === "overview"  && <OverviewTab displayName={displayName} setTab={setTab} />}
-          {activeTab === "services"  && <ServicesTab />}
-          {activeTab === "leads"     && <LeadsTab />}
-          {activeTab === "bookings"  && <BookingsTab />}
-          {activeTab === "blog"      && <BlogTab />}
-          {activeTab === "analytics" && <AnalyticsTab />}
-          {activeTab === "settings"  && <SettingsTab />}
+          {activeTab === "overview"     && <OverviewTab displayName={displayName} setTab={setTab} />}
+          {activeTab === "pets"         && <PetsTab />}
+          {activeTab === "owners"       && <OwnersTab />}
+          {activeTab === "appointments" && <AppointmentsTab />}
+          {activeTab === "settings"     && <SettingsTab />}
         </main>
       </div>
     </div>

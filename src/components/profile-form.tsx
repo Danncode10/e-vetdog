@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { updateProfile } from "@/services/users";
-import { User, Calendar, CircleUser, Loader2, CheckCircle2 } from "lucide-react";
+import { User, Phone, MapPin, ShieldAlert, Loader2, CheckCircle2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -14,21 +14,11 @@ type Profile = Database["public"]["Tables"]["profiles"]["Row"] | null;
 const inputClass =
   "w-full bg-secondary border border-border rounded-2xl py-4 pl-12 pr-5 text-sm font-semibold text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/20 transition-all";
 
-function ageFromBirthday(birthday: string): string | null {
-  if (!birthday) return null;
-
-  const birthDate = new Date(birthday);
-  if (Number.isNaN(birthDate.getTime())) return null;
-
-  const today = new Date();
-  let age = today.getFullYear() - birthDate.getFullYear();
-  const monthDifference = today.getMonth() - birthDate.getMonth();
-  if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < birthDate.getDate())) {
-    age--;
-  }
-
-  return age >= 0 ? String(age) : null;
-}
+const ROLE_LABELS: Record<string, string> = {
+  admin: "Admin",
+  veterinarian: "Veterinarian",
+  owner: "Owner",
+};
 
 export function ProfileForm({ profile }: { profile: Profile }) {
   const [success, setSuccess] = useState(false);
@@ -36,26 +26,14 @@ export function ProfileForm({ profile }: { profile: Profile }) {
 
   const [formData, setFormData] = useState({
     full_name: profile?.full_name || "",
-    age: profile?.age || "",
-    birthday: profile?.birthday || "",
-    gender: profile?.gender || "",
+    phone: profile?.phone || "",
+    address: profile?.address || "",
+    emergency_contact_name: profile?.emergency_contact_name || "",
+    emergency_contact_phone: profile?.emergency_contact_phone || "",
   });
 
-  const handleBirthdayChange = (birthday: string) => {
-    const calculatedAge = ageFromBirthday(birthday);
-    setFormData((current) => ({
-      ...current,
-      birthday,
-      age: calculatedAge ?? current.age,
-    }));
-  };
-
   const mutation = useMutation({
-    mutationFn: (data: typeof formData) =>
-      updateProfile({
-        ...data,
-        age: data.age ? parseInt(data.age as string) : undefined,
-      }),
+    mutationFn: (data: typeof formData) => updateProfile({ ...data }),
     onMutate: async () => {
       await queryClient.cancelQueries({ queryKey: ["profiles-db"] });
       const previousProfiles = queryClient.getQueryData(["profiles-db"]);
@@ -67,10 +45,10 @@ export function ProfileForm({ profile }: { profile: Profile }) {
       if (context?.previousProfiles) {
         queryClient.setQueryData(["profiles-db"], context.previousProfiles);
       }
-      toast.error(err.message || "Failed to mutate node. Rate limit exceeded.");
+      toast.error(err.message || "Failed to update profile. Rate limit exceeded.");
     },
     onSuccess: () => {
-      toast.success("Profile Node successfully updated in cluster!");
+      toast.success("Profile updated successfully!");
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["profiles-db"] });
@@ -84,21 +62,21 @@ export function ProfileForm({ profile }: { profile: Profile }) {
 
   return (
     <div className="w-full max-w-md mx-auto md:max-w-2xl">
-      {/* ── Header — stacks on mobile, row on sm+ ── */}
+      {/* ── Header ── */}
       <div className="flex flex-col gap-3 mb-10 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h3 className="text-2xl font-black text-foreground tracking-tighter uppercase italic leading-tight">
             Profile Settings
           </h3>
           <p className="text-sm text-muted-foreground mt-1 font-semibold italic">
-            Manage your identity and personal details.
+            Manage your contact and emergency details.
           </p>
         </div>
         <Badge
           variant={profile?.role === "admin" ? "default" : "secondary"}
           className="self-start sm:self-auto uppercase tracking-widest px-3 py-1 text-[10px] font-black shrink-0"
         >
-          {profile?.role || "User"}
+          {profile?.role ? (ROLE_LABELS[profile.role] || profile.role) : "Owner"}
         </Badge>
       </div>
 
@@ -116,61 +94,78 @@ export function ProfileForm({ profile }: { profile: Profile }) {
                 type="text"
                 value={formData.full_name}
                 onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                placeholder="Jane Doe"
+                className={inputClass}
+              />
+            </div>
+          </div>
+
+          {/* Phone */}
+          <div className="space-y-2">
+            <label className="text-[10px] font-mono font-black uppercase tracking-widest text-muted-foreground px-1">
+              Phone
+            </label>
+            <div className="relative group">
+              <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+              <input
+                type="tel"
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                placeholder="+1 555 123 4567"
+                className={inputClass}
+              />
+            </div>
+          </div>
+
+          {/* Address */}
+          <div className="space-y-2">
+            <label className="text-[10px] font-mono font-black uppercase tracking-widest text-muted-foreground px-1">
+              Address
+            </label>
+            <div className="relative group">
+              <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+              <input
+                type="text"
+                value={formData.address}
+                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                placeholder="123 Clinic St, City"
+                className={inputClass}
+              />
+            </div>
+          </div>
+
+          {/* Emergency Contact Name */}
+          <div className="space-y-2">
+            <label className="text-[10px] font-mono font-black uppercase tracking-widest text-muted-foreground px-1">
+              Emergency Contact Name
+            </label>
+            <div className="relative group">
+              <ShieldAlert className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+              <input
+                type="text"
+                value={formData.emergency_contact_name}
+                onChange={(e) => setFormData({ ...formData, emergency_contact_name: e.target.value })}
                 placeholder="John Doe"
                 className={inputClass}
               />
             </div>
           </div>
 
-          {/* Age */}
+          {/* Emergency Contact Phone */}
           <div className="space-y-2">
             <label className="text-[10px] font-mono font-black uppercase tracking-widest text-muted-foreground px-1">
-              Age
+              Emergency Contact Phone
             </label>
             <div className="relative group">
-              <CircleUser className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+              <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
               <input
-                type="number"
-                value={formData.age}
-                onChange={(e) => setFormData({ ...formData, age: e.target.value })}
-                placeholder="25"
+                type="tel"
+                value={formData.emergency_contact_phone}
+                onChange={(e) => setFormData({ ...formData, emergency_contact_phone: e.target.value })}
+                placeholder="+1 555 987 6543"
                 className={inputClass}
               />
             </div>
-          </div>
-
-          {/* Birthday */}
-          <div className="space-y-2">
-            <label className="text-[10px] font-mono font-black uppercase tracking-widest text-muted-foreground px-1">
-              Birthday
-            </label>
-            <div className="relative group">
-              <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-              <input
-                type="date"
-                value={formData.birthday}
-                onChange={(e) => handleBirthdayChange(e.target.value)}
-                className={inputClass}
-              />
-            </div>
-          </div>
-
-          {/* Gender */}
-          <div className="space-y-2">
-            <label className="text-[10px] font-mono font-black uppercase tracking-widest text-muted-foreground px-1">
-              Gender
-            </label>
-            <select
-              value={formData.gender}
-              onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
-              className="w-full bg-secondary border border-border rounded-2xl py-4 px-5 text-sm font-semibold text-foreground focus:outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/20 transition-all appearance-none cursor-pointer"
-            >
-              <option value="" disabled>Select gender</option>
-              <option value="male">Male</option>
-              <option value="female">Female</option>
-              <option value="other">Other</option>
-              <option value="prefer_not_to_say">Prefer not to say</option>
-            </select>
           </div>
 
         </div>
@@ -190,7 +185,7 @@ export function ProfileForm({ profile }: { profile: Profile }) {
             ) : success ? (
               <><CheckCircle2 className="w-5 h-5" /> Saved</>
             ) : (
-              <><CheckCircle2 className="w-5 h-5 group-hover:scale-110 transition-transform" /> Save Node State</>
+              <><CheckCircle2 className="w-5 h-5 group-hover:scale-110 transition-transform" /> Save Profile</>
             )}
           </button>
         </div>

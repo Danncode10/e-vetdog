@@ -41,7 +41,7 @@ There are exactly three application roles:
 
 | Role | Responsibilities | Access boundary |
 | --- | --- | --- |
-| **Admin** | Manage owner profiles, pets, appointment schedules, walk-ins, veterinarian accounts, services, invoices, payments, receipts, and basic reports. | Does not sign veterinary clinical records or prescriptions unless also assigned a veterinarian role. |
+| **Admin** | Manage owner profiles, pets, appointment schedules, walk-ins, veterinarian accounts, services, invoices, payments, receipts, and basic reports. | Does not sign veterinary clinical records or prescriptions. |
 | **Veterinarian** | Review pet history; manage consultations, diagnoses, treatments, clinical notes, prescriptions, signing, and amendments. | Does not change payment history or unrelated system settings without separate admin authority. |
 | **Owner** | Register/sign in, manage their own profile, request/view appointments, access linked pets, and view permitted medical history, invoices, and receipts. | Never accesses another owner's pets, records, appointments, invoices, or receipts. |
 
@@ -54,6 +54,7 @@ The system may generate notifications, receipts, and PDFs through server-side in
 - RLS is required for every exposed application table.
 - All business logic and Supabase queries live in `src/services/`, never in UI components.
 - Route and page access must be role-aware, not a single generic authenticated-user experience.
+- A profile has one canonical role in the MVP. Dual-role staff are intentionally out of scope until a dedicated staff-role assignment model is introduced; an admin must never gain veterinarian-only authority through a UI toggle or client-supplied metadata.
 
 ---
 

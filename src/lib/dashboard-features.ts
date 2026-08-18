@@ -1,21 +1,15 @@
 export type DashboardTabId =
   | "overview"
-  | "services"
-  | "leads"
-  | "bookings"
-  | "blog"
-  | "analytics"
+  | "pets"
+  | "owners"
+  | "appointments"
   | "settings";
 
 export type FeatureFlag =
   | "always"
-  | "pricing"
-  | "contactForm"
-  | "gallery"
-  | "analytics"
-  | "testimonials"
-  | "teamPage"
-  | "blog";
+  | "pets"
+  | "owners"
+  | "appointments";
 
 interface TabConfig {
   id: DashboardTabId;
@@ -24,17 +18,15 @@ interface TabConfig {
 }
 
 export const TAB_CONFIG: TabConfig[] = [
-  { id: "overview",   label: "Overview",   feature: "always" },
-  { id: "services",   label: "Services",   feature: "pricing" },
-  { id: "leads",      label: "Leads",      feature: "contactForm" },
-  { id: "bookings",   label: "Bookings",   feature: "contactForm" },
-  { id: "blog",       label: "Blog",       feature: "blog" },
-  { id: "analytics",  label: "Analytics",  feature: "analytics" },
-  { id: "settings",   label: "Settings",   feature: "always" },
+  { id: "overview",     label: "Overview",     feature: "always" },
+  { id: "pets",        label: "Pets",         feature: "pets" },
+  { id: "owners",      label: "Owners",       feature: "owners" },
+  { id: "appointments", label: "Appointments", feature: "appointments" },
+  { id: "settings",    label: "Settings",     feature: "always" },
 ];
 
 export function isFeatureEnabled(flag: FeatureFlag): boolean {
-  return flag === "always" || flag === "pricing" || flag === "contactForm" || flag === "blog";
+  return flag === "always" || flag === "pets" || flag === "owners" || flag === "appointments";
 }
 
 export function getEnabledTabs(): TabConfig[] {

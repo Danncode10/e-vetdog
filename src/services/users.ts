@@ -48,9 +48,10 @@ export async function getProfile() {
 
 export async function updateProfile(updates: {
   full_name?: string;
-  age?: number;
-  birthday?: string;
-  gender?: string;
+  phone?: string;
+  address?: string;
+  emergency_contact_name?: string;
+  emergency_contact_phone?: string;
 }) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -65,7 +66,7 @@ export async function updateProfile(updates: {
     .eq('id', user.id)
     .select()
     .single();
-    
+
   if (error) throw error;
   return data;
 }

@@ -8,6 +8,27 @@
       "when": 1786594132769,
       "tag": "0000_single_project_baseline",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1787060571811,
+      "tag": "0001_reconcile_identity_schema",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1787061600000,
+      "tag": "0002_protect_profile_roles",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1787061900000,
+      "tag": "0003_harden_role_policy_functions",
+      "breakpoints": true
     }
   ]
 }

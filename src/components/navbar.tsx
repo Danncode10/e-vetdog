@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { siteConfig } from "@/lib/config";
-import { isFeatureEnabled } from "@/lib/dashboard-features";
 import { signOut } from "@/services/auth";
 import { useRouter } from "next/navigation";
 import { LogOut, LayoutDashboard, Settings, ChevronDown, ArrowUpRight } from "lucide-react";
@@ -23,8 +22,6 @@ const navLinks = [
   { label: "Features", href: "/#features" },
   { label: "How it works", href: "/#how-it-works" },
   { label: "For pet owners", href: "/#pricing" },
-  // Blog link only shown when the blog feature is enabled
-  ...(isFeatureEnabled("blog") ? [{ label: "Blog", href: "/blog" }] : []),
 ];
 
 export function Navbar({ user }: { user: User | null }) {
