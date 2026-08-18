@@ -29,6 +29,13 @@
       "when": 1787061900000,
       "tag": "0003_harden_role_policy_functions",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1787062200000,
+      "tag": "0004_backfill_auth_profiles",
+      "breakpoints": true
     }
   ]
 }

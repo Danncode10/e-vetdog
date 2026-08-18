@@ -2,7 +2,7 @@
 
 ## What was built
 
-The template `admin | user` identity model is reconciled to `admin | veterinarian | owner`. The tracked migration maps existing template users to owners, keeps administrators unchanged, makes new profiles owners by default, removes obsolete generic dashboard tables, and keeps the existing service catalogue as the single temporary catalogue for Phase 2 to resolve.
+The template `admin | user` identity model is reconciled to `admin | veterinarian | owner`. The tracked migration maps existing template users to owners, backfills profile records for existing Auth users, keeps administrators unchanged, makes new profiles owners by default, removes obsolete generic dashboard tables, and keeps the existing service catalogue as the single temporary catalogue for Phase 2 to resolve.
 
 ## Automated checks
 
