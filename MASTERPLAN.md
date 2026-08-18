@@ -46,7 +46,7 @@
   - **Acceptance criteria:** The guide names every required dashboard location and local command; contains copy-paste values only where safe; links to reusable email templates; never contains credentials; and includes a verification and handover checklist.
   - **Run:** Review `docs/handover/phase-0-setup-handover.md`.
 
-- [ ] **[P0.8] Configure Vercel production deployment and authentication URLs**
+- [x] **[P0.8] Configure Vercel production deployment and authentication URLs**
   - **Goal:** Deploy the approved E-VetDoc build on Vercel and connect its production origin to Supabase Auth and Google OAuth without exposing credentials.
   - **Dependencies:** [P0.1], [P0.2], [P0.3], [P0.4], [P0.6], [P0.7].
   - **Acceptance criteria:** Vercel has the required production environment variables; `NEXT_PUBLIC_SITE_URL` uses the canonical HTTPS production origin; the production deployment succeeds; Supabase Site URL and redirect allow list contain the production URLs; Google Cloud has the production JavaScript origin; and email, recovery, and Google sign-in work in production.
