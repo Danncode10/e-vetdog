@@ -27,7 +27,7 @@ export async function getCurrentUser(): Promise<AuthenticatedUser | null> {
     .eq("id", user.id)
     .single();
 
-  if (profileError || !profile || !profile.role) return null;
+  if (profileError || !profile || !profile.role || !profile.is_active) return null;
 
   return { user, profile };
 }

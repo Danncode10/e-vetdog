@@ -36,6 +36,20 @@
       "when": 1787062200000,
       "tag": "0004_backfill_auth_profiles",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1787118099108,
+      "tag": "0006_staff-management",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1787118569251,
+      "tag": "0007_staff-audit-grants",
+      "breakpoints": true
     }
   ]
 }

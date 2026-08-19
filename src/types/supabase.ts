@@ -152,6 +152,7 @@ export type Database = {
           emergency_contact_phone: string | null
           full_name: string | null
           id: string
+          is_active: boolean
           phone: string | null
           role: Database["public"]["Enums"]["user_role"] | null
         }
@@ -163,6 +164,7 @@ export type Database = {
           emergency_contact_phone?: string | null
           full_name?: string | null
           id: string
+          is_active?: boolean
           phone?: string | null
           role?: Database["public"]["Enums"]["user_role"] | null
         }
@@ -174,6 +176,7 @@ export type Database = {
           emergency_contact_phone?: string | null
           full_name?: string | null
           id?: string
+          is_active?: boolean
           phone?: string | null
           role?: Database["public"]["Enums"]["user_role"] | null
         }
@@ -239,12 +242,57 @@ export type Database = {
         }
         Relationships: []
       }
+      staff_audit_logs: {
+        Row: {
+          action: string
+          actor_id: string
+          created_at: string
+          id: string
+          next_values: Json | null
+          previous_values: Json | null
+          target_profile_id: string
+        }
+        Insert: {
+          action: string
+          actor_id: string
+          created_at?: string
+          id?: string
+          next_values?: Json | null
+          previous_values?: Json | null
+          target_profile_id: string
+        }
+        Update: {
+          action?: string
+          actor_id?: string
+          created_at?: string
+          id?: string
+          next_values?: Json | null
+          previous_values?: Json | null
+          target_profile_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_audit_logs_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "staff_audit_logs_target_profile_id_fkey"
+            columns: ["target_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      is_admin: { Args: never; Returns: boolean }
+      [_ in never]: never
     }
     Enums: {
       owner_relationship: "owner" | "co_owner" | "family" | "caretaker"
