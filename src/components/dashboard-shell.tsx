@@ -35,6 +35,7 @@ const ICONS: Record<DashboardTabId, LucideIcon> = {
   pets: PawPrint,
   owners: Users,
   appointments: CalendarDays,
+  team: ShieldCheck,
   settings: Settings,
 };
 
@@ -55,7 +56,7 @@ export function DashboardShell({ user, profile, children }: DashboardShellProps)
 
   const initialTab = (() => {
     const fromQuery = searchParams.get("tab") as DashboardTabId | null;
-    return fromQuery && validIds.has(fromQuery) ? fromQuery : "overview";
+    return fromQuery && fromQuery !== "team" && validIds.has(fromQuery) ? fromQuery : "overview";
   })();
 
   const [activeTab, setActiveTabLocal] = React.useState<DashboardTabId>(initialTab);
@@ -68,6 +69,13 @@ export function DashboardShell({ user, profile, children }: DashboardShellProps)
 
   const setTab = React.useCallback((tab: DashboardTabId) => {
     if (!validIds.has(tab)) return;
+
+    if (tab === "team") {
+      router.push("/dashboard/team");
+      setSidebarOpen(false);
+      return;
+    }
+
     setActiveTabLocal(tab);
     router.push(`/dashboard?tab=${tab}`, { scroll: false });
     setSidebarOpen(false);
@@ -81,7 +89,8 @@ export function DashboardShell({ user, profile, children }: DashboardShellProps)
   };
 
   const mainTabs = enabledTabs.filter((t) => t.id !== "settings");
-  const activeLabel = enabledTabs.find((t) => t.id === activeTab)?.label ?? "Overview";
+  const activeTabId = pathname === "/dashboard/team" ? "team" : activeTab;
+  const activeLabel = enabledTabs.find((t) => t.id === activeTabId)?.label ?? "Overview";
 
   return (
     <div className="h-screen bg-background flex overflow-hidden">
@@ -134,7 +143,7 @@ export function DashboardShell({ user, profile, children }: DashboardShellProps)
           )}
           {mainTabs.map(({ id, label }) => {
             const Icon = ICONS[id];
-            const isActive = activeTab === id;
+            const isActive = activeTabId === id;
             return (
               <button
                 key={id}
