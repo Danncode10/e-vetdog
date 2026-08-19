@@ -1,3 +1,8 @@
+import type { Database } from "@/types/supabase";
+
+type Profile = Database["public"]["Tables"]["profiles"]["Row"];
+export type UserRole = Profile["role"];
+
 export type DashboardTabId =
   | "overview"
   | "pets"
@@ -9,7 +14,9 @@ export type FeatureFlag =
   | "always"
   | "pets"
   | "owners"
-  | "appointments";
+  | "appointments"
+  | "staff-only"
+  | "admin-only";
 
 interface TabConfig {
   id: DashboardTabId;
@@ -18,17 +25,53 @@ interface TabConfig {
 }
 
 export const TAB_CONFIG: TabConfig[] = [
-  { id: "overview",     label: "Overview",     feature: "always" },
-  { id: "pets",        label: "Pets",         feature: "pets" },
-  { id: "owners",      label: "Owners",       feature: "owners" },
+  { id: "overview", label: "Overview", feature: "always" },
+  { id: "pets", label: "Pets", feature: "pets" },
+  { id: "owners", label: "Owners", feature: "owners" },
   { id: "appointments", label: "Appointments", feature: "appointments" },
-  { id: "settings",    label: "Settings",     feature: "always" },
+  { id: "settings", label: "Settings", feature: "always" },
 ];
 
-export function isFeatureEnabled(flag: FeatureFlag): boolean {
-  return flag === "always" || flag === "pets" || flag === "owners" || flag === "appointments";
+/**
+ * Check if a feature flag is enabled for a given role.
+ * This implements the authorization model for dashboard tabs.
+ */
+export function isFeatureEnabled(flag: FeatureFlag, role: UserRole | null): boolean {
+  if (flag === "always") return true;
+  if (!role) return false;
+
+  // Role-based feature access
+  switch (flag) {
+    case "pets":
+      // Owners can manage their own pets, staff can view all pets
+      return role === "owner" || role === "veterinarian" || role === "admin";
+    case "owners":
+      // Only staff can view the owners registry
+      return role === "veterinarian" || role === "admin";
+    case "appointments":
+      // All authenticated users can access appointments (request/view)
+      return role === "owner" || role === "veterinarian" || role === "admin";
+    case "staff-only":
+      return role === "veterinarian" || role === "admin";
+    case "admin-only":
+      return role === "admin";
+    default:
+      return false;
+  }
 }
 
-export function getEnabledTabs(): TabConfig[] {
-  return TAB_CONFIG.filter((t) => isFeatureEnabled(t.feature));
+/**
+ * Get enabled tabs for a given role.
+ */
+export function getEnabledTabs(role: UserRole | null): TabConfig[] {
+  return TAB_CONFIG.filter((t) => isFeatureEnabled(t.feature, role));
+}
+
+/**
+ * Check if a tab is accessible for a given role.
+ */
+export function isTabEnabled(tabId: DashboardTabId, role: UserRole | null): boolean {
+  const tab = TAB_CONFIG.find((t) => t.id === tabId);
+  if (!tab) return false;
+  return isFeatureEnabled(tab.feature, role);
 }

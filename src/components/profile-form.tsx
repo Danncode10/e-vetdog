@@ -9,7 +9,7 @@ import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import type { Database } from "@/types/supabase";
 
-type Profile = Database["public"]["Tables"]["profiles"]["Row"] | null;
+type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 
 // Reusable input class — semantic tokens only, consistent height
 const inputClass =
@@ -32,11 +32,11 @@ export function ProfileForm({
   const router = useRouter();
 
   const [formData, setFormData] = useState({
-    full_name: profile?.full_name || "",
-    phone: profile?.phone || "",
-    address: profile?.address || "",
-    emergency_contact_name: profile?.emergency_contact_name || "",
-    emergency_contact_phone: profile?.emergency_contact_phone || "",
+    full_name: profile.full_name || "",
+    phone: profile.phone || "",
+    address: profile.address || "",
+    emergency_contact_name: profile.emergency_contact_name || "",
+    emergency_contact_phone: profile.emergency_contact_phone || "",
   });
 
   const mutation = useMutation({
@@ -71,10 +71,10 @@ export function ProfileForm({
           </p>
         </div>
         <Badge
-          variant={profile?.role === "admin" ? "default" : "secondary"}
+          variant={profile.role === "admin" ? "default" : "secondary"}
           className="self-start sm:self-auto uppercase tracking-widest px-3 py-1 text-[10px] font-black shrink-0"
         >
-          {profile?.role ? (ROLE_LABELS[profile.role] || profile.role) : "Owner"}
+          {profile.role ? (ROLE_LABELS[profile.role] || profile.role) : "Owner"}
         </Badge>
       </div>
 

@@ -13,23 +13,22 @@ import {
   PanelLeft,
   X,
   Menu,
+  ShieldCheck,
   type LucideIcon,
 } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { siteConfig } from "@/lib/config";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 import type { Database } from "@/types/supabase";
-
 import { getEnabledTabs, isFeatureEnabled, type DashboardTabId } from "@/lib/dashboard-features";
 import { OverviewTab } from "@/components/dashboard/tabs/overview-tab";
 import { PetsTab } from "@/components/dashboard/tabs/pets-tab";
 import { OwnersTab } from "@/components/dashboard/tabs/owners-tab";
 import { AppointmentsTab } from "@/components/dashboard/tabs/appointments-tab";
 import { SettingsTab } from "@/components/dashboard/tabs/settings-tab";
-import { NotificationsBell } from "@/components/dashboard/notifications-bell";
 
 const ICONS: Record<DashboardTabId, LucideIcon> = {
   overview: LayoutDashboard,
@@ -41,14 +40,17 @@ const ICONS: Record<DashboardTabId, LucideIcon> = {
 
 interface DashboardShellProps {
   user: SupabaseUser;
-  profile: Database["public"]["Tables"]["profiles"]["Row"] | null;
+  profile: Database["public"]["Tables"]["profiles"]["Row"];
+  children: React.ReactNode;
 }
 
-export function DashboardShell({ user, profile }: DashboardShellProps) {
+export function DashboardShell({ user, profile, children }: DashboardShellProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const [currentProfile, setCurrentProfile] = React.useState(profile);
-  const enabledTabs = React.useMemo(() => getEnabledTabs(), []);
+  const userRole = currentProfile.role;
+  const enabledTabs = React.useMemo(() => getEnabledTabs(userRole), [userRole]);
   const validIds = React.useMemo(() => new Set(enabledTabs.map((t) => t.id)), [enabledTabs]);
 
   const initialTab = (() => {
@@ -61,7 +63,7 @@ export function DashboardShell({ user, profile }: DashboardShellProps) {
   const [collapsed, setCollapsed] = React.useState(false);
   const [userMenuOpen, setUserMenuOpen] = React.useState(false);
 
-  const displayName = currentProfile?.full_name || user.email?.split("@")[0] || "there";
+  const displayName = currentProfile.full_name || user.email?.split("@")[0] || "there";
   const initials = displayName.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase();
 
   const setTab = React.useCallback((tab: DashboardTabId) => {
@@ -153,7 +155,7 @@ export function DashboardShell({ user, profile }: DashboardShellProps) {
         </nav>
 
         <div className="shrink-0 border-t border-border p-2 space-y-0.5">
-          {isFeatureEnabled("always") && (
+          {isFeatureEnabled("always", userRole) && (
             <button
               onClick={() => setTab("settings")}
               title={collapsed ? "Settings" : undefined}
@@ -174,6 +176,12 @@ export function DashboardShell({ user, profile }: DashboardShellProps) {
                   <div className="px-4 py-3 border-b border-border">
                     <p className="text-[12px] font-bold text-foreground truncate">{displayName}</p>
                     <p className="text-[11px] text-muted-foreground truncate mt-0.5">{user.email}</p>
+                    <div className="mt-2 flex items-center gap-1.5">
+                      <ShieldCheck className="w-3.5 h-3.5 text-primary shrink-0" />
+                      <span className="text-[10px] font-medium text-primary capitalize">
+                        {currentProfile.role}
+                      </span>
+                    </div>
                   </div>
                   <div className="p-1">
                     <button
@@ -222,15 +230,18 @@ export function DashboardShell({ user, profile }: DashboardShellProps) {
           </button>
           <span className="text-[14px] font-medium text-foreground hidden md:block">{activeLabel}</span>
           <div className="flex-1 md:hidden" />
-          <NotificationsBell setTab={setTab} />
         </header>
 
         <main className="flex-1 overflow-y-auto p-6 md:p-8">
-          {activeTab === "overview"     && <OverviewTab displayName={displayName} setTab={setTab} />}
-          {activeTab === "pets"         && <PetsTab />}
-          {activeTab === "owners"       && <OwnersTab />}
-          {activeTab === "appointments" && <AppointmentsTab />}
-          {activeTab === "settings"     && <SettingsTab profile={currentProfile} onProfileUpdated={setCurrentProfile} />}
+          {pathname === "/dashboard" ? (
+            <>
+              {activeTab === "overview"     && <OverviewTab displayName={displayName} setTab={setTab} role={userRole} />}
+              {activeTab === "pets"         && <PetsTab />}
+              {activeTab === "owners"       && <OwnersTab />}
+              {activeTab === "appointments" && <AppointmentsTab />}
+              {activeTab === "settings"     && <SettingsTab profile={currentProfile} onProfileUpdated={setCurrentProfile} />}
+            </>
+          ) : children}
         </main>
       </div>
     </div>

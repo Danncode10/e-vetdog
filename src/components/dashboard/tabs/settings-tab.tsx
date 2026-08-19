@@ -12,7 +12,7 @@ const SECTIONS = [
 ] as const;
 
 type SectionId = typeof SECTIONS[number]["id"];
-type Profile = Database["public"]["Tables"]["profiles"]["Row"] | null;
+type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 
 interface SettingsTabProps {
   profile: Profile;
@@ -47,16 +47,8 @@ export function SettingsTab({ profile, onProfileUpdated }: SettingsTabProps) {
       </div>
 
       <div className="bg-card border border-border rounded-2xl p-6">
-        {section === "profile" && profile ? (
+        {section === "profile" ? (
           <ProfileForm profile={profile} onProfileUpdated={onProfileUpdated} />
-        ) : section === "profile" ? (
-          <div className="flex min-h-48 flex-col items-center justify-center gap-2 text-center">
-            <UserIcon className="h-8 w-8 text-muted-foreground" aria-hidden="true" />
-            <h3 className="text-lg font-semibold text-foreground">Profile unavailable</h3>
-            <p className="max-w-md text-sm text-muted-foreground">
-              Your account is signed in, but its profile record is not available yet. Refresh the page and contact the clinic if this continues.
-            </p>
-          </div>
         ) : section === "security" ? (
           <SecurityForm />
         ) : null}
