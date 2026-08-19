@@ -67,6 +67,12 @@ export function DashboardShell({ user, profile, children }: DashboardShellProps)
   const displayName = currentProfile.full_name || user.email?.split("@")[0] || "there";
   const initials = displayName.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase();
 
+  React.useEffect(() => {
+    if (userRole === "admin") {
+      router.prefetch("/dashboard/team");
+    }
+  }, [router, userRole]);
+
   const setTab = React.useCallback((tab: DashboardTabId) => {
     if (!validIds.has(tab)) return;
 
@@ -148,6 +154,8 @@ export function DashboardShell({ user, profile, children }: DashboardShellProps)
               <button
                 key={id}
                 onClick={() => setTab(id)}
+                onMouseEnter={() => id === "team" && router.prefetch("/dashboard/team")}
+                onFocus={() => id === "team" && router.prefetch("/dashboard/team")}
                 title={collapsed ? label : undefined}
                 className={`w-full flex items-center gap-3 rounded-lg text-[13px] transition-colors
                   ${collapsed ? "md:justify-center px-0 py-2.5" : "px-3 py-2"}
