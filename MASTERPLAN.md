@@ -63,7 +63,7 @@
   - **Dependencies:** [P0.1].
   - **Acceptance criteria:** Roles are consistently `admin`, `veterinarian`, and `owner`; the authority model for any dual-role staff is explicit; legacy `user` data has a safe mapping; no competing appointment/service model is introduced.
 
-- [ ] **[P1.2] Implement profiles, role policies, and guarded routes**
+- [x] **[P1.2] Implement profiles, role policies, and guarded routes**
   - **Goal:** Implement role-aware profiles, server-side authorization helpers, dashboard redirects, and RLS policies.
   - **Dependencies:** [P1.1].
   - **Acceptance criteria:** Roles remain application data rather than editable auth metadata; every protected route denies the wrong role; profile access follows RLS; authorization logic lives in `src/services/`.
