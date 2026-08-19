@@ -86,9 +86,9 @@ Use this compact shape for `docs/tests/<task-id-lowercase>-<short-task-slug>.md`
 
 Review the current conversation and record the human verification as a short ordered checklist. Every item must state the action and its observed result. For example:
 
-- [x] Signed out and opened `/dashboard/team` → redirected to `/login?next=%2Fdashboard%2Fteam`.
-- [x] Signed in as an owner and opened `/dashboard/team` → redirected to `/dashboard`; Team did not render.
-- [x] Ran the owner RLS insert attempt in Supabase SQL Editor → policy denied the row; the transaction rolled back.
+- [x] Performed `<verification action>` → observed `<expected result>`.
+- [x] Tested an authorized workflow → the permitted outcome completed successfully.
+- [x] Tested an unauthorized action → access was denied and no data changed.
 
 If screenshots were provided, add only a concise text description of what each screenshot demonstrated. Do not store the image files. Do not list automated checks here unless a person directly observed or ran them during the verification.
 
