@@ -18,11 +18,7 @@ export type StaffActionResult = {
   success?: string;
 };
 
-type StaffAuditAction = "staff_invited" | "staff_updated" | "staff_deactivated" | "staff_reactivated";
-
-function normalizeText(value: string) {
-  return value.trim().replace(/\s+/g, " ");
-}
+type StaffAuditAction = "staff_added" | "staff_updated" | "staff_deactivated" | "staff_reactivated";
 
 function parseStaffRole(value: string): StaffRole | null {
   return value === "admin" || value === "veterinarian" ? value : null;
@@ -119,58 +115,66 @@ export async function listStaff(): Promise<StaffMember[]> {
   return data;
 }
 
-export async function inviteStaff(input: { email: string; fullName: string; role: string }): Promise<StaffActionResult> {
+export async function addExistingStaff(input: { email: string; role: string }): Promise<StaffActionResult> {
   try {
     const actor = await getAdminActor();
     const email = input.email.trim().toLowerCase();
-    const fullName = normalizeText(input.fullName);
     const role = parseStaffRole(input.role);
 
     if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
       return { error: "Enter a valid staff email address." };
-    }
-    if (!fullName) {
-      return { error: "Enter the staff member's full name." };
     }
     if (!role) {
       return { error: "Choose an administrator or veterinarian role." };
     }
 
     const adminClient = createAdminClient();
-    const origin = process.env.NEXT_PUBLIC_SITE_URL;
-    const { data, error } = await adminClient.auth.admin.inviteUserByEmail(email, {
-      data: { full_name: fullName },
-      redirectTo: origin ? `${origin}/auth/callback?next=/dashboard` : undefined,
-    });
+    const { data: target, error: targetError } = await adminClient
+      .from("profiles")
+      .select("id, email, full_name, role, is_active, created_at")
+      .eq("email", email)
+      .maybeSingle();
 
-    if (error || !data.user) {
-      return { error: error?.message ?? "Could not send the staff invitation." };
+    if (targetError) {
+      return { error: "Could not check that account." };
+    }
+    if (!target) {
+      return { error: "No account found for this email. Ask the person to create an account first." };
+    }
+    if (target.role !== "owner" && target.role !== "admin" && target.role !== "veterinarian") {
+      return { error: "That account cannot be added as clinic staff." };
     }
 
+    await assertNotFinalActiveAdmin(target, role, true);
     const { error: profileError } = await adminClient
       .from("profiles")
-      .update({ full_name: fullName, role, is_active: true })
-      .eq("id", data.user.id);
+      .update({ role, is_active: true })
+      .eq("id", target.id);
 
     if (profileError) {
-      return { error: "The invitation was created, but the staff role could not be assigned." };
+      return { error: "Could not add this account to clinic staff." };
     }
 
-    await writeAuditLog(actor.id, data.user.id, "staff_invited", {}, { email, full_name: fullName, role, is_active: true });
+    await writeAuditLog(
+      actor.id,
+      target.id,
+      target.role === "owner" ? "staff_added" : "staff_updated",
+      { email: target.email, full_name: target.full_name, role: target.role, is_active: target.is_active },
+      { email: target.email, full_name: target.full_name, role, is_active: true },
+    );
     revalidatePath("/dashboard/team");
-    return { success: `Invitation sent to ${email}.` };
+    return { success: `${email} is now ${role === "admin" ? "an administrator" : "a veterinarian"}.` };
   } catch (error) {
-    return { error: error instanceof Error ? error.message : "Could not invite staff." };
+    return { error: error instanceof Error ? error.message : "Could not add staff." };
   }
 }
 
-export async function updateStaff(input: { id: string; fullName: string; role: string }): Promise<StaffActionResult> {
+export async function updateStaffRole(input: { id: string; role: string }): Promise<StaffActionResult> {
   try {
     const actor = await getAdminActor();
-    const fullName = normalizeText(input.fullName);
     const role = parseStaffRole(input.role);
-    if (!input.id || !fullName || !role) {
-      return { error: "Provide a name and valid staff role." };
+    if (!input.id || !role) {
+      return { error: "Choose a valid staff role." };
     }
 
     const adminClient = createAdminClient();
@@ -187,24 +191,24 @@ export async function updateStaff(input: { id: string; fullName: string; role: s
     await assertNotFinalActiveAdmin(target, role, target.is_active);
     const { error: updateError } = await adminClient
       .from("profiles")
-      .update({ full_name: fullName, role })
+      .update({ role })
       .eq("id", target.id);
 
     if (updateError) {
-      return { error: "Could not update the staff account." };
+      return { error: "Could not update the staff role." };
     }
 
     await writeAuditLog(
       actor.id,
       target.id,
       "staff_updated",
-      { full_name: target.full_name, role: target.role, is_active: target.is_active },
-      { full_name: fullName, role, is_active: target.is_active },
+      { role: target.role, is_active: target.is_active },
+      { role, is_active: target.is_active },
     );
     revalidatePath("/dashboard/team");
-    return { success: "Staff account updated." };
+    return { success: "Staff role updated." };
   } catch (error) {
-    return { error: error instanceof Error ? error.message : "Could not update the staff account." };
+    return { error: error instanceof Error ? error.message : "Could not update the staff role." };
   }
 }
 

@@ -6,7 +6,7 @@
 
 ## What was built
 
-P1.3 adds an admin-only staff management flow at `/dashboard/team` for inviting, updating, deactivating, and reactivating administrator and veterinarian accounts. Staff lifecycle changes run through server actions in `src/services/staff.ts`, use Supabase Auth Admin APIs only from the server, write audit records, and protect the final active administrator in both application logic and a database trigger.
+P1.3 adds an admin-only staff management flow at `/dashboard/team` for adding existing accounts to the clinic staff, updating staff roles, deactivating staff, and reactivating staff. A person must create an E-VetDoc account before an admin can add them as a veterinarian or administrator. Staff lifecycle changes run through server actions in `src/services/staff.ts`, use service-role operations only from the server, write audit records, and protect the final active administrator in both application logic and a database trigger.
 
 ## Automated checks
 
@@ -22,14 +22,16 @@ P1.3 adds an admin-only staff management flow at `/dashboard/team` for inviting,
 
 1. Log in as an administrator.
 2. Open `/dashboard/team`.
-3. Invite a veterinarian with a valid email and full name.
-4. Confirm the invite action shows a clear pending state and success toast.
-5. Confirm the invited staff member appears in the staff list with an active status.
-6. Edit the staff member's name and role, then save.
-7. Deactivate the staff member and confirm they cannot access authenticated dashboard routes.
-8. Reactivate the staff member and confirm their account can be used again.
-9. Try to demote or deactivate the final active admin and confirm the action is blocked.
-10. Log in as a non-admin staff or owner account and confirm `/dashboard/team` is not accessible.
+3. Create a normal account for a test user.
+4. Add that account to the team by entering the same email and choosing the veterinarian role.
+5. Confirm the add action shows a clear pending state and success toast.
+6. Confirm the staff member appears in the staff list with an active status.
+7. Try adding an email that has not created an account yet and confirm a clear error appears.
+8. Change the staff member's role and confirm the warning/confirmation appears before saving.
+9. Deactivate the staff member and confirm they cannot access authenticated dashboard routes.
+10. Reactivate the staff member and confirm their account can be used again.
+11. Try to demote or deactivate the final active admin and confirm the action is blocked.
+12. Log in as a non-admin staff or owner account and confirm `/dashboard/team` is not accessible.
 
 ## RLS smoke test
 
@@ -43,7 +45,7 @@ P1.3 adds an admin-only staff management flow at `/dashboard/team` for inviting,
 
 | Symptom | Likely cause | Fix |
 |---|---|---|
-| Invite email does not arrive | Supabase Auth SMTP or redirect settings are incomplete | Check Supabase Auth email settings and `NEXT_PUBLIC_SITE_URL` |
+| Account cannot be added | The email has not created an E-VetDoc account yet | Ask the person to create an account first, then add the same email |
 | `pnpm db:migrate` fails with `ENOTFOUND` | Local network cannot route to the direct Supabase Postgres host | Use the Supabase session pooler for migration connectivity or fix local IPv6 routing |
 | Non-admin sees no audit logs | Expected RLS behavior | Verify with an admin account instead |
 | Final admin change fails | Expected safety trigger | Create or reactivate another admin before demoting/deactivating the current final admin |
