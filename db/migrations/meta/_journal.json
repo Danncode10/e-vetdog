@@ -50,6 +50,13 @@
       "when": 1787118569251,
       "tag": "0007_staff-audit-grants",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1787138840000,
+      "tag": "0008_sync_profile_names",
+      "breakpoints": true
     }
   ]
 }

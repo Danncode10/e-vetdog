@@ -50,6 +50,7 @@ export async function signUpWithEmailRateLimited(
   }
 
   const supabase = await createClient();
+  const trimmedFullName = fullName?.trim();
   const { error } = await supabase.auth.signUp({
     email,
     password,
@@ -58,7 +59,9 @@ export async function signUpWithEmailRateLimited(
       // with ?code=... → our /auth/callback route exchanges it for a session
       // → then redirects to /login (default next)
       emailRedirectTo: `${origin}/auth/callback?next=/login`,
-      data: fullName ? { full_name: fullName } : undefined,
+      data: trimmedFullName
+        ? { full_name: trimmedFullName, name: trimmedFullName, display_name: trimmedFullName }
+        : undefined,
     },
   });
   if (error) throw error;

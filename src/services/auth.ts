@@ -31,11 +31,17 @@ export async function signInWithEmail(email: string, password: string) {
   return { success: true, requiresMFA: false };
 }
 
-export async function signUpWithEmail(email: string, password: string) {
+export async function signUpWithEmail(email: string, password: string, fullName?: string) {
   const client = createClient();
+  const trimmedFullName = fullName?.trim();
   const { error } = await client.auth.signUp({
     email,
     password,
+    options: {
+      data: trimmedFullName
+        ? { full_name: trimmedFullName, name: trimmedFullName, display_name: trimmedFullName }
+        : undefined,
+    },
   });
   if (error) throw error;
   return { success: true };
