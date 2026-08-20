@@ -41,7 +41,7 @@ For the complete local redirect URL and email template setup, use the [Supabase 
 Google sign-in has two redirect layers. Both must be configured, but they belong in different dashboards:
 
 ```text
-Browser → Google → Supabase Auth callback → E-VetDoc /auth/callback → /dashboard
+Browser → Google → Supabase Auth callback → app /auth/callback → /dashboard
 ```
 
 ### 1. Create the Google OAuth client
@@ -52,7 +52,7 @@ Browser → Google → Supabase Auth callback → E-VetDoc /auth/callback → /d
 4. Open **Google Auth platform > Clients**, create an OAuth Client ID, and choose **Web application**.
 5. Under **Authorized JavaScript origins**, add:
    - `http://localhost:3000`
-   - `https://your-domain.com` after deployment
+   - `https://your-domain.com`
 6. Under **Authorized redirect URIs**, add the exact value shown in Supabase **Authentication > Sign In / Providers > Google**:
    - `https://YOUR_PROJECT_REF.supabase.co/auth/v1/callback`
 
