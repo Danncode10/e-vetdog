@@ -68,7 +68,7 @@
   - **Dependencies:** [P1.1].
   - **Acceptance criteria:** Roles remain application data rather than editable auth metadata; every protected route denies the wrong role; profile access follows RLS; authorization logic lives in `src/services/`.
 
-- [ ] **[P1.3] Provision and manage administrator and veterinarian accounts**
+- [x] **[P1.3] Provision and manage administrator and veterinarian accounts**
   - **Goal:** Give authorized admins a server-only account invitation/provisioning workflow and a staff-management UI.
   - **Dependencies:** [P1.2].
   - **Acceptance criteria:** Admins can create, update, and deactivate staff without exposing service credentials; confirmation behavior is clear; the final administrator cannot be accidentally removed; all actions are authorized and auditable.
