@@ -7,6 +7,7 @@ import { createAdminClient, createClient } from "@/utils/supabase/server";
 import type { Database, Json, Tables } from "@/types/supabase";
 
 type StaffRole = Extract<Database["public"]["Enums"]["user_role"], "admin" | "veterinarian">;
+type ManageableRole = StaffRole | "owner";
 type Profile = Tables<"profiles">;
 
 export type StaffMember = Pick<Profile, "id" | "email" | "full_name" | "role" | "created_at"> & {
@@ -22,6 +23,10 @@ type StaffAuditAction = "staff_added" | "staff_updated" | "staff_deactivated" | 
 
 function parseStaffRole(value: string): StaffRole | null {
   return value === "admin" || value === "veterinarian" ? value : null;
+}
+
+function parseManageableRole(value: string): ManageableRole | null {
+  return value === "admin" || value === "veterinarian" || value === "owner" ? value : null;
 }
 
 function toJson(value: Record<string, string | boolean | null>): Json {
@@ -75,7 +80,7 @@ async function writeAuditLog(
 
 async function assertNotFinalActiveAdmin(
   target: Pick<StaffMember, "id" | "role" | "is_active">,
-  nextRole: StaffRole,
+  nextRole: ManageableRole,
   nextIsActive: boolean,
 ) {
   if (target.role !== "admin" || !target.is_active || (nextRole === "admin" && nextIsActive)) {
@@ -94,7 +99,7 @@ async function assertNotFinalActiveAdmin(
   }
 
   if ((count ?? 0) <= 1) {
-    throw new Error("The final active administrator cannot be deactivated or changed to veterinarian.");
+    throw new Error("The final active administrator cannot be deactivated or moved to another role.");
   }
 }
 
@@ -172,7 +177,7 @@ export async function addExistingStaff(input: { email: string; role: string }): 
 export async function updateStaffRole(input: { id: string; role: string }): Promise<StaffActionResult> {
   try {
     const actor = await getAdminActor();
-    const role = parseStaffRole(input.role);
+    const role = parseManageableRole(input.role);
     if (!input.id || !role) {
       return { error: "Choose a valid staff role." };
     }
@@ -206,7 +211,7 @@ export async function updateStaffRole(input: { id: string; role: string }): Prom
       { role, is_active: target.is_active },
     );
     revalidatePath("/dashboard/team");
-    return { success: "Staff role updated." };
+    return { success: role === "owner" ? "Account returned to pet-owner access." : "Staff role updated." };
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Could not update the staff role." };
   }

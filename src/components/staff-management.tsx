@@ -8,6 +8,7 @@ import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { addExistingStaff, setStaffActive, updateStaffRole, type StaffMember } from "@/services/staff";
 
 type StaffRole = "admin" | "veterinarian";
+type ManageableRole = StaffRole | "owner";
 
 const inputClass = "min-h-12 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground outline-none ring-ring focus:ring-2";
 
@@ -21,21 +22,34 @@ function RoleBadge({ role }: { role: StaffRole }) {
   );
 }
 
-function roleLabel(role: StaffRole) {
-  return role === "admin" ? "Administrator" : "Veterinarian";
+function roleLabel(role: ManageableRole) {
+  if (role === "admin") return "Administrator";
+  if (role === "veterinarian") return "Veterinarian";
+  return "Pet owner";
 }
 
 function staffName(member: StaffMember) {
   return member.full_name?.trim() || "Name not set";
 }
 
+const roleOptions: Array<{
+  value: ManageableRole;
+  label: string;
+  description: string;
+  Icon: typeof ShieldCheck;
+}> = [
+  { value: "veterinarian", label: "Veterinarian", description: "Can access clinic staff tools.", Icon: Stethoscope },
+  { value: "admin", label: "Administrator", description: "Can manage staff and clinic access.", Icon: ShieldCheck },
+  { value: "owner", label: "Pet owner", description: "Removes clinic-staff access and keeps the account active.", Icon: UserRoundCheck },
+];
+
 export function StaffManagement({ staff }: { staff: StaffMember[] }) {
   const [isPending, startTransition] = useTransition();
   const [newStaff, setNewStaff] = useState({ email: "", role: "veterinarian" as StaffRole });
   const [editingRoleId, setEditingRoleId] = useState<string | null>(null);
-  const [roleDrafts, setRoleDrafts] = useState<Record<string, StaffRole>>({});
+  const [roleDrafts, setRoleDrafts] = useState<Record<string, ManageableRole>>({});
   const [confirmation, setConfirmation] = useState<
-    | { id: string; kind: "role"; nextRole: StaffRole }
+    | { id: string; kind: "role"; nextRole: ManageableRole }
     | { id: string; kind: "status"; nextIsActive: boolean }
     | null
   >(null);
@@ -171,13 +185,31 @@ export function StaffManagement({ staff }: { staff: StaffMember[] }) {
 
                   {editingRole ? (
                     <div className="mt-4 rounded-md border border-border bg-card p-4">
-                      <label className="space-y-2 text-sm font-medium text-foreground">
-                        New role
-                        <select className={inputClass} value={draftRole} onChange={(event) => setRoleDrafts({ ...roleDrafts, [member.id]: event.target.value as StaffRole })}>
-                          <option value="veterinarian">Veterinarian</option>
-                          <option value="admin">Administrator</option>
-                        </select>
-                      </label>
+                      <fieldset>
+                        <legend className="text-sm font-medium text-foreground">Choose a role</legend>
+                        <p className="mt-1 text-sm text-muted-foreground">Pet owner removes this person from clinic staff without deleting their account.</p>
+                        <div className="mt-3 grid gap-2">
+                          {roleOptions.map(({ value, label, description, Icon }) => (
+                            <label key={value} className="block cursor-pointer">
+                              <input
+                                checked={draftRole === value}
+                                className="peer sr-only"
+                                name={`staff-role-${member.id}`}
+                                onChange={() => setRoleDrafts({ ...roleDrafts, [member.id]: value })}
+                                type="radio"
+                                value={value}
+                              />
+                              <span className="flex min-h-16 items-center gap-3 rounded-md border border-border bg-background px-3 py-3 transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2 peer-checked:border-primary peer-checked:bg-primary/10">
+                                <Icon className="size-5 shrink-0 text-primary" />
+                                <span className="min-w-0">
+                                  <span className="block text-sm font-medium text-foreground">{label}</span>
+                                  <span className="mt-0.5 block text-xs text-muted-foreground">{description}</span>
+                                </span>
+                              </span>
+                            </label>
+                          ))}
+                        </div>
+                      </fieldset>
                       <div className="mt-4 grid gap-2 sm:grid-cols-2">
                         <Button
                           type="button"
@@ -201,15 +233,15 @@ export function StaffManagement({ staff }: { staff: StaffMember[] }) {
                         <AlertTriangle className="mt-0.5 size-5 shrink-0 text-destructive" />
                         <div className="space-y-2">
                           <p className="font-medium text-foreground">
-                            {memberConfirmation.kind === "role"
-                              ? `Change ${staffName(member)} to ${roleLabel(memberConfirmation.nextRole)}?`
-                              : `${memberConfirmation.nextIsActive ? "Reactivate" : "Deactivate"} ${staffName(member)}?`}
+                            {memberConfirmation.nextRole === "owner"
+                              ? `Return ${staffName(member)} to pet-owner access?`
+                              : `Change ${staffName(member)} to ${roleLabel(memberConfirmation.nextRole)}?`}
                           </p>
                           <p className="text-sm text-muted-foreground">
-                            {memberConfirmation.kind === "role" && finalAdmin && memberConfirmation.nextRole !== "admin"
-                              ? "This is the final active administrator. Add another active administrator before changing this role."
-                              : memberConfirmation.kind === "status" && finalAdmin && !memberConfirmation.nextIsActive
-                                ? "This is the final active administrator. Add another active administrator before deactivating this account."
+                            {memberConfirmation.nextRole === "owner"
+                              ? "This removes clinic-staff access but keeps the person's E-VetDoc account active."
+                              : finalAdmin && memberConfirmation.nextRole !== "admin"
+                                ? "This is the final active administrator. Add another active administrator before changing this role."
                                 : "This action changes staff access and will be recorded in the audit log."}
                           </p>
                         </div>
@@ -219,15 +251,10 @@ export function StaffManagement({ staff }: { staff: StaffMember[] }) {
                           type="button"
                           disabled={
                             isPending ||
-                            (memberConfirmation.kind === "role" && finalAdmin && memberConfirmation.nextRole !== "admin") ||
-                            (memberConfirmation.kind === "status" && finalAdmin && !memberConfirmation.nextIsActive)
+                            (finalAdmin && memberConfirmation.nextRole !== "admin")
                           }
                           onClick={() => {
-                            if (memberConfirmation.kind === "role") {
-                              run(() => updateStaffRole({ id: member.id, role: memberConfirmation.nextRole }));
-                              return;
-                            }
-                            run(() => setStaffActive({ id: member.id, isActive: memberConfirmation.nextIsActive }));
+                            run(() => updateStaffRole({ id: member.id, role: memberConfirmation.nextRole }));
                           }}
                         >
                           {isPending ? <Loader2 className="size-4 animate-spin" /> : <ShieldCheck className="size-4" />}

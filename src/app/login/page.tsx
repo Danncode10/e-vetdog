@@ -31,6 +31,9 @@ function getAuthErrorMessage(err: unknown) {
   if (!(err instanceof Error)) return 'Something went wrong. Please try again.';
 
   const message = err.message.toLowerCase();
+  if (message.includes('user is banned') || message.includes('user_banned')) {
+    return 'This account has been deactivated. Contact your clinic administrator to restore access.';
+  }
   if (message.includes('fetch failed') || message.includes('failed to fetch')) {
     return 'Could not reach Supabase. Check that the project is active and your environment URL is correct.';
   }
@@ -69,7 +72,14 @@ export default function AuthPage() {
       if (saved === 'login' || saved === 'signup') setMode(saved);
       const params = new URLSearchParams(window.location.search);
       if (params.get('mode') === 'recovery') setMode('recovery');
-      if (params.get('error') === 'confirmation_failed') {
+      const hashParams = new URLSearchParams(window.location.hash.slice(1));
+      const authErrorCode = params.get('error_code') ?? hashParams.get('error_code');
+      const authError = params.get('error') ?? hashParams.get('error');
+
+      if (authErrorCode === 'user_banned' || authError === 'User is banned') {
+        setError('This account has been deactivated. Contact your clinic administrator to restore access.');
+        window.history.replaceState(null, '', window.location.pathname);
+      } else if (params.get('error') === 'confirmation_failed') {
         setError('We could not complete that auth link. Please try again.');
       }
     }, 0);
