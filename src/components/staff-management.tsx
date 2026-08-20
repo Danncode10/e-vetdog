@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { AlertTriangle, Loader2, ShieldCheck, Stethoscope, UserCog, UserPlus, UserRoundCheck, UserRoundX, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { addExistingStaff, setStaffActive, updateStaffRole, type StaffMember } from "@/services/staff";
 
 type StaffRole = "admin" | "veterinarian";
@@ -57,6 +58,9 @@ export function StaffManagement({ staff }: { staff: StaffMember[] }) {
   function isFinalActiveAdmin(member: StaffMember) {
     return member.role === "admin" && member.is_active && activeAdminCount <= 1;
   }
+
+  const statusConfirmation = confirmation?.kind === "status" ? confirmation : null;
+  const confirmedMember = statusConfirmation ? staff.find((member) => member.id === statusConfirmation.id) : null;
 
   return (
     <div className="space-y-6">
@@ -191,7 +195,7 @@ export function StaffManagement({ staff }: { staff: StaffMember[] }) {
                     </div>
                   ) : null}
 
-                  {memberConfirmation ? (
+                  {memberConfirmation?.kind === "role" ? (
                     <div className="mt-4 rounded-md border border-border bg-muted p-4">
                       <div className="flex gap-3">
                         <AlertTriangle className="mt-0.5 size-5 shrink-0 text-destructive" />
@@ -242,6 +246,24 @@ export function StaffManagement({ staff }: { staff: StaffMember[] }) {
           </div>
         )}
       </section>
+      <ConfirmationDialog
+        open={Boolean(statusConfirmation && confirmedMember)}
+        title={`${statusConfirmation?.nextIsActive ? "Reactivate" : "Deactivate"} ${confirmedMember ? staffName(confirmedMember) : "staff member"}?`}
+        description={
+          statusConfirmation?.nextIsActive
+            ? "This restores the staff member's dashboard access and will be recorded in the audit log."
+            : "This removes the staff member's dashboard access and will be recorded in the audit log."
+        }
+        confirmLabel={statusConfirmation?.nextIsActive ? "Reactivate staff member" : "Deactivate staff member"}
+        isPending={isPending}
+        onOpenChange={(open) => {
+          if (!open) setConfirmation(null);
+        }}
+        onConfirm={() => {
+          if (!statusConfirmation) return;
+          run(() => setStaffActive({ id: statusConfirmation.id, isActive: statusConfirmation.nextIsActive }));
+        }}
+      />
     </div>
   );
 }
