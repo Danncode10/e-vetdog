@@ -1,29 +1,49 @@
 "use client";
 
-import { PawPrint, Loader2, Plus } from "lucide-react";
+import * as React from "react";
+import { Loader2, PawPrint, Pencil, Plus, Search } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { createOwnedPet, listPetsForCurrentUser, updateOwnedPet, type PetFormInput } from "@/services/pets";
+import type { UserRole } from "@/lib/dashboard-features";
 
-export function PetsTab() {
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-semibold text-foreground tracking-tight">Pets</h2>
-          <p className="mt-1 text-[14px] text-muted-foreground">
-            Manage patient records and ownership relationships.
-          </p>
-        </div>
-        <button className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary text-primary-foreground text-[13px] font-medium hover:bg-primary/90 transition-colors">
-          <Plus className="w-4 h-4" />
-          Add Pet
-        </button>
-      </div>
+type PetRecord = Awaited<ReturnType<typeof listPetsForCurrentUser>>[number];
 
-      <div className="rounded-2xl border border-border bg-card p-12 text-center">
-        <PawPrint className="w-10 h-10 text-muted-foreground mx-auto mb-3" strokeWidth={1.5} />
-        <p className="text-[14px] text-muted-foreground">
-          No pets yet. Add a patient to get started.
-        </p>
-      </div>
-    </div>
-  );
+const speciesOptions = ["dog", "cat", "bird", "rabbit", "reptile", "other"] as const;
+const sexOptions = ["male", "female", "unknown"] as const;
+const emptyPet: PetFormInput = { name: "", species: "dog", breed: "", sex: "unknown", dateOfBirth: "", age: "", microchipId: "", color: "", notes: "" };
+
+function PetForm({ initialValue, onCancel, onSubmit, isPending }: { initialValue: PetFormInput; onCancel: () => void; onSubmit: (value: PetFormInput) => void; isPending: boolean }) {
+  const [value, setValue] = React.useState(initialValue);
+  const setField = <K extends keyof PetFormInput>(field: K, fieldValue: PetFormInput[K]) => setValue((current) => ({ ...current, [field]: fieldValue }));
+  return <Card className="border-primary/30"><CardHeader><CardTitle className="text-lg">{initialValue.name ? "Update pet details" : "Add a pet"}</CardTitle><CardDescription>Only information you are permitted to manage can be changed here.</CardDescription></CardHeader><CardContent><form className="grid gap-4 sm:grid-cols-2" onSubmit={(event) => { event.preventDefault(); onSubmit(value); }}>
+    <label className="grid gap-2 text-sm font-medium text-foreground">Pet name<input value={value.name} onChange={(event) => setField("name", event.target.value)} required className="min-h-12 rounded-md border border-input bg-background px-3 text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring" /></label>
+    <label className="grid gap-2 text-sm font-medium text-foreground">Species<select value={value.species} onChange={(event) => setField("species", event.target.value as PetFormInput["species"])} className="min-h-12 rounded-md border border-input bg-background px-3 text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring">{speciesOptions.map((species) => <option key={species} value={species}>{species}</option>)}</select></label>
+    <label className="grid gap-2 text-sm font-medium text-foreground">Breed<input value={value.breed} onChange={(event) => setField("breed", event.target.value)} className="min-h-12 rounded-md border border-input bg-background px-3 text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring" /></label>
+    <label className="grid gap-2 text-sm font-medium text-foreground">Sex<select value={value.sex} onChange={(event) => setField("sex", event.target.value as PetFormInput["sex"])} className="min-h-12 rounded-md border border-input bg-background px-3 text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring">{sexOptions.map((sex) => <option key={sex} value={sex}>{sex}</option>)}</select></label>
+    <label className="grid gap-2 text-sm font-medium text-foreground">Date of birth<input type="date" value={value.dateOfBirth} onChange={(event) => setField("dateOfBirth", event.target.value)} className="min-h-12 rounded-md border border-input bg-background px-3 text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring" /></label>
+    <label className="grid gap-2 text-sm font-medium text-foreground">Age (years)<input type="number" min="0" step="1" value={value.age} onChange={(event) => setField("age", event.target.value)} className="min-h-12 rounded-md border border-input bg-background px-3 text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring" /></label>
+    <label className="grid gap-2 text-sm font-medium text-foreground sm:col-span-2">Microchip ID<input value={value.microchipId} onChange={(event) => setField("microchipId", event.target.value)} className="min-h-12 rounded-md border border-input bg-background px-3 text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring" /></label>
+    <label className="grid gap-2 text-sm font-medium text-foreground sm:col-span-2">Notes<textarea value={value.notes} onChange={(event) => setField("notes", event.target.value)} rows={3} className="rounded-md border border-input bg-background px-3 py-3 text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring" /></label>
+    <div className="flex flex-col-reverse gap-3 sm:col-span-2 sm:flex-row sm:justify-end"><Button variant="outline" onClick={onCancel} disabled={isPending}>Cancel</Button><Button type="submit" disabled={isPending}>{isPending && <Loader2 className="mr-2 size-4 animate-spin" aria-hidden="true" />}Save pet</Button></div>
+  </form></CardContent></Card>;
+}
+
+export function PetsTab({ role }: { role: UserRole }) {
+  const [pets, setPets] = React.useState<PetRecord[]>([]);
+  const [query, setQuery] = React.useState("");
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
+  const [form, setForm] = React.useState<PetRecord | "new" | null>(null);
+  const [isPending, startTransition] = React.useTransition();
+  const loadPets = React.useCallback(async () => { try { const records = await listPetsForCurrentUser(); setPets(records); setError(null); } catch (caught) { setError(caught instanceof Error ? caught.message : "We could not load the pet registry."); } finally { setIsLoading(false); } }, []);
+  React.useEffect(() => { const timer = window.setTimeout(() => { void loadPets(); }, 0); return () => window.clearTimeout(timer); }, [loadPets]);
+  const filteredPets = pets.filter((pet) => `${pet.name} ${pet.species} ${pet.breed ?? ""}`.toLowerCase().includes(query.trim().toLowerCase()));
+  const toForm = (pet: PetRecord): PetFormInput => ({ name: pet.name, species: pet.species, breed: pet.breed ?? "", sex: pet.sex, dateOfBirth: pet.date_of_birth ?? "", age: pet.age?.toString() ?? "", microchipId: pet.microchip_id ?? "", color: pet.color ?? "", notes: pet.notes ?? "" });
+  const savePet = (value: PetFormInput) => startTransition(async () => { try { if (form === "new") await createOwnedPet(value); else if (form) await updateOwnedPet(form.id, value); setForm(null); setIsLoading(true); await loadPets(); } catch (caught) { setError(caught instanceof Error ? caught.message : "We could not save this pet."); } });
+  const canEdit = role === "owner" || role === "admin";
+  return <div className="mx-auto max-w-6xl space-y-6"><div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"><div><h2 className="text-2xl font-semibold tracking-tight text-foreground">Pet registry</h2><p className="mt-1 text-sm text-muted-foreground">{role === "owner" ? "Keep the details for your linked pets current." : "Search patients and review their authorized owner relationships."}</p></div>{role === "owner" && <Button onClick={() => setForm("new")}><Plus className="mr-2 size-4" aria-hidden="true" />Add pet</Button>}</div>
+    <label className="relative block"><span className="sr-only">Search pets</span><Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search by name, species, or breed" className="min-h-12 w-full rounded-md border border-input bg-background pl-10 pr-4 text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring" /></label>
+    {error && <p role="alert" className="rounded-md border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">{error}</p>}{form && <PetForm initialValue={form === "new" ? emptyPet : toForm(form)} onCancel={() => setForm(null)} onSubmit={savePet} isPending={isPending} />}
+    {isLoading ? <div className="grid gap-4 sm:grid-cols-2"><div className="h-40 animate-pulse rounded-lg bg-muted" /><div className="h-40 animate-pulse rounded-lg bg-muted" /></div> : filteredPets.length === 0 ? <Card><CardContent className="flex min-h-56 flex-col items-center justify-center p-6 text-center"><PawPrint className="mb-4 size-10 text-muted-foreground" strokeWidth={1.5} /><p className="font-medium text-foreground">{query ? "No pets match that search." : "No pets are available yet."}</p><p className="mt-1 text-sm text-muted-foreground">{role === "owner" ? "Add your first pet to begin managing its details." : "Patient records will appear here when they are added."}</p></CardContent></Card> : <div className="grid gap-4 lg:grid-cols-2">{filteredPets.map((pet) => <Card key={pet.id}><CardHeader className="flex-row items-start justify-between gap-4 space-y-0"><div><CardTitle className="text-lg">{pet.name}</CardTitle><CardDescription className="mt-1 capitalize">{[pet.species, pet.breed, pet.sex].filter(Boolean).join(" · ")}</CardDescription></div>{canEdit && <Button variant="outline" onClick={() => setForm(pet)}><Pencil className="mr-2 size-4" aria-hidden="true" />Edit</Button>}</CardHeader><CardContent className="space-y-3">{(pet.date_of_birth || pet.microchip_id) && <dl className="grid grid-cols-2 gap-3 border-t pt-3 text-sm"><div><dt className="text-muted-foreground">Date of birth</dt><dd className="mt-1 text-foreground">{pet.date_of_birth ?? "Not recorded"}</dd></div><div><dt className="text-muted-foreground">Microchip</dt><dd className="mt-1 break-words text-foreground">{pet.microchip_id ?? "Not recorded"}</dd></div></dl>}{role !== "owner" && pet.pet_owners.length > 0 && <div className="border-t pt-3"><p className="text-sm font-medium text-foreground">Authorized owners</p><ul className="mt-2 space-y-2">{pet.pet_owners.map((link: { id: string; is_primary_contact: boolean; profiles: { full_name: string | null; email: string | null } | null }) => <li key={link.id} className="text-sm text-muted-foreground">{link.profiles?.full_name || link.profiles?.email || "Owner profile"}{link.is_primary_contact ? " · Primary contact" : ""}</li>)}</ul></div>}</CardContent></Card>)}</div>}</div>;
 }

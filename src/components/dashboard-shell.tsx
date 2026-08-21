@@ -253,8 +253,8 @@ export function DashboardShell({ user, profile, children }: DashboardShellProps)
           {pathname === "/dashboard" ? (
             <>
               {activeTab === "overview"     && <OverviewTab displayName={displayName} setTab={setTab} role={userRole} />}
-              {activeTab === "pets"         && <PetsTab />}
-              {activeTab === "owners"       && <OwnersTab />}
+              {activeTab === "pets"         && <PetsTab role={userRole} />}
+              {activeTab === "owners"       && <OwnersTab role={userRole} />}
               {activeTab === "appointments" && <AppointmentsTab />}
               {activeTab === "settings"     && <SettingsTab profile={currentProfile} onProfileUpdated={setCurrentProfile} />}
             </>
