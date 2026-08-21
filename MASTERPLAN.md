@@ -73,7 +73,7 @@
   - **Dependencies:** [P1.2].
   - **Acceptance criteria:** Admins can create, update, and deactivate staff without exposing service credentials; confirmation behavior is clear; the final administrator cannot be accidentally removed; all actions are authorized and auditable.
 
-- [ ] **[P1.4] Complete owner onboarding and profile management**
+- [x] **[P1.4] Complete owner onboarding and profile management**
   - **Goal:** Deliver the owner sign-up, email-confirmation, profile-completion, and self-service profile flows.
   - **Dependencies:** [P1.2], [P0.2].
   - **Acceptance criteria:** New owners cannot access protected pages before confirmation; profile completion is labelled, accessible, and mobile-ready; owners can update only their own permitted details.
