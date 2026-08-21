@@ -16,11 +16,11 @@ export type PetOwnerUpdate = TablesUpdate<"pet_owners">;
 export type PetFormInput = {
   name: string;
   species: Pet["species"];
+  speciesDetail: string;
   breed: string;
   sex: Pet["sex"];
   dateOfBirth: string;
   age: string;
-  microchipId: string;
   color: string;
   notes: string;
 };
@@ -44,11 +44,11 @@ function toPetPayload(input: PetFormInput): Omit<PetInsert, "id" | "created_at" 
   return {
     name,
     species: input.species,
+    species_detail: input.species === "other" ? nullableValue(input.speciesDetail) : null,
     breed: nullableValue(input.breed),
     sex: input.sex,
     date_of_birth: nullableValue(input.dateOfBirth),
     age: parseAge(input.age),
-    microchip_id: nullableValue(input.microchipId),
     color: nullableValue(input.color),
     notes: nullableValue(input.notes),
   };
@@ -88,11 +88,11 @@ export async function createOwnedPet(input: PetFormInput) {
   const { data, error } = await supabase.rpc("create_owned_pet", {
     p_name: payload.name,
     p_species: payload.species,
+    p_species_detail: payload.species_detail,
     p_breed: payload.breed,
     p_sex: payload.sex,
     p_date_of_birth: payload.date_of_birth,
     p_age: payload.age,
-    p_microchip_id: payload.microchip_id,
     p_color: payload.color,
     p_notes: payload.notes,
   });

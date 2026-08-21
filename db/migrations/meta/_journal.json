@@ -71,6 +71,13 @@
       "when": 1787800000000,
       "tag": "0010_pet_registry_owner_workflow",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1787900000000,
+      "tag": "0011_refine_pet_classification",
+      "breakpoints": true
     }
   ]
 }
