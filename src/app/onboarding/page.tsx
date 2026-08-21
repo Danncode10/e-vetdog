@@ -25,7 +25,7 @@ export default async function OnboardingPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <ProfileForm profile={profile} onboarding onProfileUpdated={() => {}} />
+          <ProfileForm profile={profile} onboarding />
         </CardContent>
       </Card>
     </main>

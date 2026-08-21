@@ -28,7 +28,7 @@ export function ProfileForm({
   onboarding = false,
 }: {
   profile: Profile;
-  onProfileUpdated: (profile: Profile) => void;
+  onProfileUpdated?: (profile: Profile) => void;
   onboarding?: boolean;
 }) {
   const [success, setSuccess] = useState(false);
@@ -49,7 +49,7 @@ export function ProfileForm({
       toast.error(err.message || "Failed to update profile. Rate limit exceeded.");
     },
     onSuccess: (updatedProfile) => {
-      onProfileUpdated(updatedProfile);
+      onProfileUpdated?.(updatedProfile);
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
       toast.success("Profile updated successfully!");
