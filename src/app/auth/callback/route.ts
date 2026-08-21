@@ -9,8 +9,9 @@ export async function GET(request: Request) {
   const type = searchParams.get('type') as EmailOtpType | null
   const callbackError = searchParams.get('error_description') ?? searchParams.get('error')
   // `next` lets us send users to a specific page after confirming
-  // e.g. /auth/callback?next=/dashboard — defaults to /login
-  const fallbackNext = type === 'recovery' ? '/reset-password' : '/login'
+  // e.g. /auth/callback?next=/dashboard. Email confirmation continues to
+  // owner onboarding; recovery links retain their dedicated password flow.
+  const fallbackNext = type === 'recovery' ? '/reset-password' : '/onboarding'
   const nextParam = searchParams.get('next')
   const next = nextParam?.startsWith('/') ? nextParam : fallbackNext
 

@@ -72,3 +72,41 @@ export async function updateProfile(updates: {
   if (error) throw error;
   return data;
 }
+
+export async function completeOwnerProfile(updates: {
+  full_name: string;
+  phone: string;
+  address: string;
+  emergency_contact_name?: string;
+  emergency_contact_phone?: string;
+}) {
+  const fullName = updates.full_name.trim();
+  const phone = updates.phone.trim();
+  const address = updates.address.trim();
+
+  if (!fullName || !phone || !address) {
+    throw new Error("Enter your full name, phone number, and address to continue.");
+  }
+
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user?.email_confirmed_at) throw new Error("Confirm your email before completing your profile.");
+
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  if (profileError || profile?.role !== "owner") {
+    throw new Error("Only owner accounts can use this onboarding flow.");
+  }
+
+  return updateProfile({
+    full_name: fullName,
+    phone,
+    address,
+    emergency_contact_name: updates.emergency_contact_name?.trim() || undefined,
+    emergency_contact_phone: updates.emergency_contact_phone?.trim() || undefined,
+  });
+}
