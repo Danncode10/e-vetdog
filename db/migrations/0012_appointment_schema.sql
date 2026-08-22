@@ -145,6 +145,7 @@ CREATE POLICY "owners cancel own appointments" ON public.appointments
       WHERE pet_owners.pet_id = appointments.pet_id
       AND pet_owners.owner_profile_id = (SELECT auth.uid())
     )
+    AND status IN ('requested', 'scheduled')
   )
   WITH CHECK (
     EXISTS (
@@ -153,8 +154,8 @@ CREATE POLICY "owners cancel own appointments" ON public.appointments
       AND pet_owners.owner_profile_id = (SELECT auth.uid())
     )
     AND (
-      (status = 'cancelled' AND previous_status IN ('requested', 'scheduled'))
-      OR (status = 'requested' AND previous_status = 'requested')
+      (status = 'cancelled' AND status IN ('requested', 'scheduled'))
+      OR (status = 'requested')
     )
   );
 
