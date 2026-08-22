@@ -78,7 +78,7 @@
   - **Dependencies:** [P1.2], [P0.2].
   - **Acceptance criteria:** New owners cannot access protected pages before confirmation; profile completion is labelled, accessible, and mobile-ready; owners can update only their own permitted details.
 
-- [ ] **[P1.5] Deliver pet ownership and staff registry MVP**
+- [x] **[P1.5] Deliver pet ownership and staff registry MVP**
   - **Goal:** Add `pets` and `pet_owners` as the sole ownership model, then deliver the owner pet-management flow, staff owner/pet registry, and focused authorization verification.
   - **Dependencies:** [P1.3], [P1.4].
   - **Acceptance criteria:** Pets include the MVP patient fields; `pet_owners` supports co-owner, primary-contact, medical-record, and notification permissions; `pets` has no competing direct `owner_id`; owners manage only their permitted pets; staff can search owners and pets; RLS and service tests prove owner isolation and staff/admin boundaries.
