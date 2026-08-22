@@ -7,7 +7,7 @@ import { createServerClient } from '@supabase/ssr'
  */
 
 const PUBLIC_PATHS = ['/login', '/forgot-password', '/reset-password', '/auth/callback'];
-const PROTECTED_PATHS = ['/dashboard', '/dashboard/settings', '/dashboard/team', '/dashboard/pages'];
+const PROTECTED_PATHS = ['/dashboard', '/onboarding'];
 
 function isPublicPath(pathname: string): boolean {
   return PUBLIC_PATHS.some(path => pathname === path || pathname.startsWith(path + '/'));
@@ -68,7 +68,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // If authenticated user tries to access public auth pages, redirect to dashboard
-  if (user && isPublicPath(pathname)) {
+  if (user?.email_confirmed_at && isPublicPath(pathname)) {
     return NextResponse.redirect(new URL('/dashboard', origin));
   }
 

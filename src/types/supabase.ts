@@ -106,11 +106,11 @@ export type Database = {
           created_at: string
           date_of_birth: string | null
           id: string
-          microchip_id: string | null
           name: string
           notes: string | null
           sex: Database["public"]["Enums"]["pet_sex"]
           species: Database["public"]["Enums"]["pet_species"]
+          species_detail: string | null
           updated_at: string
         }
         Insert: {
@@ -120,11 +120,11 @@ export type Database = {
           created_at?: string
           date_of_birth?: string | null
           id?: string
-          microchip_id?: string | null
           name: string
           notes?: string | null
           sex?: Database["public"]["Enums"]["pet_sex"]
           species: Database["public"]["Enums"]["pet_species"]
+          species_detail?: string | null
           updated_at?: string
         }
         Update: {
@@ -134,11 +134,11 @@ export type Database = {
           created_at?: string
           date_of_birth?: string | null
           id?: string
-          microchip_id?: string | null
           name?: string
           notes?: string | null
           sex?: Database["public"]["Enums"]["pet_sex"]
           species?: Database["public"]["Enums"]["pet_species"]
+          species_detail?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -292,7 +292,39 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      create_owned_pet: {
+        Args: {
+          p_age?: number
+          p_breed?: string
+          p_color?: string
+          p_date_of_birth?: string
+          p_name: string
+          p_notes?: string
+          p_sex?: Database["public"]["Enums"]["pet_sex"]
+          p_species: Database["public"]["Enums"]["pet_species"]
+          p_species_detail?: string
+        }
+        Returns: {
+          age: number | null
+          breed: string | null
+          color: string | null
+          created_at: string
+          date_of_birth: string | null
+          id: string
+          name: string
+          notes: string | null
+          sex: Database["public"]["Enums"]["pet_sex"]
+          species: Database["public"]["Enums"]["pet_species"]
+          species_detail: string | null
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "pets"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
     }
     Enums: {
       owner_relationship: "owner" | "co_owner" | "family" | "caretaker"

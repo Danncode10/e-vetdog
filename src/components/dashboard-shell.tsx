@@ -95,8 +95,10 @@ export function DashboardShell({ user, profile, children }: DashboardShellProps)
   };
 
   const mainTabs = enabledTabs.filter((t) => t.id !== "settings");
-  const activeTabId = pathname === "/dashboard/team" ? "team" : activeTab;
-  const activeLabel = enabledTabs.find((t) => t.id === activeTabId)?.label ?? "Overview";
+  const isPetRecord = pathname.startsWith("/user/") && pathname.includes("/pet/");
+  const isOwnerRecord = pathname.startsWith("/user/") && !isPetRecord;
+  const activeTabId = pathname === "/dashboard/team" ? "team" : pathname.startsWith("/dashboard/pets") || isPetRecord ? "pets" : isOwnerRecord ? "owners" : activeTab;
+  const activeLabel = pathname === "/dashboard/pets/new" ? "Add pet" : isPetRecord ? "Pet record" : isOwnerRecord ? "Owner record" : enabledTabs.find((t) => t.id === activeTabId)?.label ?? "Overview";
 
   return (
     <div className="h-screen bg-background flex overflow-hidden">
@@ -253,8 +255,8 @@ export function DashboardShell({ user, profile, children }: DashboardShellProps)
           {pathname === "/dashboard" ? (
             <>
               {activeTab === "overview"     && <OverviewTab displayName={displayName} setTab={setTab} role={userRole} />}
-              {activeTab === "pets"         && <PetsTab />}
-              {activeTab === "owners"       && <OwnersTab />}
+              {activeTab === "pets"         && <PetsTab role={userRole} />}
+              {activeTab === "owners"       && <OwnersTab role={userRole} />}
               {activeTab === "appointments" && <AppointmentsTab />}
               {activeTab === "settings"     && <SettingsTab profile={currentProfile} onProfileUpdated={setCurrentProfile} />}
             </>

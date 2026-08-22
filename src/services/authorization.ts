@@ -11,6 +11,16 @@ export type AuthenticatedUser = {
   profile: Profile;
 };
 
+export function isEmailVerified(user: User): boolean {
+  return Boolean(user.email_confirmed_at);
+}
+
+export function isOwnerProfileComplete(profile: Profile): boolean {
+  return Boolean(
+    profile.full_name?.trim() && profile.phone?.trim() && profile.address?.trim(),
+  );
+}
+
 /**
  * Get the authenticated user and their profile.
  * Returns null if not authenticated.
@@ -19,7 +29,7 @@ export async function getCurrentUser(): Promise<AuthenticatedUser | null> {
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
 
-  if (authError || !user) return null;
+  if (authError || !user || !isEmailVerified(user)) return null;
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")

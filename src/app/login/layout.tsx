@@ -14,7 +14,7 @@ export default async function LoginLayout({ children }: { children: React.ReactN
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  if (user) redirect('/dashboard')
+  if (user?.email_confirmed_at) redirect('/dashboard')
 
   return <>{children}</>
 }

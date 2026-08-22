@@ -57,8 +57,8 @@ export async function signUpWithEmailRateLimited(
     options: {
       // After user clicks the email link, Supabase will redirect here
       // with ?code=... → our /auth/callback route exchanges it for a session
-      // → then redirects to /login (default next)
-      emailRedirectTo: `${origin}/auth/callback?next=/login`,
+      // → then redirects to the verified owner's profile-completion flow.
+      emailRedirectTo: `${origin}/auth/callback?next=/onboarding`,
       data: trimmedFullName
         ? { full_name: trimmedFullName, name: trimmedFullName, display_name: trimmedFullName }
         : undefined,

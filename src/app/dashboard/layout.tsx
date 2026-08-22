@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getCurrentUser } from "@/services/authorization";
+import { getCurrentUser, isOwnerProfileComplete } from "@/services/authorization";
 import { redirect } from "next/navigation";
 import { DashboardShell } from "@/components/dashboard-shell";
 
@@ -22,6 +22,10 @@ export default async function DashboardLayout({
   }
 
   const { user, profile } = session;
+
+  if (profile.role === "owner" && !isOwnerProfileComplete(profile)) {
+    redirect("/onboarding");
+  }
 
   return (
     <DashboardShell user={user} profile={profile}>

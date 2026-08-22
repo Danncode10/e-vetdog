@@ -1,29 +1,82 @@
 "use client";
 
-import { Users, Loader2, Plus } from "lucide-react";
+import * as React from "react";
+import { Search, Users } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { listOwnerRegistry } from "@/services/pets";
+import type { UserRole } from "@/lib/dashboard-features";
 
-export function OwnersTab() {
+type OwnerRecord = Awaited<ReturnType<typeof listOwnerRegistry>>[number];
+
+export function OwnersTab({ role }: { role: UserRole }) {
+  const router = useRouter();
+  const [owners, setOwners] = React.useState<OwnerRecord[]>([]);
+  const [query, setQuery] = React.useState("");
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    const loadOwners = async () => {
+      try {
+        const records = await listOwnerRegistry();
+        setOwners(records);
+        setError(null);
+      } catch (caught) {
+        setError(caught instanceof Error ? caught.message : "We could not load the owner registry.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (role === "admin" || role === "veterinarian") void loadOwners();
+  }, [role]);
+
+  if (role !== "admin" && role !== "veterinarian") return null;
+
+  const normalizedQuery = query.trim().toLowerCase();
+  const filteredOwners = owners.filter((owner) =>
+    `${owner.full_name ?? ""} ${owner.email ?? ""} ${owner.phone ?? ""}`.toLowerCase().includes(normalizedQuery),
+  );
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-semibold text-foreground tracking-tight">Owners</h2>
-          <p className="mt-1 text-[14px] text-muted-foreground">
-            Manage owner profiles and co-owner relationships.
-          </p>
-        </div>
-        <button className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary text-primary-foreground text-[13px] font-medium hover:bg-primary/90 transition-colors">
-          <Plus className="w-4 h-4" />
-          Add Owner
-        </button>
+    <div className="mx-auto max-w-6xl space-y-6">
+      <div>
+        <h2 className="text-2xl font-semibold tracking-tight text-foreground">Owner registry</h2>
+        <p className="mt-1 text-sm text-muted-foreground">Find an owner and open their authorized pet records.</p>
       </div>
 
-      <div className="rounded-2xl border border-border bg-card p-12 text-center">
-        <Users className="w-10 h-10 text-muted-foreground mx-auto mb-3" strokeWidth={1.5} />
-        <p className="text-[14px] text-muted-foreground">
-          No owners yet. Add an owner to get started.
-        </p>
-      </div>
+      <label className="relative block">
+        <span className="sr-only">Search owners</span>
+        <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+        <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search by owner name, email, or phone" className="min-h-12 w-full rounded-md border border-input bg-background pl-10 pr-4 text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring" />
+      </label>
+
+      {error && <p role="alert" className="rounded-md border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">{error}</p>}
+
+      {isLoading ? (
+        <div className="grid gap-4 sm:grid-cols-2"><div className="h-44 animate-pulse rounded-lg bg-muted" /><div className="h-44 animate-pulse rounded-lg bg-muted" /></div>
+      ) : filteredOwners.length === 0 ? (
+        <Card><CardContent className="flex min-h-56 flex-col items-center justify-center p-6 text-center"><Users className="mb-4 size-10 text-muted-foreground" strokeWidth={1.5} /><p className="font-medium text-foreground">{query ? "No owners match that search." : "No owners are available yet."}</p><p className="mt-1 text-sm text-muted-foreground">Owner profiles appear here after a confirmed account completes onboarding.</p></CardContent></Card>
+      ) : (
+        <div className="grid gap-4 lg:grid-cols-2">
+          {filteredOwners.map((owner) => (
+            <Card key={owner.id}>
+              <CardHeader>
+                <CardTitle className="text-lg">{owner.full_name || "Owner profile"}</CardTitle>
+                <CardDescription>{owner.email || "Email not recorded"}{owner.phone ? ` · ${owner.phone}` : ""}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">{owner.pet_owners.length === 1 ? "1 linked pet" : `${owner.pet_owners.length} linked pets`}</p>
+              </CardContent>
+              <CardFooter>
+                <Button type="button" variant="outline" className="w-full sm:w-auto" onClick={() => router.push(`/user/${owner.id}`)}>Open owner record</Button>
+              </CardFooter>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
