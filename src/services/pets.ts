@@ -13,6 +13,38 @@ export type PetOwner = Tables<"pet_owners">;
 export type PetOwnerInsert = TablesInsert<"pet_owners">;
 export type PetOwnerUpdate = TablesUpdate<"pet_owners">;
 
+export type OwnerRegistryDetail = {
+  id: string;
+  fullName: string | null;
+  email: string | null;
+  phone: string | null;
+  linkedPets: Array<{
+    id: string;
+    name: string;
+    species: Pet["species"];
+    breed: string | null;
+    relationship: PetOwner["relationship"];
+    isPrimaryContact: boolean;
+  }>;
+};
+
+export type StaffPetRecord = Pet & {
+  owners: Array<{
+    id: string;
+    fullName: string | null;
+    email: string | null;
+    relationship: PetOwner["relationship"];
+    isPrimaryContact: boolean;
+  }>;
+};
+
+type PetOwnerProfileLink = {
+  owner_profile_id: string;
+  relationship: PetOwner["relationship"];
+  is_primary_contact: boolean;
+  profiles: { full_name: string | null; email: string | null } | null;
+};
+
 export type PetFormInput = {
   name: string;
   species: Pet["species"];
@@ -36,6 +68,12 @@ function parseAge(value: string): number | null {
   const age = Number(normalized);
   if (!Number.isInteger(age) || age < 0) throw new Error("Age must be a whole number that is zero or greater.");
   return age;
+}
+
+function assertClinicStaff(role: string | null): void {
+  if (role !== "admin" && role !== "veterinarian") {
+    throw new Error("Only clinic staff can view registry records.");
+  }
 }
 
 function toPetPayload(input: PetFormInput): Omit<PetInsert, "id" | "created_at" | "updated_at"> {
@@ -68,7 +106,7 @@ export async function listPetsForCurrentUser() {
 
 export async function listOwnerRegistry() {
   const { profile } = await requireAuth();
-  if (profile.role !== "admin" && profile.role !== "veterinarian") throw new Error("Only clinic staff can view the owner registry.");
+  assertClinicStaff(profile.role);
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("profiles")
@@ -78,6 +116,81 @@ export async function listOwnerRegistry() {
     .limit(100);
   if (error) throw error;
   return data;
+}
+
+export async function getOwnerRegistryDetail(ownerProfileId: string): Promise<OwnerRegistryDetail | null> {
+  const { profile } = await requireAuth();
+  assertClinicStaff(profile.role);
+  const supabase = await createClient();
+  const { data: owner, error: ownerError } = await supabase
+    .from("profiles")
+    .select("id, full_name, email, phone")
+    .eq("id", ownerProfileId)
+    .eq("role", "owner")
+    .maybeSingle();
+  if (ownerError) throw ownerError;
+  if (!owner) return null;
+
+  const { data: links, error: linksError } = await supabase
+    .from("pet_owners")
+    .select("relationship, is_primary_contact, pets!pet_owners_pet_id_fkey(id, name, species, breed)")
+    .eq("owner_profile_id", ownerProfileId)
+    .order("created_at");
+  if (linksError) throw linksError;
+
+  return {
+    id: owner.id,
+    fullName: owner.full_name,
+    email: owner.email,
+    phone: owner.phone,
+    linkedPets: (links ?? []).flatMap((link) => {
+      const petRelation = link.pets as unknown;
+      const pet = Array.isArray(petRelation) ? petRelation[0] : petRelation;
+      if (!pet || typeof pet !== "object" || !("id" in pet) || !("name" in pet) || !("species" in pet)) return [];
+      const summary = pet as { id: string; name: string; species: Pet["species"]; breed: string | null };
+      return [{
+        id: summary.id,
+        name: summary.name,
+        species: summary.species,
+        breed: summary.breed,
+        relationship: link.relationship,
+        isPrimaryContact: link.is_primary_contact,
+      }];
+    }),
+  };
+}
+
+export async function getStaffPetRecord(ownerProfileId: string, petId: string): Promise<StaffPetRecord | null> {
+  const { profile } = await requireAuth();
+  assertClinicStaff(profile.role);
+  const supabase = await createClient();
+  const { data: ownerLink, error: ownerLinkError } = await supabase
+    .from("pet_owners")
+    .select("id")
+    .eq("owner_profile_id", ownerProfileId)
+    .eq("pet_id", petId)
+    .maybeSingle();
+  if (ownerLinkError) throw ownerLinkError;
+  if (!ownerLink) return null;
+
+  const { data: pet, error: petError } = await supabase
+    .from("pets")
+    .select("*, pet_owners(id, relationship, is_primary_contact, owner_profile_id, profiles!pet_owners_owner_profile_id_fkey(full_name, email))")
+    .eq("id", petId)
+    .maybeSingle();
+  if (petError) throw petError;
+  if (!pet) return null;
+
+  return {
+    ...pet,
+    owners: (pet.pet_owners as unknown as PetOwnerProfileLink[]).map((link) => ({
+      id: link.owner_profile_id,
+      fullName: link.profiles?.full_name ?? null,
+      email: link.profiles?.email ?? null,
+      relationship: link.relationship,
+      isPrimaryContact: link.is_primary_contact,
+    })),
+  };
 }
 
 export async function createOwnedPet(input: PetFormInput) {

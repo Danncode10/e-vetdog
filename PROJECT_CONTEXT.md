@@ -231,6 +231,13 @@ The database schema is authored in `db/schema/` using Drizzle. Generate a review
 - Keep forms labelled, accessible, and spacious; interactive controls are at least 48px tall.
 - Owner-facing language is professional, reassuring, and plain-spoken. Avoid unexplained medical jargon and sales-heavy language.
 
+### Registry navigation
+
+- Staff registry searches remain compact lists. Opening a result always navigates to a dedicated record page; details must not expand below a search result.
+- Owner records use `/user/[ownerId]`. Linked patient records use `/user/[ownerId]/pet/[petId]`, where `ownerId` must be an authorized link for that pet.
+- These routes are restricted to active admins and veterinarians. They are read-only until the relevant operational workflow grants a mutation capability.
+- The pet record page may show an empty medical-record state before Phase 3 clinical encounters exist; it must never imply that a record was created when none exists.
+
 ---
 
 ## Delivery order
@@ -251,4 +258,4 @@ Project initialization and product context are in place. The database migration 
 
 - New owner accounts must confirm their email address before access is granted.
 
-*Last updated: 2026-08-14*
+*Last updated: 2026-08-22*
