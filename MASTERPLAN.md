@@ -87,7 +87,7 @@
 
 **Exit state:** Owners can request visits, staff can schedule or check in visits and walk-ins, and all users see the correct appointment status and detail.
 
-- [ ] **[P2.1] Implement appointment rules, schema, lifecycle, and RLS**
+- [x] **[P2.1] Implement appointment rules, schema, lifecycle, and RLS**
   - **Goal:** Finalize the MVP scheduling decisions, reconcile the service catalogue, and model appointments, check-ins, status history, and RLS.
   - **Dependencies:** [P1.5].
   - **Acceptance criteria:** Service duration, assignment, double-booking, cancellation/rescheduling, owner cancellation, and walk-in minimum data have clear rules; appointments support requested, scheduled/confirmed, completed, cancelled, and no-show states; owner access follows `pet_owners`; status history and check-in data are retained.
