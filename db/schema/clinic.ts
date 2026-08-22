@@ -11,6 +11,7 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 import { profiles } from "./core";
+import { appointmentStatus, checkInStatus } from "./enums";
 
 const createdAt = timestamp("created_at", { withTimezone: true }).notNull().defaultNow();
 const updatedAt = timestamp("updated_at", { withTimezone: true }).notNull().defaultNow();
@@ -18,6 +19,111 @@ const updatedAt = timestamp("updated_at", { withTimezone: true }).notNull().defa
 export const petSpecies = pgEnum("pet_species", ["dog", "cat", "bird", "rabbit", "reptile", "other"]);
 export const petSex = pgEnum("pet_sex", ["male", "female", "unknown"]);
 export const ownerRelationship = pgEnum("owner_relationship", ["owner", "co_owner", "family", "caretaker"]);
+
+export const appointmentMode = pgEnum("appointment_mode", ["in_person", "virtual"]);
+export const cancellationReason = pgEnum("cancellation_reason", [
+  "owner_request",
+  "clinic_emergency",
+  "weather",
+  "no_veterinarian_available",
+  "pet_health_issue",
+  "other",
+]);
+export const rescheduleReason = pgEnum("reschedule_reason", [
+  "owner_request",
+  "veterinarian_unavailable",
+  "clinic_schedule_conflict",
+  "equipment_issue",
+  "pet_health_issue",
+  "other",
+]);
+
+export const appointments = pgTable(
+  "appointments",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    petId: uuid("pet_id")
+      .notNull()
+      .references(() => pets.id, { onDelete: "cascade" }),
+    ownerId: uuid("owner_id")
+      .notNull()
+      .references(() => profiles.id, { onDelete: "restrict" }),
+    serviceId: uuid("service_id").references(() => services.id, { onDelete: "set null" }),
+    status: appointmentStatus("status").notNull().default("requested"),
+    mode: appointmentMode("mode").notNull().default("in_person"),
+    reason: text("reason"),
+    notes: text("notes"),
+    preferredDate: date("preferred_date"),
+    preferredTime: text("preferred_time"),
+    scheduledStart: timestamp("scheduled_start", { withTimezone: true }),
+    scheduledEnd: timestamp("scheduled_end", { withTimezone: true }),
+    assignedVeterinarianId: uuid("assigned_veterinarian_id").references(() => profiles.id, {
+      onDelete: "set null",
+    }),
+    requestedAt: timestamp("requested_at", { withTimezone: true }).notNull().defaultNow(),
+    confirmedAt: timestamp("confirmed_at", { withTimezone: true }),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+    cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
+    cancellationReason: cancellationReason("cancellation_reason"),
+    rescheduledFrom: uuid("rescheduled_from").references((): any => appointments.id, {
+      onDelete: "set null",
+    }),
+    noShowAt: timestamp("no_show_at", { withTimezone: true }),
+    createdAt,
+    updatedAt,
+  },
+  (t) => ({
+    petIdx: index("idx_appointments_pet_id").on(t.petId),
+    ownerIdx: index("idx_appointments_owner_id").on(t.ownerId),
+    statusIdx: index("idx_appointments_status").on(t.status),
+    scheduledStartIdx: index("idx_appointments_scheduled_start").on(t.scheduledStart),
+    veterinarianIdx: index("idx_appointments_assigned_veterinarian_id").on(t.assignedVeterinarianId),
+  })
+);
+
+export const appointmentStatusHistory = pgTable(
+  "appointment_status_history",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    appointmentId: uuid("appointment_id")
+      .notNull()
+      .references(() => appointments.id, { onDelete: "cascade" }),
+    previousStatus: appointmentStatus("previous_status"),
+    newStatus: appointmentStatus("new_status").notNull(),
+    changedById: uuid("changed_by_id").references(() => profiles.id, { onDelete: "set null" }),
+    reason: text("reason"),
+    notes: text("notes"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    appointmentIdx: index("idx_appointment_status_history_appointment_id").on(t.appointmentId),
+    createdAtIdx: index("idx_appointment_status_history_created_at").on(t.createdAt),
+  })
+);
+
+export const checkIns = pgTable(
+  "check_ins",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    appointmentId: uuid("appointment_id").references(() => appointments.id, { onDelete: "set null" }),
+    petId: uuid("pet_id").references(() => pets.id, { onDelete: "set null" }),
+    ownerId: uuid("owner_id").references(() => profiles.id, { onDelete: "set null" }),
+    status: checkInStatus("status").notNull().default("checked_in"),
+    walkIn: boolean("walk_in").notNull().default(false),
+    arrivalTime: timestamp("arrival_time", { withTimezone: true }).notNull().defaultNow(),
+    serviceStart: timestamp("service_start", { withTimezone: true }),
+    serviceEnd: timestamp("service_end", { withTimezone: true }),
+    notes: text("notes"),
+    createdAt,
+    updatedAt,
+  },
+  (t) => ({
+    appointmentIdx: index("idx_check_ins_appointment_id").on(t.appointmentId),
+    petIdx: index("idx_check_ins_pet_id").on(t.petId),
+    ownerIdx: index("idx_check_ins_owner_id").on(t.ownerId),
+    arrivalTimeIdx: index("idx_check_ins_arrival_time").on(t.arrivalTime),
+  })
+);
 
 export const pets = pgTable(
   "pets",
@@ -64,3 +170,5 @@ export const petOwners = pgTable(
     uniquePetOwner: uniqueIndex("unique_pet_owner").on(t.petId, t.ownerProfileId),
   })
 );
+
+import { services } from "./services";
