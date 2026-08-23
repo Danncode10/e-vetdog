@@ -2,8 +2,11 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, Clock3, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import TimePicker from "react-time-picker";
+import "react-time-picker/dist/TimePicker.css";
+import "react-clock/dist/Clock.css";
 import { Button } from "@/components/ui/button";
 import { requestAppointment } from "@/services/appointments";
 import { listPetsForCurrentUser } from "@/services/pets";
@@ -19,22 +22,28 @@ export function AppointmentRequestForm() {
   const router = useRouter();
   const [pets, setPets] = React.useState<PetOption[]>([]);
   const [services, setServices] = React.useState<ServiceOption[]>([]);
-  const [isLoading, setIsLoading] = React.useState(true);
+  const [isLoadingPets, setIsLoadingPets] = React.useState(true);
+  const [isLoadingServices, setIsLoadingServices] = React.useState(true);
   const [isPending, setIsPending] = React.useState(false);
   const [formData, setFormData] = React.useState({ petId: "", serviceId: "", preferredDate: "", preferredTime: "", reason: "", notes: "" });
   const [error, setError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
-    Promise.all([listPetsForCurrentUser(), listServices()])
-      .then(([petData, serviceData]) => {
-        setPets(petData);
-        setServices(serviceData);
-      })
+    listPetsForCurrentUser()
+      .then(setPets)
       .catch((loadError: unknown) => {
-        console.error("Failed to load appointment form data:", loadError);
-        setError("We could not load your pets and services. Please try again.");
+        console.error("Failed to load pets:", loadError);
+        setError("We could not load your pets. Please try again.");
       })
-      .finally(() => setIsLoading(false));
+      .finally(() => setIsLoadingPets(false));
+
+    listServices()
+      .then(setServices)
+      .catch((loadError: unknown) => {
+        console.error("Failed to load services:", loadError);
+        setError("We could not load clinic services. Please try again.");
+      })
+      .finally(() => setIsLoadingServices(false));
   }, []);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -85,15 +94,15 @@ export function AppointmentRequestForm() {
         <div className="grid gap-6 sm:grid-cols-2">
           <label className="text-sm font-medium text-foreground">
             Pet
-            <select id="appointment-pet" value={formData.petId} onChange={(event) => setFormData((previous) => ({ ...previous, petId: event.target.value }))} disabled={isPending || isLoading} className={inputClassName}>
-              <option value="">{isLoading ? "Loading pets..." : "Select a pet"}</option>
+            <select id="appointment-pet" value={formData.petId} onChange={(event) => setFormData((previous) => ({ ...previous, petId: event.target.value }))} disabled={isPending || isLoadingPets} className={inputClassName}>
+              <option value="">{isLoadingPets ? "Loading pets..." : "Select a pet"}</option>
               {pets.map((pet) => <option key={pet.id} value={pet.id}>{pet.name}</option>)}
             </select>
           </label>
           <label className="text-sm font-medium text-foreground">
             Service
-            <select id="appointment-service" value={formData.serviceId} onChange={(event) => setFormData((previous) => ({ ...previous, serviceId: event.target.value }))} disabled={isPending || isLoading} className={inputClassName}>
-              <option value="">{isLoading ? "Loading services..." : "Select a service"}</option>
+            <select id="appointment-service" value={formData.serviceId} onChange={(event) => setFormData((previous) => ({ ...previous, serviceId: event.target.value }))} disabled={isPending || isLoadingServices || services.length === 0} className={inputClassName}>
+              <option value="">{isLoadingServices ? "Loading services..." : services.length === 0 ? "No services available" : "Select a service"}</option>
               {services.map((service) => <option key={service.id} value={service.id}>{service.name}</option>)}
             </select>
           </label>
@@ -101,10 +110,24 @@ export function AppointmentRequestForm() {
             Preferred date
             <input id="appointment-date" type="date" value={formData.preferredDate} onChange={(event) => setFormData((previous) => ({ ...previous, preferredDate: event.target.value }))} min={new Date().toISOString().split("T")[0]} disabled={isPending} className={inputClassName} />
           </label>
-          <label className="text-sm font-medium text-foreground">
+          <div className="text-sm font-medium text-foreground">
             Preferred time
-            <input id="appointment-time" type="time" value={formData.preferredTime} onChange={(event) => setFormData((previous) => ({ ...previous, preferredTime: event.target.value }))} disabled={isPending} className={inputClassName} />
-          </label>
+            <div className="relative mt-2 min-h-12 rounded-md border border-input bg-background px-3 text-foreground focus-within:ring-2 focus-within:ring-ring">
+              <Clock3 className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" strokeWidth={1.5} />
+              <TimePicker
+                id="appointment-time"
+                aria-label="Preferred time"
+                value={formData.preferredTime || null}
+                onChange={(value) => setFormData((previous) => ({ ...previous, preferredTime: value ?? "" }))}
+                disabled={isPending}
+                disableClock
+                clearIcon={null}
+                clockIcon={null}
+                format="h:mm a"
+                className="appointment-time-picker pl-6"
+              />
+            </div>
+          </div>
         </div>
 
         <div className="grid gap-6 sm:grid-cols-2">
@@ -122,7 +145,7 @@ export function AppointmentRequestForm() {
 
         <div className="flex flex-col-reverse gap-3 border-t border-border pt-6 sm:flex-row sm:justify-end">
           <Link href="/dashboard?tab=appointments" className="inline-flex min-h-12 items-center justify-center rounded-md border border-border bg-background px-4 text-sm font-medium text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">Cancel</Link>
-          <Button type="submit" disabled={isPending || isLoading}>
+          <Button type="submit" disabled={isPending || isLoadingPets || isLoadingServices || services.length === 0}>
             {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {isPending ? "Submitting..." : "Submit request"}
           </Button>
