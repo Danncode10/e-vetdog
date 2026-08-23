@@ -2,6 +2,7 @@
 
 import { createClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
+import { requireAuth } from "@/services/authorization";
 import type {
   TablesInsert,
   TablesUpdate,
@@ -95,6 +96,7 @@ export async function createAppointment(input: AppointmentInsert) {
     .from("appointments")
     .insert({
       ...input,
+      status: 'requested',
       requested_at: new Date().toISOString(),
     })
     .select()
@@ -392,6 +394,22 @@ export async function listPetAppointments(petId: string) {
     .order("scheduled_start", { ascending: true, nullsFirst: false });
   if (error) throw error;
   return data;
+}
+
+export async function requestAppointment(input: Omit<AppointmentInsert, 'owner_id' | 'id'>) {
+  const { profile } = await requireAuth();
+  // Validate that the pet_id in input is linked to the owner's profile
+  const pets = await getPetsByOwner(profile.id);
+  const petIds = pets.map(pet => pet.id);
+  if (!petIds.includes(input.pet_id)) {
+    throw new Error("You can only request appointments for your own pets.");
+  }
+  // Now create the appointment with the owner_id set to the authenticated user's id
+  const appointmentInput: AppointmentInsert = {
+    ...input,
+    owner_id: profile.id,
+  };
+  return createAppointment(appointmentInput);
 }
 
 export async function getVeterinarianSchedule(veterinarianId: string, date: string) {

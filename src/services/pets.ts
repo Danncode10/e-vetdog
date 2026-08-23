@@ -296,6 +296,17 @@ export async function getPetOwnersByOwner(ownerProfileId: string) {
   return data;
 }
 
+export async function getPetsByOwner(ownerProfileId: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("pet_owners")
+    .select("pets(id, name, species, breed, sex, date_of_birth, age, color, notes)")
+    .eq("owner_profile_id", ownerProfileId);
+  if (error) throw error;
+  // Extract pet objects from the pet_owners join
+  return data.map(link => link.pets);
+}
+
 export async function updatePetOwner(id: string, updates: PetOwnerUpdate) {
   const supabase = await createClient();
   const { data, error } = await supabase.from("pet_owners").update(updates).eq("id", id).select().single();

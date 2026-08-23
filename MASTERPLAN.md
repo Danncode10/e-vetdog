@@ -92,7 +92,7 @@
   - **Dependencies:** [P1.5].
   - **Acceptance criteria:** Service duration, assignment, double-booking, cancellation/rescheduling, owner cancellation, and walk-in minimum data have clear rules; appointments support requested, scheduled/confirmed, completed, cancelled, and no-show states; owner access follows `pet_owners`; status history and check-in data are retained.
 
-- [ ] **[P2.2] Deliver owner appointment requests and appointment history**
+- [x] **[P2.2] Deliver owner appointment requests and appointment history**
   - **Goal:** Let owners request visits for linked pets, view appointment status/history, and print appointment details.
   - **Dependencies:** [P2.1].
   - **Acceptance criteria:** Only linked pets are selectable; requests follow the scheduling rules; owners never see another owner's pet or contact data; submission, validation, confirmation, history, and print states work on mobile and desktop.
