@@ -97,8 +97,8 @@ export function DashboardShell({ user, profile, children }: DashboardShellProps)
   const mainTabs = enabledTabs.filter((t) => t.id !== "settings");
   const isPetRecord = pathname.startsWith("/user/") && pathname.includes("/pet/");
   const isOwnerRecord = pathname.startsWith("/user/") && !isPetRecord;
-  const activeTabId = pathname === "/dashboard/team" ? "team" : pathname.startsWith("/dashboard/pets") || isPetRecord ? "pets" : isOwnerRecord ? "owners" : activeTab;
-  const activeLabel = pathname === "/dashboard/pets/new" ? "Add pet" : isPetRecord ? "Pet record" : isOwnerRecord ? "Owner record" : enabledTabs.find((t) => t.id === activeTabId)?.label ?? "Overview";
+  const activeTabId = pathname === "/dashboard/team" ? "team" : pathname.startsWith("/dashboard/pets") || isPetRecord ? "pets" : pathname.startsWith("/dashboard/appointments") ? "appointments" : isOwnerRecord ? "owners" : activeTab;
+  const activeLabel = pathname === "/dashboard/pets/new" ? "Add pet" : pathname === "/dashboard/appointments/new" ? "New appointment" : isPetRecord ? "Pet record" : isOwnerRecord ? "Owner record" : enabledTabs.find((t) => t.id === activeTabId)?.label ?? "Overview";
 
   return (
     <div className="h-screen bg-background flex overflow-hidden">
