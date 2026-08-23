@@ -257,7 +257,9 @@ export function DashboardShell({ user, profile, children }: DashboardShellProps)
               {activeTab === "overview" && <OverviewTab displayName={displayName} setTab={setTab} role={userRole} />}
               {activeTab === "pets" && <PetsTab role={userRole} />}
               {activeTab === "owners" && <OwnersTab role={userRole} />}
-              {activeTab === "appointments" && <AppointmentsTab />}
+              {activeTab === "appointments" && currentProfile ? (
+        <AppointmentsTab role={userRole} userId={currentProfile.id} />
+      ) : null}
               {activeTab === "settings" && <SettingsTab profile={currentProfile} onProfileUpdated={setCurrentProfile} />}
             </>
           ) : children}

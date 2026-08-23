@@ -31,15 +31,13 @@ export async function listAppointments(filters?: {
   const supabase = await createClient();
   let query = supabase
     .from("appointments")
-    .select(
-      `
+    .select(`
       *,
       pets (id, name, species, breed, sex),
-      profiles!appointments_owner_id_fkey (id, full_name, email, phone),
-      profiles!appointments_assigned_veterinarian_id_fkey (id, full_name),
+      owner:profiles!appointments_owner_id_fkey (id, full_name, email, phone),
+      veterinarian:profiles!appointments_assigned_veterinarian_id_fkey (id, full_name),
       services (id, name, duration_minutes, price_from, price_to)
-    `
-    )
+    `)
     .order("scheduled_start", { ascending: true, nullsFirst: false });
 
   if (filters?.status) {
@@ -63,7 +61,7 @@ export async function listAppointments(filters?: {
   if (filters?.limit) {
     query = query.limit(filters.limit);
   }
-  if (filters?.offset) {
+  if (filters?.offset !== undefined && filters?.offset !== null) {
     query = query.range(filters.offset, filters.offset + (filters.limit || 10) - 1);
   }
 
@@ -80,8 +78,8 @@ export async function getAppointmentById(id: string) {
       `
       *,
       pets (id, name, species, breed, sex, date_of_birth, age, color, notes),
-      profiles!appointments_owner_id_fkey (id, full_name, email, phone, address, emergency_contact_name, emergency_contact_phone),
-      profiles!appointments_assigned_veterinarian_id_fkey (id, full_name),
+      owner:profiles!appointments_owner_id_fkey (id, full_name, email, phone, address, emergency_contact_name, emergency_contact_phone),
+      veterinarian:profiles!appointments_assigned_veterinarian_id_fkey (id, full_name),
       services (id, name, duration_minutes, price_from, price_to, category)
     `
     )
