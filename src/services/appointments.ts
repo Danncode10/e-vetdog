@@ -8,6 +8,7 @@ import type {
   TablesUpdate,
   Tables,
 } from "@/types/supabase";
+import { listPetsForCurrentUser } from "@/services/pets";
 
 export type Appointment = Tables<"appointments">;
 export type AppointmentInsert = TablesInsert<"appointments">;
@@ -399,7 +400,7 @@ export async function listPetAppointments(petId: string) {
 export async function requestAppointment(input: Omit<AppointmentInsert, 'owner_id' | 'id'>) {
   const { profile } = await requireAuth();
   // Validate that the pet_id in input is linked to the owner's profile
-  const pets = await getPetsByOwner(profile.id);
+  const pets = await listPetsForCurrentUser();
   const petIds = pets.map(pet => pet.id);
   if (!petIds.includes(input.pet_id)) {
     throw new Error("You can only request appointments for your own pets.");
