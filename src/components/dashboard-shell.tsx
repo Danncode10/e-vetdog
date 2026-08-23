@@ -254,11 +254,11 @@ export function DashboardShell({ user, profile, children }: DashboardShellProps)
         <main className="flex-1 overflow-y-auto p-6 md:p-8">
           {pathname === "/dashboard" ? (
             <>
-              {activeTab === "overview"     && <OverviewTab displayName={displayName} setTab={setTab} role={userRole} />}
-              {activeTab === "pets"         && <PetsTab role={userRole} />}
-              {activeTab === "owners"       && <OwnersTab role={userRole} />}
+              {activeTab === "overview" && <OverviewTab displayName={displayName} setTab={setTab} role={userRole} />}
+              {activeTab === "pets" && <PetsTab role={userRole} />}
+              {activeTab === "owners" && <OwnersTab role={userRole} />}
               {activeTab === "appointments" && <AppointmentsTab />}
-              {activeTab === "settings"     && <SettingsTab profile={currentProfile} onProfileUpdated={setCurrentProfile} />}
+              {activeTab === "settings" && <SettingsTab profile={currentProfile} onProfileUpdated={setCurrentProfile} />}
             </>
           ) : children}
         </main>
