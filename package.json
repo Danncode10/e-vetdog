@@ -43,6 +43,7 @@
     "next": "16.2.9",
     "postgres": "^3.4.9",
     "react": "19.2.7",
+    "react-clock": "^6.0.0",
     "react-dom": "19.2.7",
     "react-intersection-observer": "^10.0.3",
     "react-time-picker": "^8.1.0",

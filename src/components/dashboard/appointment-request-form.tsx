@@ -4,9 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { ArrowLeft, Clock3, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import TimePicker from "react-time-picker";
-import "react-time-picker/dist/TimePicker.css";
-import "react-clock/dist/Clock.css";
+// Replaced third-party time picker with native input
 import { Button } from "@/components/ui/button";
 import { requestAppointment } from "@/services/appointments";
 import { listPetsForCurrentUser } from "@/services/pets";
@@ -110,24 +108,21 @@ export function AppointmentRequestForm() {
             Preferred date
             <input id="appointment-date" type="date" value={formData.preferredDate} onChange={(event) => setFormData((previous) => ({ ...previous, preferredDate: event.target.value }))} min={new Date().toISOString().split("T")[0]} disabled={isPending} className={inputClassName} />
           </label>
-          <div className="text-sm font-medium text-foreground">
+          <label className="text-sm font-medium text-foreground">
             Preferred time
-            <div className="relative mt-2 min-h-12 rounded-md border border-input bg-background px-3 text-foreground focus-within:ring-2 focus-within:ring-ring">
+            <div className="relative mt-2">
               <Clock3 className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" strokeWidth={1.5} />
-              <TimePicker
+              <input
                 id="appointment-time"
+                type="time"
                 aria-label="Preferred time"
-                value={formData.preferredTime || null}
-                onChange={(value) => setFormData((previous) => ({ ...previous, preferredTime: value ?? "" }))}
+                value={formData.preferredTime}
+                onChange={(event) => setFormData((previous) => ({ ...previous, preferredTime: event.target.value }))}
                 disabled={isPending}
-                disableClock
-                clearIcon={null}
-                clockIcon={null}
-                format="h:mm a"
-                className="appointment-time-picker pl-6"
+                className="block min-h-12 w-full rounded-md border border-input bg-background pl-10 pr-3 py-2 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               />
             </div>
-          </div>
+          </label>
         </div>
 
         <div className="grid gap-6 sm:grid-cols-2">
