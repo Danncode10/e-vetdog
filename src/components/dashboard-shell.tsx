@@ -28,6 +28,7 @@ import { OverviewTab } from "@/components/dashboard/tabs/overview-tab";
 import { PetsTab } from "@/components/dashboard/tabs/pets-tab";
 import { OwnersTab } from "@/components/dashboard/tabs/owners-tab";
 import { AppointmentsTab } from "@/components/dashboard/tabs/appointments-tab";
+import { ClinicTab } from "@/components/dashboard/tabs/clinic-tab";
 import { SettingsTab } from "@/components/dashboard/tabs/settings-tab";
 
 const ICONS: Record<DashboardTabId, LucideIcon> = {
@@ -35,6 +36,7 @@ const ICONS: Record<DashboardTabId, LucideIcon> = {
   pets: PawPrint,
   owners: Users,
   appointments: CalendarDays,
+  clinic: CalendarDays, // Using CalendarDays for clinic schedule view
   team: ShieldCheck,
   settings: Settings,
 };
@@ -258,8 +260,11 @@ export function DashboardShell({ user, profile, children }: DashboardShellProps)
               {activeTab === "pets" && <PetsTab role={userRole} />}
               {activeTab === "owners" && <OwnersTab role={userRole} />}
               {activeTab === "appointments" && currentProfile ? (
-        <AppointmentsTab role={userRole} userId={currentProfile.id} />
-      ) : null}
+                <AppointmentsTab role={userRole} userId={currentProfile.id} />
+              ) : null}
+              {activeTab === "clinic" && currentProfile ? (
+                <ClinicTab role={userRole} userId={currentProfile.id} />
+              ) : null}
               {activeTab === "settings" && <SettingsTab profile={currentProfile} onProfileUpdated={setCurrentProfile} />}
             </>
           ) : children}
