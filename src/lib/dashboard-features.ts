@@ -10,7 +10,8 @@ export type DashboardTabId =
   | "appointments"
   | "clinic"
   | "team"
-  | "settings";
+  | "settings"
+  | "schedules";
 
 export type FeatureFlag =
   | "always"
@@ -18,7 +19,8 @@ export type FeatureFlag =
   | "owners"
   | "appointments"
   | "staff-only"
-  | "admin-only";
+  | "admin-only"
+  | "schedules";
 
 interface TabConfig {
   id: DashboardTabId;

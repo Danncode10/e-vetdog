@@ -458,6 +458,68 @@ export async function getVeterinarianSchedule(veterinarianId: string, date: stri
  * If veterinarianId is provided, only checks appointments for that vet.
  * If not provided, checks all appointments (global capacity).
  */
+export async function listAppointmentSchedules() {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("appointment_schedules")
+    .select("*")
+    .eq("status", "active")
+    .order("day_of_week", { ascending: true });
+  if (error) throw error;
+  return data;
+}
+
+export async function createAppointmentSchedule(input: {
+  day_of_week: number;
+  start_time: string;
+  end_time: string;
+  max_capacity: number;
+}) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("appointment_schedules")
+    .insert({
+      ...input,
+      status: "active",
+    })
+    .select()
+    .single();
+  if (error) throw error;
+  revalidatePath("/dashboard/schedules");
+  return data;
+}
+
+export async function updateAppointmentSchedule(
+  id: string,
+  input: {
+    day_of_week?: number;
+    start_time?: string;
+    end_time?: string;
+    max_capacity?: number;
+  }
+) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("appointment_schedules")
+    .update({ ...input, updated_at: new Date().toISOString() })
+    .eq("id", id)
+    .select()
+    .single();
+  if (error) throw error;
+  revalidatePath("/dashboard/schedules");
+  return data;
+}
+
+export async function deleteAppointmentSchedule(id: string) {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("appointment_schedules")
+    .delete()
+    .eq("id", id);
+  if (error) throw error;
+  revalidatePath("/dashboard/schedules");
+}
+
 export async function getAvailableSlots(
   veterinarianId?: string,
   date?: string

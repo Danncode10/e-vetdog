@@ -89,6 +89,13 @@ export function AppointmentRequestForm() {
       return;
     }
 
+    // Check if the selected time slot has available capacity
+    const selectedSlot = availableSlots.find((slot) => slot.label === formData.preferredTime);
+    if (selectedSlot && !selectedSlot.isAvailable) {
+      setError(`This time slot is fully booked. Maximum ${selectedSlot.maxCapacity} appointments allowed per slot.`);
+      return;
+    }
+
     setIsPending(true);
     setError(null);
     try {
@@ -165,6 +172,25 @@ export function AppointmentRequestForm() {
               />
             </div>
           </label>
+          {selectedServiceId && formData.preferredDate && !slotsLoading && availableSlots.length > 0 && (
+            <div className="mt-4 space-y-3">
+              <p className="text-sm font-medium text-foreground">Available time slots</p>
+              <div className="grid grid-cols-2 gap-2">
+                {availableSlots.map((slot) => (
+                  <div
+                    key={slot.id}
+                    className={`rounded-md border ${slot.isAvailable ? 'border-primary' : 'border-border'} px-3 py-2 text-sm ${slot.isAvailable ? 'bg-background' : 'bg-muted/50'} ${!slot.isAvailable ? 'opacity-50 cursor-not-allowed' : ''} transition-colors cursor-pointer`}
+                    onClick={() => setFormData((previous) => ({ ...previous, preferredTime: slot.start }))}
+                  >
+                    <div className="font-medium text-foreground">{slot.label}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {slot.currentBookings}/{slot.maxCapacity} {'appointments'.replace('appointments', slot.currentBookings === 1 ? 'appointment' : 'appointments')}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="grid gap-6 sm:grid-cols-2">

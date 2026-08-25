@@ -30,13 +30,15 @@ import { OwnersTab } from "@/components/dashboard/tabs/owners-tab";
 import { AppointmentsTab } from "@/components/dashboard/tabs/appointments-tab";
 import { ClinicTab } from "@/components/dashboard/tabs/clinic-tab";
 import { SettingsTab } from "@/components/dashboard/tabs/settings-tab";
+import { SchedulesTab } from "@/app/dashboard/schedules/page";
 
-const ICONS: Record<DashboardTabId, LucideIcon> = {
+const ICONS: Record<DashboardTabId | "schedules", LucideIcon> = {
   overview: LayoutDashboard,
   pets: PawPrint,
   owners: Users,
   appointments: CalendarDays,
   clinic: CalendarDays, // Using CalendarDays for clinic schedule view
+  schedules: CalendarDays, // Schedules tab
   team: ShieldCheck,
   settings: Settings,
 };
@@ -173,6 +175,24 @@ export function DashboardShell({ user, profile, children }: DashboardShellProps)
               </button>
             );
           })}
+          {isFeatureEnabled("schedules", userRole) && (
+            <button
+              key="schedules"
+              onClick={() => setTab("schedules")}
+              onMouseEnter={() => router.prefetch("/dashboard/schedules")}
+              onFocus={() => router.prefetch("/dashboard/schedules")}
+              title="Schedules"
+              className={`w-full flex items-center gap-3 rounded-lg text-[13px] transition-colors
+                ${collapsed ? "md:justify-center px-0 py-2.5" : "px-3 py-2"}
+                ${activeTabId === "schedules"
+                  ? "bg-primary/10 text-primary font-medium"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                }`}
+            >
+              <CalendarDays className="w-4 h-4 shrink-0" strokeWidth={1.5} />
+              <span className={collapsed ? "md:hidden" : ""}>Schedules</span>
+            </button>
+          )}
         </nav>
 
         <div className="shrink-0 border-t border-border p-2 space-y-0.5">
