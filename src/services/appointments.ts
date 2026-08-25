@@ -161,6 +161,13 @@ export async function scheduleAppointment(
     throw new Error("This veterinarian has a conflicting appointment at that time");
   }
 
+  // Preserve preferred_date and preferred_time from existing appointment
+  const { data: existing } = await supabase
+    .from("appointments")
+    .select("preferred_date, preferred_time")
+    .eq("id", id)
+    .single();
+
   const { data, error } = await supabase
     .from("appointments")
     .update({
@@ -169,7 +176,9 @@ export async function scheduleAppointment(
       scheduled_end: input.scheduledEnd,
       assigned_veterinarian_id: input.assignedVeterinarianId,
       confirmed_at: new Date().toISOString(),
-      notes: input.notes,
+      // Preserve preferred_date and preferred_time from the original appointment request
+      ...(existing?.preferred_date !== undefined && { preferred_date: existing.preferred_date }),
+      ...(existing?.preferred_time !== undefined && { preferred_time: existing.preferred_time }),
       updated_at: new Date().toISOString(),
     })
     .eq("id", id)
@@ -226,10 +235,10 @@ export async function rescheduleAppointment(
 ) {
   const supabase = await createClient();
 
-  // Get current appointment
+  // Get current appointment including preferred_date and preferred_time
   const { data: current } = await supabase
     .from("appointments")
-    .select("assigned_veterinarian_id")
+    .select("assigned_veterinarian_id, preferred_date, preferred_time")
     .eq("id", id)
     .single();
 
@@ -251,6 +260,9 @@ export async function rescheduleAppointment(
     .update({
       scheduled_start: input.newScheduledStart,
       scheduled_end: input.newScheduledEnd,
+      // Preserve preferred_date and preferred_time from the original appointment
+      ...(current?.preferred_date !== undefined && { preferred_date: current.preferred_date }),
+      ...(current?.preferred_time !== undefined && { preferred_time: current.preferred_time }),
       notes: input.notes,
       updated_at: new Date().toISOString(),
     })
