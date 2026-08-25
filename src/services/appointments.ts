@@ -53,10 +53,12 @@ export async function listAppointments(filters?: {
     query = query.eq("assigned_veterinarian_id", filters.veterinarianId);
   }
   if (filters?.fromDate) {
-    query = query.gte("scheduled_start", filters.fromDate);
+    // Filter by preferred_date when scheduled_start may be null or different
+    query = query.gte("preferred_date", filters.fromDate);
   }
   if (filters?.toDate) {
-    query = query.lte("scheduled_start", filters.toDate);
+    // Filter by preferred_date when scheduled_start may be null or different
+    query = query.lte("preferred_date", filters.toDate);
   }
   if (filters?.limit) {
     query = query.limit(filters.limit);
@@ -429,6 +431,7 @@ export async function getVeterinarianSchedule(veterinarianId: string, date: stri
     `
     )
     .eq("assigned_veterinarian_id", veterinarianId)
+    // Filter by scheduled_start, but also include appointments with preferred_date in range
     .gte("scheduled_start", startOfDay.toISOString())
     .lte("scheduled_start", endOfDay.toISOString())
     .in("status", ["requested", "scheduled"])
