@@ -2,14 +2,15 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ArrowLeft, Clock3, Loader2 } from "lucide-react";
+import { ArrowLeft, Calendar, Clock3, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-// Replaced third-party time picker with native input
+import { CalendarRange } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/use-toast";
 import { requestAppointment } from "@/services/appointments";
 import { listPetsForCurrentUser } from "@/services/pets";
 import { listServices } from "@/services/services";
-import { toast } from "sonner";
+import { getAvailableSlots, listAppointmentSchedules } from "@/services/appointments";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 
@@ -29,6 +30,9 @@ type SlotOption = {
   label: string;
 };
 
+// Day of week labels (0=Sunday, 6=Saturday)
+const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
 export function AppointmentRequestForm() {
   const router = useRouter();
   const [pets, setPets] = React.useState<PetOption[]>([]);
@@ -38,11 +42,107 @@ export function AppointmentRequestForm() {
   const [isPending, setIsPending] = React.useState(false);
   const [formData, setFormData] = React.useState({ petId: "", serviceId: "", preferredDate: "", preferredTime: "", reason: "", notes: "" });
   const [error, setError] = React.useState<string | null>(null);
-  const [availableSlots, setAvailableSlots] = React.useState<SlotOption[]>([]);
-  const [slotsLoading, setSlotsLoading] = React.useState(false);
   const [selectedServiceId, setSelectedServiceId] = React.useState<string | null>(null);
+  const [showCalendar, setShowCalendar] = React.useState(false);
+  const [currentMonth, setCurrentMonth] = React.useState(formatDateYYYYMM(new Date()));
 
-  React.useEffect(() => {
+  // Helper functions for calendar
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    return `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`;
+  };
+
+  const formatDateMonthYear = (yyyyMM: string) => {
+    const [year, month] = yyyyMM.split("-");
+    const d = new Date(`${year}-${month}-01`);
+    return `${d.toLocaleString("default", { month: "long" })} ${year}`;
+  };
+
+  const formatDateYYYYMM = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    return `${year}-${month}`;
+  };
+
+  const getDaysInMonth = (yyyyMM: string) => {
+    const [year, month] = yyyyMM.split("-");
+    const date = new Date(Number(year), Number(month), 0);
+    return date.getDate();
+  };
+
+  const getFirstDayOfMonth = (yyyyMM: string) => {
+    const [year, month] = yyyyMM.split("-");
+    const date = new Date(Number(year), Number(month) - 1, 1);
+    return date.getDay(); // 0 = Sunday, 6 = Saturday
+  };
+
+  const generateCalendarDays = (yyyyMM: string) => {
+    const daysInMonth = getDaysInMonth(yyyyMM);
+    const firstDay = getFirstDayOfMonth(yyyyMM);
+    const today = new Date();
+    const todayYYYYMM = formatDateYYYYMM(today);
+    const isToday = yyyyMM === todayYYYYMM;
+
+    const days: any[] = [];
+
+    // Empty days before the first day of the month
+    for (let i = 0; i < firstDay; i++) {
+      days.push({
+        day: i + 1 - firstDay,
+        isPast: true,
+        isCurrentMonth: false,
+        disabled: true,
+      });
+    }
+
+    // Actual days of the month
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dayYYYYMM = formatDateYYYYMM(new Date(`${yyyyMM}-${day}`));
+      const isCurrentMonth = dayYYYYMM === yyyyMM;
+      const isPastDay = dayYYYYMM < todayYYYYMM || (yyyyMM === todayYYYYMM && day < today.getDate());
+      const isOpenDay = isCurrentMonth && !isPastDay && isDayOpen(day);
+      const isSelected = formData.preferredDate === dayYYYYMM;
+
+      days.push({
+        day,
+        dateString: dayYYYYMM,
+        isPast: isPastDay,
+        isCurrentMonth,
+        isOpenDay,
+        isSelected,
+        disabled: isPastDay || !isCurrentMonth,
+        // Grey out days without clinic schedule
+        grayOut: isCurrentMonth && !isPastDay && !isOpenDay,
+      });
+    }
+
+    // Empty days after the last day of the month to fill the grid
+    const totalCells = 42; // 6 weeks * 7 days
+    const remainingCells = totalCells - days.length;
+    for (let i = 0; i < remainingCells; i++) {
+      days.push({
+        isEmpty: true,
+      });
+    }
+
+    return days;
+  };
+
+  const isDayOpen = (dayYYYYMM: string) => {
+    // Check if the clinic has an active schedule for this day of week
+    const dayOfWeek = new Date(dayYYYYMM).getDay();
+    const schedules = schedulesQuery.data || [];
+    return schedules.some((s: any) => s.day_of_week === dayOfWeek);
+  };
+
+  const handleDateSelect = (dayYYYYMM: string) => {
+    setShowCalendar(false);
+    setFormData((prev) => ({ ...prev, preferredDate: dayYYYYMM }));
+    // Fetch slots for the selected date
+    if (dayYYYYMM) {
+      slotsQuery.refetch();
+    }
+  };
     listPetsForCurrentUser()
       .then(setPets)
       .catch((loadError: unknown) => {
@@ -60,25 +160,25 @@ export function AppointmentRequestForm() {
       .finally(() => setIsLoadingServices(false));
   }, []);
 
+  // Fetch active clinic schedules to know which days the clinic operates
+  const schedulesQuery = useQuery({
+    queryKey: ["appointment-schedules"],
+    queryFn: async () => {
+      const result = await listAppointmentSchedules();
+      return result || [];
+    },
+    refetchOnWindowFocus: false,
+  });
+
   // Load available slots when preferred date changes
   const slotsQuery = useQuery({
-    queryKey: ["available-slots", formData.preferredDate, selectedServiceId],
+    queryKey: ["available-slots", formData.preferredDate],
     queryFn: async () => {
-      if (!formData.preferredDate || !selectedServiceId) return [];
-      setSlotsLoading(true);
-      try {
-        // Get available slots - without specifying vet ID to check global capacity
-        const { data, error } = await import("@/services/appointments").then((m) => m.getAvailableSlots(undefined, formData.preferredDate));
-        if (error) throw error;
-        setSlotsLoading(false);
-        return data?.slots || [];
-      } catch (err) {
-        setSlotsLoading(false);
-        console.error("Failed to load available slots:", err);
-        return [];
-      }
+      if (!formData.preferredDate) return [];
+      const result = await getAvailableSlots(undefined, formData.preferredDate);
+      return result.slots || [];
     },
-    enabled: !!formData.preferredDate && !!selectedServiceId,
+    enabled: !!formData.preferredDate,
     refetchOnWindowFocus: false,
   });
 
@@ -90,7 +190,7 @@ export function AppointmentRequestForm() {
     }
 
     // Check if the selected time slot has available capacity
-    const selectedSlot = availableSlots.find((slot) => slot.label === formData.preferredTime);
+    const selectedSlot = slotsQuery.data?.find((slot) => slot.start === formData.preferredTime);
     if (selectedSlot && !selectedSlot.isAvailable) {
       setError(`This time slot is fully booked. Maximum ${selectedSlot.maxCapacity} appointments allowed per slot.`);
       return;
@@ -155,28 +255,87 @@ export function AppointmentRequestForm() {
           </label>
           <label className="text-sm font-medium text-foreground">
             Preferred date
-            <input id="appointment-date" type="date" value={formData.preferredDate} onChange={(event) => setFormData((previous) => ({ ...previous, preferredDate: event.target.value }))} min={new Date().toISOString().split("T")[0]} disabled={isPending} className={inputClassName} />
           </label>
-          <label className="text-sm font-medium text-foreground">
-            Preferred time
-            <div className="relative mt-2">
-              <Clock3 className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" strokeWidth={1.5} />
-              <input
-                id="appointment-time"
-                type="time"
-                aria-label="Preferred time"
-                value={formData.preferredTime}
-                onChange={(event) => setFormData((previous) => ({ ...previous, preferredTime: event.target.value }))}
-                disabled={isPending}
-                className="block min-h-12 w-full rounded-md border border-input bg-background pl-10 pr-3 py-2 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              />
-            </div>
-          </label>
-          {selectedServiceId && formData.preferredDate && !slotsLoading && availableSlots.length > 0 && (
+          <div className="relative">
+            <button
+              onClick={() => setShowCalendar(!showCalendar)}
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-colors hover:bg-muted focus-visible:data-[state=open]:bg-primary/10"
+              aria-label="Select date"
+            >
+              <Calendar className="mr-2 h-4 w-4" strokeWidth={1.5} />
+              {showCalendar ? "×" : formData.preferredDate ? formatDate(formData.preferredDate) : "Select a date"}
+              {showCalendar && <ArrowRight className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" strokeWidth={1.5} />}
+            </button>
+
+            {showCalendar && (
+              <div
+                onClick={(e) => e.stopPropagation()}
+                className="fixed inset-0 z-50 bg-white/95 backdrop-blur-sm shadow-2xl rounded-lg p-4 max-w-full w-full max-h-[calc(100vh-8rem)] overflow-y-auto"
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <button
+                    onClick={() => setCurrentMonth(prev => {
+                      const date = new Date(prev);
+                      date.setMonth(date.getMonth() - 1);
+                      return formatDateYYYYMM(date);
+                    })}
+                    className="prev-month inline-flex items-center gap-2 px-3 py-1 border rounded-md hover:bg-muted transition-colors"
+                    aria-label="Previous month"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M12.707 5.971a.75.75 0 011.06 1.06l-7.146 7.147 7.147 7.146a.75.75 0 01-1.06 1.06L11.95 7.03a.75.75 0 01-1.06-1.06l-7.147-7.146-7.146 7.147a.75.75 0 010-1.06l7.146-7.147a.75.75 0 011.06 1.06z" />
+                    </svg>
+                    <span className="sr-only">Previous month</span>
+                  </button>
+                  <span className="font-medium text-lg">{formatDateMonthYear(currentMonth)}</span>
+                  <button
+                    onClick={() => setCurrentMonth(prev => {
+                      const date = new Date(prev);
+                      date.setMonth(date.getMonth() + 1);
+                      return formatDateYYYYMM(date);
+                    })}
+                    className="next-month inline-flex items-center gap-2 px-3 py-1 border rounded-md hover:bg-muted transition-colors"
+                    aria-label="Next month"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M7.293 5.971a.75.75 0 011.06 1.06l7.147 7.146a.75.75 0 011.06 1.06L12.95 12.95a.75.75 0 01-1.06 1.06l-7.146 7.147-7.147-7.146a.75.75 0 01-1.06-1.06L11.95 12.97a.75.75 0 011.06-1.06l7.146-7.147a.75.75 0 011.06 1.06z" />
+                    </svg>
+                    <span className="sr-only">Next month</span>
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-7 gap-1 border-b border-border pb-3">
+                  {DAY_LABELS.map((day) => (
+                    <div key={day} className="text-xs font-medium text-muted-foreground">{day}</div>
+                  ))}
+                </div>
+
+                <div className="grid grid-cols-7 gap-1">
+                  {generateCalendarDays(currentMonth)}
+                </div>
+
+                <div className="mt-4 text-right">
+                  <button
+                    onClick={() => setShowCalendar(false)}
+                    className="px-4 py-1.5 bg-primary text-primary-foreground rounded-md hover:bg-primary-600 transition-colors"
+                  >
+                    Select
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+          {selectedServiceId && formData.preferredDate && (
             <div className="mt-4 space-y-3">
               <p className="text-sm font-medium text-foreground">Available time slots</p>
+              {slotsQuery.isLoading && (
+                <p className="text-sm text-muted-foreground">Loading slots...</p>
+              )}
+              {formData.preferredDate && !slotsQuery.data?.length && (
+                <p className="text-sm text-muted-foreground">No available clinic slots for this day.</p>
+              )}
               <div className="grid grid-cols-2 gap-2">
-                {availableSlots.map((slot) => (
+                {slotsQuery.data?.map((slot) => (
                   <div
                     key={slot.id}
                     className={`rounded-md border ${slot.isAvailable ? 'border-primary' : 'border-border'} px-3 py-2 text-sm ${slot.isAvailable ? 'bg-background' : 'bg-muted/50'} ${!slot.isAvailable ? 'opacity-50 cursor-not-allowed' : ''} transition-colors cursor-pointer`}

@@ -527,7 +527,7 @@ export async function getAvailableSlots(
   const supabase = await createClient();
   if (!date) return { slots: [], scheduled: [] };
 
-  const dayOfWeek = new Date(date).getDay(); // 0=Sunday, 6=Saturday
+  const dayOfWeek = new Date(`${date}T00:00:00`).getDay(); // 0=Sunday, 6=Saturday - use T00:00:00 to ensure local midnight instead of UTC
 
   // 1. Get admin-configured schedules for this day of week
   const { data: schedules, error: schedError } = await supabase
@@ -564,10 +564,15 @@ export async function getAvailableSlots(
 
   // 4. Build slots from schedules, marking capacity
   const slots = schedules.map((schedule) => {
+    // Parse time strings from Supabase (format: "HH:MM:SS")
+    const [startH, startM] = schedule.start_time.split(":").map(Number);
+    const [endH, endM] = schedule.end_time.split(":").map(Number);
+
     const slotStart = new Date(date);
-    slotStart.setHours(schedule.start_time.getHours(), schedule.start_time.getMinutes(), 0);
+    slotStart.setHours(startH, startM, 0, 0);
+
     const slotEnd = new Date(date);
-    slotEnd.setHours(schedule.end_time.getHours(), schedule.end_time.getMinutes(), 0);
+    slotEnd.setHours(endH, endM, 0, 0);
 
     // Count how many appointments overlap this slot
     const booked = (bookedAppts || []).filter((appt) => {
@@ -580,6 +585,13 @@ export async function getAvailableSlots(
     const available = schedule.max_capacity - currentBookings;
     const isAvailable = available > 0;
 
+    // Format time for display (HH:MM AM/PM)
+    const formatTime = (h: number, m: number) => {
+      const period = h >= 12 ? "PM" : "AM";
+      const displayH = h % 12 || 12;
+      return `${displayH}:${m.toString().padStart(2, "0")} ${period}`;
+    };
+
     return {
       id: schedule.id,
       start: schedule.start_time,
@@ -588,7 +600,7 @@ export async function getAvailableSlots(
       currentBookings,
       available,
       isAvailable,
-      label: `${schedule.start_time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - ${schedule.end_time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
+      label: `${formatTime(startH, startM)} - ${formatTime(endH, endM)}`,
     };
   });
 

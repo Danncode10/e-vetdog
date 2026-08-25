@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      appointment_schedules: {
+        Row: {
+          created_at: string
+          current_bookings: number
+          day_of_week: number
+          end_time: string
+          id: string
+          max_capacity: number
+          start_time: string
+          status: Database["public"]["Enums"]["schedule_status"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          current_bookings?: number
+          day_of_week: number
+          end_time: string
+          id?: string
+          max_capacity?: number
+          start_time: string
+          status?: Database["public"]["Enums"]["schedule_status"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          current_bookings?: number
+          day_of_week?: number
+          end_time?: string
+          id?: string
+          max_capacity?: number
+          start_time?: string
+          status?: Database["public"]["Enums"]["schedule_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       appointment_status_history: {
         Row: {
           appointment_id: string
@@ -599,6 +635,7 @@ export type Database = {
         | "equipment_issue"
         | "pet_health_issue"
         | "other"
+      schedule_status: "active" | "inactive"
       user_role: "admin" | "veterinarian" | "owner"
     }
     CompositeTypes: {
@@ -755,6 +792,7 @@ export const Constants = {
         "pet_health_issue",
         "other",
       ],
+      schedule_status: ["active", "inactive"],
       user_role: ["admin", "veterinarian", "owner"],
     },
   },

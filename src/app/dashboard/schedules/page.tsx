@@ -140,13 +140,10 @@ function SchedulesPage() {
             </label>
             <select
               onChange={(e) =>
-                setNewSchedule((prev) => ({ ...prev, dayOfWeek: Number(e.target.value as string) }))
+                setNewSchedule((prev) => ({ ...prev, dayOfWeek: Number(e.target.value) }))
               }
               className="block w-full rounded-md border border-input bg-background px-3 py-2 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
-              <option value="0" disabled>
-                {isLoading ? "Loading..." : "Select a day"}
-              </option>
               {dayOptions.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
