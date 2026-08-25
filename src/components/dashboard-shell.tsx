@@ -286,6 +286,7 @@ export function DashboardShell({ user, profile, children }: DashboardShellProps)
                 <ClinicTab role={userRole} userId={currentProfile.id} />
               ) : null}
               {activeTab === "settings" && <SettingsTab profile={currentProfile} onProfileUpdated={setCurrentProfile} />}
+              {activeTab === "schedules" && <SchedulesTab role={userRole} />}
             </>
           ) : children}
         </main>

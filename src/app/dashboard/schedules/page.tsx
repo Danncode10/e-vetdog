@@ -8,7 +8,12 @@ import { Calendar } from "lucide-react";
 import { listAppointmentSchedules, createAppointmentSchedule, updateAppointmentSchedule, deleteAppointmentSchedule } from "@/services/appointments";
 import { Button } from "@/components/ui/button";
 
-export default function SchedulesPage() {
+export function SchedulesTab({ role }: { role: string }) {
+  // Render the SchedulesPage content
+  return <SchedulesPage />;
+}
+
+function SchedulesPage() {
   const router = useRouter();
 
   const [schedules, setSchedules] = useState<any[]>([]);

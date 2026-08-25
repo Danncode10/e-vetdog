@@ -46,3 +46,8 @@ CREATE POLICY "staff view appointment schedules" ON public.appointment_schedules
 
 -- 6. Grant usage on new type
 GRANT USAGE ON TYPE public.schedule_status TO authenticated, anon;
+
+-- 7. Allow all authenticated users (including owners) to view schedules
+CREATE POLICY "allow authenticated to view appointment schedules" ON public.appointment_schedules
+  FOR SELECT TO authenticated
+  USING (true);
