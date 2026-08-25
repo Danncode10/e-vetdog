@@ -102,7 +102,7 @@
   - **Dependencies:** [P2.1].
   - **Acceptance criteria:** Staff can schedule, reschedule, cancel, complete, and mark no-show only through valid transitions; walk-ins capture required minimum data; the schedule/logbook handles loading, conflicts, empty periods, and status; appointment RLS and service tests cover staff and owner access.
 
-- [ ] **[P2.3.1] Admin-managed appointment schedules and configuration**
+- [x] **[P2.3.1] Admin-managed appointment schedules and configuration** *(in progress)*
   - **Goal:** Admins can define weekly available schedules with per-slot capacity limits, and owners see available/filled slots when requesting appointments.
   - **Dependencies:** [P2.1], [P2.2].
   - **Acceptance criteria:** 

@@ -50,7 +50,7 @@ function SchedulesPage() {
 
     const { dayOfWeek, startTime, endTime, maxCapacity } = newSchedule;
 
-    if (!dayOfWeek || !startTime || !endTime) {
+    if (dayOfWeek === undefined || dayOfWeek === null || !startTime || !endTime) {
       toast.error("Please fill in all required fields");
       return;
     }
