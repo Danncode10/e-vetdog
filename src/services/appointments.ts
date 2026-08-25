@@ -451,3 +451,84 @@ export async function getVeterinarianSchedule(veterinarianId: string, date: stri
   if (error) throw error;
   return data;
 }
+
+/**
+ * Get available appointment slots based on admin-configured schedules.
+ * Checks schedules and subtracts already-booked appointments.
+ * If veterinarianId is provided, only checks appointments for that vet.
+ * If not provided, checks all appointments (global capacity).
+ */
+export async function getAvailableSlots(
+  veterinarianId?: string,
+  date?: string
+) {
+  const supabase = await createClient();
+  if (!date) return { slots: [], scheduled: [] };
+
+  const dayOfWeek = new Date(date).getDay(); // 0=Sunday, 6=Saturday
+
+  // 1. Get admin-configured schedules for this day of week
+  const { data: schedules, error: schedError } = await supabase
+    .from("appointment_schedules")
+    .select("*")
+    .eq("day_of_week", dayOfWeek)
+    .eq("status", 'active');
+
+  if (schedError) throw schedError;
+  if (!schedules || schedules.length === 0) {
+    // No schedules configured; return no available slots
+    return { slots: [], scheduled: [] };
+  }
+
+  // 2. Determine the query builder based on whether a vet ID is provided
+  let queryBuilder = supabase.from("appointments").select("scheduled_start, scheduled_end");
+
+  if (veterinarianId) {
+    queryBuilder = queryBuilder.eq("assigned_veterinarian_id", veterinarianId);
+  }
+
+  // 3. Get already-booked appointments for this date
+  const startOfDay = new Date(date);
+  startOfDay.setHours(0, 0, 0, 0);
+  const endOfDay = new Date(date);
+  endOfDay.setHours(23, 59, 59, 999);
+
+  const { data: bookedAppts, error: bookError } = await queryBuilder
+    .gte("scheduled_start", startOfDay.toISOString())
+    .lte("scheduled_start", endOfDay.toISOString())
+    .in("status", ["requested", "scheduled"]);
+
+  if (bookError) throw bookError;
+
+  // 4. Build slots from schedules, marking capacity
+  const slots = schedules.map((schedule) => {
+    const slotStart = new Date(date);
+    slotStart.setHours(schedule.start_time.getHours(), schedule.start_time.getMinutes(), 0);
+    const slotEnd = new Date(date);
+    slotEnd.setHours(schedule.end_time.getHours(), schedule.end_time.getMinutes(), 0);
+
+    // Count how many appointments overlap this slot
+    const booked = (bookedAppts || []).filter((appt) => {
+      const apptStart = new Date(appt.scheduled_start);
+      const apptEnd = new Date(appt.scheduled_end);
+      return apptStart < slotEnd && apptEnd > slotStart;
+    });
+
+    const currentBookings = booked.length;
+    const available = schedule.max_capacity - currentBookings;
+    const isAvailable = available > 0;
+
+    return {
+      id: schedule.id,
+      start: schedule.start_time,
+      end: schedule.end_time,
+      maxCapacity: schedule.max_capacity,
+      currentBookings,
+      available,
+      isAvailable,
+      label: `${schedule.start_time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - ${schedule.end_time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
+    };
+  });
+
+  return { slots, scheduled: bookedAppts || [] };
+}

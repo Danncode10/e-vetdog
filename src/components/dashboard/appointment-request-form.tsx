@@ -10,11 +10,24 @@ import { requestAppointment } from "@/services/appointments";
 import { listPetsForCurrentUser } from "@/services/pets";
 import { listServices } from "@/services/services";
 import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 
 type PetOption = Pick<Awaited<ReturnType<typeof listPetsForCurrentUser>>[number], "id" | "name">;
 type ServiceOption = Pick<Awaited<ReturnType<typeof listServices>>[number], "id" | "name">;
 
 const inputClassName = "mt-2 block min-h-12 w-full rounded-md border border-input bg-background px-3 py-2 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+
+type SlotOption = {
+  id: string;
+  start: string;
+  end: string;
+  maxCapacity: number;
+  currentBookings: number;
+  available: number;
+  isAvailable: boolean;
+  label: string;
+};
 
 export function AppointmentRequestForm() {
   const router = useRouter();
@@ -25,6 +38,9 @@ export function AppointmentRequestForm() {
   const [isPending, setIsPending] = React.useState(false);
   const [formData, setFormData] = React.useState({ petId: "", serviceId: "", preferredDate: "", preferredTime: "", reason: "", notes: "" });
   const [error, setError] = React.useState<string | null>(null);
+  const [availableSlots, setAvailableSlots] = React.useState<SlotOption[]>([]);
+  const [slotsLoading, setSlotsLoading] = React.useState(false);
+  const [selectedServiceId, setSelectedServiceId] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     listPetsForCurrentUser()
@@ -43,6 +59,28 @@ export function AppointmentRequestForm() {
       })
       .finally(() => setIsLoadingServices(false));
   }, []);
+
+  // Load available slots when preferred date changes
+  const slotsQuery = useQuery({
+    queryKey: ["available-slots", formData.preferredDate, selectedServiceId],
+    queryFn: async () => {
+      if (!formData.preferredDate || !selectedServiceId) return [];
+      setSlotsLoading(true);
+      try {
+        // Get available slots - without specifying vet ID to check global capacity
+        const { data, error } = await import("@/services/appointments").then((m) => m.getAvailableSlots(undefined, formData.preferredDate));
+        if (error) throw error;
+        setSlotsLoading(false);
+        return data?.slots || [];
+      } catch (err) {
+        setSlotsLoading(false);
+        console.error("Failed to load available slots:", err);
+        return [];
+      }
+    },
+    enabled: !!formData.preferredDate && !!selectedServiceId,
+    refetchOnWindowFocus: false,
+  });
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -99,7 +137,11 @@ export function AppointmentRequestForm() {
           </label>
           <label className="text-sm font-medium text-foreground">
             Service
-            <select id="appointment-service" value={formData.serviceId} onChange={(event) => setFormData((previous) => ({ ...previous, serviceId: event.target.value }))} disabled={isPending || isLoadingServices || services.length === 0} className={inputClassName}>
+            <select id="appointment-service" value={formData.serviceId} onChange={(event) => {
+              const newServiceId = event.target.value;
+              setFormData((previous) => ({ ...previous, serviceId: newServiceId }));
+              setSelectedServiceId(newServiceId);
+            }} disabled={isPending || isLoadingServices || services.length === 0} className={inputClassName}>
               <option value="">{isLoadingServices ? "Loading services..." : services.length === 0 ? "No services available" : "Select a service"}</option>
               {services.map((service) => <option key={service.id} value={service.id}>{service.name}</option>)}
             </select>
