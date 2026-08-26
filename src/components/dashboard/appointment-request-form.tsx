@@ -6,7 +6,7 @@ import { ArrowLeft, ArrowRight, Calendar, Clock3, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { CalendarRange } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { requestAppointment } from "@/services/appointments";
 import { listPetsForCurrentUser } from "@/services/pets";
 import { listServices } from "@/services/services";
@@ -86,13 +86,14 @@ export function AppointmentRequestForm() {
 
     const days: any[] = [];
 
-    // Empty days before the first day of the month
+    // Empty days before the first day of the month (offset from previous month)
     for (let i = 0; i < firstDay; i++) {
       days.push({
-        day: i + 1 - firstDay,
+        day: "", // Use empty string to avoid rendering negative numbers/zero
         isPast: true,
         isCurrentMonth: false,
         disabled: true,
+        isEmpty: true,
       });
     }
 
@@ -273,7 +274,7 @@ export function AppointmentRequestForm() {
             {showCalendar && (
               <div
                 onClick={(e) => e.stopPropagation()}
-                className="fixed inset-0 z-50 bg-white/95 backdrop-blur-sm shadow-2xl rounded-lg p-4 max-w-full w-full max-h-[calc(100vh-8rem)] overflow-y-auto"
+                className="relative z-50 bg-white/95 backdrop-blur-sm shadow-lg rounded-lg p-4 max-w-full w-full max-h-[calc(100vh-8rem)] overflow-y-auto"
               >
                 <div className="flex items-center justify-between mb-4">
                   <button
@@ -282,11 +283,11 @@ export function AppointmentRequestForm() {
                       date.setMonth(date.getMonth() - 1);
                       return formatDateYYYYMM(date);
                     })}
-                    className="prev-month inline-flex items-center gap-2 px-3 py-1 border rounded-md hover:bg-muted transition-colors"
+                    className="prev-month inline-flex items-center gap-2 px-3 py-1 rounded-md hover:bg-muted transition-colors"
                     aria-label="Previous month"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path d="M12.707 5.971a.75.75 0 011.06 1.06l-7.146 7.147 7.147 7.146a.75.75 0 01-1.06 1.06L11.95 7.03a.75.75 0 01-1.06-1.06l-7.147-7.146-7.146 7.147a.75.75 0 010-1.06l7.146-7.147a.75.75 0 011.06 1.06z" />
+                      <path d="M12.707 5.971a.75.75 0 011.06 1.06l-7.146 7.147 7.147 7.146a.75.75 0 01-1.06 1.06L11.95 7.03a.75.75 0 01-1.06 1.06l-7.147-7.146-7.146 7.147a.75.75 0 010-1.06l7.146-7.147a.75.75 0 011.06 1.06z" />
                     </svg>
                     <span className="sr-only">Previous month</span>
                   </button>
@@ -297,7 +298,7 @@ export function AppointmentRequestForm() {
                       date.setMonth(date.getMonth() + 1);
                       return formatDateYYYYMM(date);
                     })}
-                    className="next-month inline-flex items-center gap-2 px-3 py-1 border rounded-md hover:bg-muted transition-colors"
+                    className="next-month inline-flex items-center gap-2 px-3 py-1 rounded-md hover:bg-muted transition-colors"
                     aria-label="Next month"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -307,7 +308,7 @@ export function AppointmentRequestForm() {
                   </button>
                 </div>
 
-                <div className="grid grid-cols-7 gap-1 border-b border-border pb-3">
+                <div className="grid grid-cols-7 gap-1 border-b pb-3">
                   {DAY_LABELS.map((day) => (
                     <div key={day} className="text-xs font-medium text-muted-foreground">{day}</div>
                   ))}
@@ -323,19 +324,11 @@ export function AppointmentRequestForm() {
                           : 'bg-background text-foreground hover:bg-muted transition-colors'}
                       `}
                       disabled={dayObj.disabled}
+                      onClick={() => handleDateSelect(dayObj.dateString)}
                     >
                       {dayObj.day}
                     </button>
                   ))}
-                </div>
-
-                <div className="mt-4 text-right">
-                  <button
-                    onClick={() => setShowCalendar(false)}
-                    className="px-4 py-1.5 bg-primary text-primary-foreground rounded-md hover:bg-primary-600 transition-colors"
-                  >
-                    Select
-                  </button>
                 </div>
               </div>
             )}

@@ -3,13 +3,12 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Calendar } from "lucide-react";
+import { Calendar, ArrowLeft, ArrowRight } from "lucide-react";
 
 import { listAppointmentSchedules, createAppointmentSchedule, updateAppointmentSchedule, deleteAppointmentSchedule } from "@/services/appointments";
 import { Button } from "@/components/ui/button";
 
 export function SchedulesTab({ role }: { role: string }) {
-  // Render the SchedulesPage content
   return <SchedulesPage />;
 }
 
@@ -133,7 +132,7 @@ function SchedulesPage() {
           Manage Appointment Schedules
         </h2>
 
-        <form onSubmit={handleSubmit} className="grid gap-4 sm:grid-cols-3 mb-8">
+        <form onSubmit={handleSubmit} className="grid gap-4 sm:grid-cols-3 mb-6">
           <div>
             <label className="block text-sm font-medium text-foreground mb-2">
               Day of Week
@@ -200,27 +199,6 @@ function SchedulesPage() {
           </Button>
         </form>
 
-        {editingSchedule && (
-          <div className="mt-6 p-4 bg-muted/50 rounded-lg">
-            <h3 className="text-sm font-medium text-muted-foreground mb-3">
-              Editing: {editingSchedule.day_of_week_label || editingSchedule.day_of_week}
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              Start: {editingSchedule.start_time} &nbsp;|&nbsp; End: {editingSchedule.end_time}
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Max Capacity: {editingSchedule.max_capacity}
-            </p>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setEditingSchedule(null)}
-            >
-              Cancel
-            </Button>
-          </div>
-        )}
-
         <div className="mt-8">
           <h3 className="text-lg font-semibold text-foreground mb-4">
             Existing Schedules
@@ -241,7 +219,7 @@ function SchedulesPage() {
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {schedules.map((schedule) => (
                 <div
                   key={schedule.id}
