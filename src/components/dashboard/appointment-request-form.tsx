@@ -14,6 +14,40 @@ import { getAvailableSlots, listAppointmentSchedules } from "@/services/appointm
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 
+// Day of week labels (0=Sunday, 6=Saturday)
+const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+// Pure date/calendar helpers — placed at module scope so they can be used
+// in useState initializers without "used before declaration" errors.
+const formatDate = (dateStr: string) => {
+  const date = new Date(dateStr);
+  return `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`;
+};
+
+const formatDateMonthYear = (yyyyMM: string) => {
+  const [year, month] = yyyyMM.split("-");
+  const d = new Date(`${year}-${month}-01`);
+  return `${d.toLocaleString("default", { month: "long" })} ${year}`;
+};
+
+const formatDateYYYYMM = (date: Date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  return `${year}-${month}`;
+};
+
+const getDaysInMonth = (yyyyMM: string) => {
+  const [year, month] = yyyyMM.split("-");
+  const date = new Date(Number(year), Number(month), 0);
+  return date.getDate();
+};
+
+const getFirstDayOfMonth = (yyyyMM: string) => {
+  const [year, month] = yyyyMM.split("-");
+  const date = new Date(Number(year), Number(month) - 1, 1);
+  return date.getDay(); // 0 = Sunday, 6 = Saturday
+};
+
 type PetOption = Pick<Awaited<ReturnType<typeof listPetsForCurrentUser>>[number], "id" | "name">;
 type ServiceOption = Pick<Awaited<ReturnType<typeof listServices>>[number], "id" | "name">;
 
@@ -30,9 +64,6 @@ type SlotOption = {
   label: string;
 };
 
-// Day of week labels (0=Sunday, 6=Saturday)
-const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-
 export function AppointmentRequestForm() {
   const router = useRouter();
   const [pets, setPets] = React.useState<PetOption[]>([]);
@@ -45,36 +76,6 @@ export function AppointmentRequestForm() {
   const [selectedServiceId, setSelectedServiceId] = React.useState<string | null>(null);
   const [showCalendar, setShowCalendar] = React.useState(false);
   const [currentMonth, setCurrentMonth] = React.useState(formatDateYYYYMM(new Date()));
-
-  // Helper functions for calendar
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    return `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`;
-  };
-
-  const formatDateMonthYear = (yyyyMM: string) => {
-    const [year, month] = yyyyMM.split("-");
-    const d = new Date(`${year}-${month}-01`);
-    return `${d.toLocaleString("default", { month: "long" })} ${year}`;
-  };
-
-  const formatDateYYYYMM = (date: Date) => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    return `${year}-${month}`;
-  };
-
-  const getDaysInMonth = (yyyyMM: string) => {
-    const [year, month] = yyyyMM.split("-");
-    const date = new Date(Number(year), Number(month), 0);
-    return date.getDate();
-  };
-
-  const getFirstDayOfMonth = (yyyyMM: string) => {
-    const [year, month] = yyyyMM.split("-");
-    const date = new Date(Number(year), Number(month) - 1, 1);
-    return date.getDay(); // 0 = Sunday, 6 = Saturday
-  };
 
   const generateCalendarDays = (yyyyMM: string) => {
     const daysInMonth = getDaysInMonth(yyyyMM);
@@ -143,6 +144,8 @@ export function AppointmentRequestForm() {
       slotsQuery.refetch();
     }
   };
+
+  useEffect(() => {
     listPetsForCurrentUser()
       .then(setPets)
       .catch((loadError: unknown) => {
@@ -366,7 +369,7 @@ export function AppointmentRequestForm() {
         {error && <p role="alert" className="rounded-md border border-destructive bg-destructive/10 p-3 text-sm text-destructive">{error}</p>}
 
         <div className="flex flex-col-reverse gap-3 border-t border-border pt-6 sm:flex-row sm:justify-end">
-          <Link href="/dashboard?tab=appointments" className="inline-flex min-h-12 items-center justify-center rounded-md border border-border bg-background px-4 text-sm font-medium text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">Cancel</Link>
+          <Link href="/dashboard?tab=appointments" className="inline-flex min-h-12 items-center justify-center rounded-md border border-background px-4 text-sm font-medium text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">Cancel</Link>
           <Button type="submit" disabled={isPending || isLoadingPets || isLoadingServices || services.length === 0}>
             {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {isPending ? "Submitting..." : "Submit request"}
