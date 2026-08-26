@@ -21,7 +21,10 @@ export type Database = {
           day_of_week: number
           end_time: string
           id: string
+          is_closed: boolean | null
+          is_recurring: boolean | null
           max_capacity: number
+          specific_date: string | null
           start_time: string
           status: Database["public"]["Enums"]["schedule_status"]
           updated_at: string
@@ -32,7 +35,10 @@ export type Database = {
           day_of_week: number
           end_time: string
           id?: string
+          is_closed?: boolean | null
+          is_recurring?: boolean | null
           max_capacity?: number
+          specific_date?: string | null
           start_time: string
           status?: Database["public"]["Enums"]["schedule_status"]
           updated_at?: string
@@ -43,7 +49,10 @@ export type Database = {
           day_of_week?: number
           end_time?: string
           id?: string
+          is_closed?: boolean | null
+          is_recurring?: boolean | null
           max_capacity?: number
+          specific_date?: string | null
           start_time?: string
           status?: Database["public"]["Enums"]["schedule_status"]
           updated_at?: string
