@@ -185,12 +185,12 @@ function DayCell({ day, dateStr, schedule, isToday, onEdit, onDelete }: DayCellP
         {/* Day number */}
         <span
           className={`
-            text-sm font-semibold leading-none block mb-1.5
+            text-sm font-bold leading-none block mb-1.5
             ${isToday
-              ? "w-6 h-6 flex items-center justify-center rounded-full bg-primary text-primary-foreground text-xs"
+              ? "w-6 h-6 flex items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold"
               : hasSchedule
-              ? "text-green-800 dark:text-green-300"
-              : "text-muted-foreground"
+              ? "text-emerald-950 dark:text-emerald-200"
+              : "text-foreground/80 font-semibold"
             }
           `}
         >
@@ -201,16 +201,16 @@ function DayCell({ day, dateStr, schedule, isToday, onEdit, onDelete }: DayCellP
         {hasSchedule && (
           <div className="space-y-0.5">
             <div
-              className={`text-[10px] font-medium truncate leading-tight ${
+              className={`text-xs font-bold truncate leading-tight ${
                 isClosed
-                  ? "text-orange-600 dark:text-orange-400"
-                  : "text-green-700 dark:text-green-400"
+                  ? "text-orange-700 dark:text-orange-300"
+                  : "text-emerald-800 dark:text-emerald-300"
               }`}
             >
               {isClosed ? "Closed" : formatTime12(schedule.start_time)}
             </div>
             {!isClosed && (
-              <div className="text-[10px] text-green-600 dark:text-green-500 leading-tight">
+              <div className="text-[11px] font-medium text-emerald-700/90 dark:text-emerald-400 leading-tight">
                 – {formatTime12(schedule.end_time)}
               </div>
             )}
