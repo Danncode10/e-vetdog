@@ -465,9 +465,8 @@ export async function listAppointmentSchedules() {
       .from("appointment_schedules")
       .select("*")
       .eq("status", "active")
-      .order("is_recurring", { ascending: false })
-      .order("day_of_week", { ascending: true })
-      .order("specific_date", { ascending: true });
+      .order("specific_date", { ascending: true })
+      .order("start_time", { ascending: true });
     if (error) {
       console.error("EXACT_PG_ERROR_listAppointmentSchedules:", JSON.stringify({
         message: error.message,
@@ -484,21 +483,67 @@ export async function listAppointmentSchedules() {
 }
 
 export async function createAppointmentSchedule(input: {
-  day_of_week: number;
+  specific_date: string; // ISO date string "YYYY-MM-DD", optional for recurring
   start_time: string;
   end_time: string;
   max_capacity: number;
+  day_of_week?: number; // Day of week (0-6), calculated from specific_date if provided
+  is_recurring?: boolean;
+  is_closed?: boolean;
 }) {
   const supabase = await createClient();
+
+  // Get authenticated user for RLS context
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    throw new Error("User not authenticated");
+  }
+
+  // Calculate day_of_week from specific_date if not provided
+  const calculatedDayOfWeek = input.day_of_week !== undefined
+    ? input.day_of_week
+    : new Date(input.specific_date).getDay();
+
+  // Ensure TIME format is HH:MM:SS (PostgreSQL TIME with time zone expects seconds)
+  const formatTime = (time: string) => {
+    // If time is already in HH:MM:SS format, return as-is
+    if (/^\d{2}:\d{2}:\d{2}$/.test(time)) {
+      return time;
+    }
+    // If time is in HH:MM format, append :00 for seconds
+    if (/^\d{2}:\d{2}$/.test(time)) {
+      return `${time}:00`;
+    }
+    // Fallback - should not happen with proper form validation
+    return time;
+  };
+
+  const payload = {
+    specific_date: input.specific_date,
+    start_time: formatTime(input.start_time),
+    end_time: formatTime(input.end_time),
+    max_capacity: input.max_capacity,
+    day_of_week: calculatedDayOfWeek,
+    is_recurring: input.is_recurring ?? false,
+    is_closed: input.is_closed ?? false,
+    status: "active",
+  };
+
   const { data, error } = await supabase
     .from("appointment_schedules")
-    .insert({
-      ...input,
-      status: "active",
-    })
+    .insert([payload])
     .select()
     .single();
-  if (error) throw error;
+
+  if (error) {
+    console.error("EXACT_PG_ERROR_createAppointmentSchedule:", JSON.stringify(error, null, 2));
+    throw new Error(error.message || "Failed to create schedule");
+  }
+
   revalidatePath("/dashboard/schedules");
   return data;
 }
@@ -506,20 +551,50 @@ export async function createAppointmentSchedule(input: {
 export async function updateAppointmentSchedule(
   id: string,
   input: {
-    day_of_week?: number;
+    specific_date?: string;
     start_time?: string;
     end_time?: string;
     max_capacity?: number;
+    day_of_week?: number;
+    is_closed?: boolean;
   }
 ) {
   const supabase = await createClient();
+
+  // Ensure TIME format is HH:MM:SS (PostgreSQL TIME with time zone expects seconds)
+  const formatTime = (time: string | undefined) => {
+    if (!time) return time;
+    // If time is already in HH:MM:SS format, return as-is
+    if (/^\d{2}:\d{2}:\d{2}$/.test(time)) {
+      return time;
+    }
+    // If time is in HH:MM format, append :00 for seconds
+    if (/^\d{2}:\d{2}$/.test(time)) {
+      return `${time}:00`;
+    }
+    // Fallback - should not happen with proper form validation
+    return time;
+  };
+
+  const payload = {
+    ...input,
+    start_time: formatTime(input.start_time),
+    end_time: formatTime(input.end_time),
+    updated_at: new Date().toISOString(),
+  };
+
   const { data, error } = await supabase
     .from("appointment_schedules")
-    .update({ ...input, updated_at: new Date().toISOString() })
+    .update(payload)
     .eq("id", id)
     .select()
     .single();
-  if (error) throw error;
+
+  if (error) {
+    console.error("EXACT_PG_ERROR_updateAppointmentSchedule:", JSON.stringify(error, null, 2));
+    throw new Error(error.message || "Failed to update schedule");
+  }
+
   revalidatePath("/dashboard/schedules");
   return data;
 }
@@ -541,6 +616,8 @@ export async function getAvailableSlots(
   const supabase = await createClient();
   if (!date) return { slots: [], scheduled: [] };
 
+  let schedules: any[] = [];
+
   try {
     // 1. First, check for specific date schedules (is_recurring=false or specific_date set)
     const specificDate = new Date(date).toISOString().split("T")[0];
@@ -558,27 +635,26 @@ export async function getAvailableSlots(
       }, null, 2));
       throw specificError;
     }
+
+    // 2. If no specific date schedule found, fall back to recurring day-of-week schedules
+    if (!specificSchedules || specificSchedules.length === 0) {
+      // Fall back to recurring schedules for this day of week
+      const dayOfWeek = new Date(`${date}T00:00:00`).getDay();
+      const { data: fallbackSchedules, error: fallbackError } = await supabase
+        .from("appointment_schedules")
+        .select("*")
+        .eq("day_of_week", dayOfWeek)
+        .eq("is_recurring", true)
+        .eq("status", 'active');
+
+      if (fallbackError) throw fallbackError;
+      schedules = fallbackSchedules || [];
+    } else {
+      schedules = specificSchedules;
+    }
   } catch (err) {
-    console.error("EXACT_PG_ERROR_CATCH_getAvailableSlots_specific:", JSON.stringify(err, null, 2));
+    console.error("EXACT_PG_ERROR_CATCH_getAvailableSlots:", JSON.stringify(err, null, 2));
     throw err;
-  }
-
-  // 2. If no specific date schedule found, fall back to recurring day-of-week schedules
-  let schedules: any[] = [];
-  if (!specificSchedules || specificSchedules.length === 0) {
-    // Fall back to recurring schedules for this day of week
-    const dayOfWeek = new Date(`${date}T00:00:00`).getDay();
-    const { data: fallbackSchedules, error: fallbackError } = await supabase
-      .from("appointment_schedules")
-      .select("*")
-      .eq("day_of_week", dayOfWeek)
-      .eq("is_recurring", true)
-      .eq("status", 'active');
-
-    if (fallbackError) throw fallbackError;
-    schedules = fallbackSchedules || [];
-  } else {
-    schedules = specificSchedules;
   }
 
   if (!schedules || schedules.length === 0) {

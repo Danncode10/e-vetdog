@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 import { Calendar, ArrowLeft, ArrowRight } from "lucide-react";
 
 import { listAppointmentSchedules, createAppointmentSchedule, updateAppointmentSchedule, deleteAppointmentSchedule } from "@/services/appointments";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 export function SchedulesTab({ role }: { role: string }) {
   return <SchedulesPage />;
@@ -18,10 +18,11 @@ function SchedulesPage() {
   const [schedules, setSchedules] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [newSchedule, setNewSchedule] = useState({
-    dayOfWeek: 0,
+    specificDate: "" as string,
     startTime: "09:00" as string,
     endTime: "17:00" as string,
     maxCapacity: 3 as number,
+    isClosed: false as boolean,
   });
   const [editingSchedule, setEditingSchedule] = useState<any | null>(null);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
@@ -43,13 +44,13 @@ function SchedulesPage() {
     }
   };
 
-  const handleSubmit = async (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setFormErrors({});
 
-    const { dayOfWeek, startTime, endTime, maxCapacity } = newSchedule;
+    const { specificDate, startTime, endTime, maxCapacity, isClosed } = newSchedule;
 
-    if (dayOfWeek === undefined || dayOfWeek === null || !startTime || !endTime) {
+    if (!specificDate || !startTime || !endTime) {
       toast.error("Please fill in all required fields");
       return;
     }
@@ -59,20 +60,48 @@ function SchedulesPage() {
       return;
     }
 
+    // Validate date format YYYY-MM-DD
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dateRegex.test(specificDate)) {
+      toast.error("Please enter a valid date in YYYY-MM-DD format");
+      return;
+    }
+
+    // Parse date to get day of week (0=Sunday, 6=Saturday)
+    const dateObj = new Date(`${specificDate}T00:00:00`);
+    const dayOfWeek = isNaN(dateObj.getDay()) ? 0 : dateObj.getDay();
+
+    // Ensure TIME format is HH:MM:SS for PostgreSQL
+    const formatTime = (time: string) => {
+      // If time is already in HH:MM:SS format, return as-is
+      if (/^\d{2}:\d{2}:\d{2}$/.test(time)) {
+        return time;
+      }
+      // If time is in HH:MM format, append :00 for seconds
+      if (/^\d{2}:\d{2}$/.test(time)) {
+        return `${time}:00`;
+      }
+      // Fallback - should not happen with proper form validation
+      return time;
+    };
+
     if (editingSchedule) {
       try {
         await updateAppointmentSchedule(editingSchedule.id, {
-          day_of_week: dayOfWeek,
-          start_time: startTime,
-          end_time: endTime,
+          specific_date: specificDate,
+          start_time: formatTime(startTime),
+          end_time: formatTime(endTime),
           max_capacity: maxCapacity,
+          day_of_week: dayOfWeek,
+          is_closed: isClosed,
         });
         setFormErrors({});
         setNewSchedule({
-          dayOfWeek: 0,
+          specificDate: "",
           startTime: "09:00",
           endTime: "17:00",
           maxCapacity: 3,
+          isClosed: false,
         });
         setEditingSchedule(null);
         fetchSchedules();
@@ -83,17 +112,20 @@ function SchedulesPage() {
     } else {
       try {
         await createAppointmentSchedule({
-          day_of_week: dayOfWeek,
-          start_time: startTime,
-          end_time: endTime,
+          specific_date: specificDate,
+          start_time: formatTime(startTime),
+          end_time: formatTime(endTime),
           max_capacity: maxCapacity,
+          day_of_week: dayOfWeek,
+          is_closed: isClosed,
         });
         setFormErrors({});
         setNewSchedule({
-          dayOfWeek: 0,
+          specificDate: "",
           startTime: "09:00",
           endTime: "17:00",
           maxCapacity: 3,
+          isClosed: false,
         });
         fetchSchedules();
         toast.success("Schedule created successfully");
@@ -115,16 +147,6 @@ function SchedulesPage() {
     }
   };
 
-  const dayOptions = [
-    { value: 0, label: "Sunday" },
-    { value: 1, label: "Monday" },
-    { value: 2, label: "Tuesday" },
-    { value: 3, label: "Wednesday" },
-    { value: 4, label: "Thursday" },
-    { value: 5, label: "Friday" },
-    { value: 6, label: "Saturday" },
-  ];
-
   return (
     <div className="mx-auto w-full max-w-7xl py-8">
       <div className="bg-card border border-border rounded-2xl p-6 sm:p-8">
@@ -135,20 +157,17 @@ function SchedulesPage() {
         <form onSubmit={handleSubmit} className="grid gap-4 sm:grid-cols-3 mb-6">
           <div>
             <label className="block text-sm font-medium text-foreground mb-2">
-              Day of Week
+              Date
             </label>
-            <select
+            <input
+              type="date"
+              value={newSchedule.specificDate}
               onChange={(e) =>
-                setNewSchedule((prev) => ({ ...prev, dayOfWeek: Number(e.target.value) }))
+                setNewSchedule((prev) => ({ ...prev, specificDate: e.target.value as string }))
               }
               className="block w-full rounded-md border border-input bg-background px-3 py-2 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              {dayOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+              min={new Date().toISOString().split("T")[0]}
+            />
           </div>
 
           <div>
@@ -194,6 +213,22 @@ function SchedulesPage() {
             />
           </div>
 
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-2">
+              Is Closed
+            </label>
+            <select
+              value={newSchedule.isClosed ? "true" : "false"}
+              onChange={(e) =>
+                setNewSchedule((prev) => ({ ...prev, isClosed: e.target.value === "true" }))
+              }
+              className="block w-full rounded-md border border-input bg-background px-3 py-2 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <option value="false">Open</option>
+              <option value="true">Closed</option>
+            </select>
+          </div>
+
           <Button type="submit">
             {editingSchedule ? "Update Schedule" : "Add Schedule"}
           </Button>
@@ -215,35 +250,47 @@ function SchedulesPage() {
               <Calendar className="w-12 h-12 mx-auto mb-3" strokeWidth={1.5} />
               <p>No appointment schedules configured yet</p>
               <p className="mt-2 text-sm">
-                Admins can create weekly schedules with day, time range, and max capacity per slot
+                Admins can create specific-date schedules with date, time range, and max capacity per slot
               </p>
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {schedules.map((schedule) => (
-                <div
-                  key={schedule.id}
-                  className="rounded-lg border border-border bg-card p-4 sm:p-6 hover:bg-muted/50 transition-colors"
-                >
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-sm font-medium text-foreground">
-                      {schedule.day_of_week_label || schedule.day_of_week}
-                    </span>
+              {schedules.map((schedule) => {
+                const isSpecificDate = !!schedule.specific_date;
+                const dateDisplay = isSpecificDate
+                  ? new Date(schedule.specific_date).toLocaleDateString(undefined, {
+                      weekday: "long",
+                      month: "long",
+                      day: "numeric",
+                    })
+                  : `${schedule.start_time} - ${schedule.end_time}`;
+
+                return (
+                  <div
+                    key={schedule.id}
+                    className="rounded-lg border border-border bg-card p-4 sm:p-6 hover:bg-muted/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-sm font-medium text-foreground">{dateDisplay}</span>
+                    </div>
+                    <div className="text-sm text-muted-foreground mb-2">
+                      <span className="font-medium">Time:</span> {schedule.start_time} - {schedule.end_time}
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      <span className="font-medium">Max Capacity:</span> {schedule.max_capacity}
+                      {schedule.is_closed && <span className="text-destructive ml-2 font-medium">Closed</span>}
+                    </div>
+                    <div className="mt-2">
+                      <span className="text-xs text-primary cursor-pointer" onClick={() => setEditingSchedule(schedule)}>
+                        Edit
+                      </span>
+                      <span className="ml-2 text-destructive cursor-pointer" onClick={() => handleDelete(schedule.id)}>
+                        Delete
+                      </span>
+                    </div>
                   </div>
-                  <div className="text-sm text-muted-foreground mb-2">
-                    <span className="font-medium">Time:</span> {schedule.start_time} - {schedule.end_time}
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    <span className="font-medium">Max Capacity:</span> {schedule.max_capacity}
-                    <span className="ml-2 text-primary cursor-pointer" onClick={() => setEditingSchedule(schedule)}>
-                      Edit
-                    </span>
-                    <span className="ml-2 text-destructive cursor-pointer" onClick={() => handleDelete(schedule.id)}>
-                      Delete
-                    </span>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

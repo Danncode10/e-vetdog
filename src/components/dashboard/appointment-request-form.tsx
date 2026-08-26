@@ -102,8 +102,27 @@ export function AppointmentRequestForm() {
       const dayYYYYMM = formatDateYYYYMM(new Date(`${yyyyMM}-${day}`));
       const isCurrentMonth = dayYYYYMM === yyyyMM;
       const isPastDay = dayYYYYMM < todayYYYYMM || (yyyyMM === todayYYYYMM && day < today.getDate());
-      const isOpenDay = isCurrentMonth && !isPastDay && isDayOpen(day);
+      const isOpenDay = isCurrentMonth && !isPastDay && isDayOpen(dayYYYYMM);
       const isSelected = formData.preferredDate === dayYYYYMM;
+
+      // Determine badge color: green if available, red if fully booked/closed
+      let badgeClass = "bg-green-100 text-green-800";
+      let badgeText = "🟢 Available";
+      const schedules = schedulesQuery.data || [];
+      const hasSpecificDateSchedule = schedules.some((s: any) =>
+        s.specific_date === dayYYYYMM && s.is_recurring === false && s.is_closed === false
+      );
+      const hasRecurringSchedule = schedules.some((s: any) =>
+        s.day_of_week === new Date(dayYYYYMM).getDay() && s.is_recurring === true && s.is_closed === false
+      );
+      const hasActiveSchedule = hasSpecificDateSchedule || hasRecurringSchedule;
+      if (!hasActiveSchedule) {
+        badgeClass = "bg-red-100 text-red-800";
+        badgeText = "🔴 Closed/Full";
+      } else if (formData.preferredDate === dayYYYYMM) {
+        badgeClass = "bg-yellow-100 text-yellow-800";
+        badgeText = "🟡 Select time";
+      }
 
       days.push({
         day,
@@ -113,8 +132,11 @@ export function AppointmentRequestForm() {
         isOpenDay,
         isSelected,
         disabled: isPastDay || !isCurrentMonth,
+        // Badge indicators
+        badgeClass,
+        badgeText,
         // Grey out days without clinic schedule
-        grayOut: isCurrentMonth && !isPastDay && !isOpenDay,
+        grayOut: isCurrentMonth && !isPastDay && !hasActiveSchedule,
       });
     }
 
@@ -131,10 +153,22 @@ export function AppointmentRequestForm() {
   };
 
   const isDayOpen = (dayYYYYMM: string) => {
-    // Check if the clinic has an active schedule for this day of week
-    const dayOfWeek = new Date(dayYYYYMM).getDay();
+    // Check if there's an active schedule for this specific date or day of week
     const schedules = schedulesQuery.data || [];
-    return schedules.some((s: any) => s.day_of_week === dayOfWeek);
+
+    // First, check for specific date schedules
+    if (formData.preferredDate === dayYYYYMM) {
+      // User is viewing the exact preferred date - check if there's a specific_date schedule
+      return schedules.some((s: any) =>
+        s.specific_date === dayYYYYMM && s.is_recurring === false && s.is_closed === false
+      );
+    }
+
+    // Fall back to day-of-week check for recurring schedules
+    const dayOfWeek = new Date(dayYYYYMM).getDay();
+    return schedules.some((s: any) =>
+      s.day_of_week === dayOfWeek && s.is_recurring === true && s.is_closed === false
+    );
   };
 
   const handleDateSelect = (dayYYYYMM: string) => {
@@ -327,6 +361,15 @@ export function AppointmentRequestForm() {
                       onClick={() => handleDateSelect(dayObj.dateString)}
                     >
                       {dayObj.day}
+                      {dayObj.badgeText && !dayObj.isPast && !dayObj.isEmpty ? (
+                        <span className={`absolute -right-1 -top-1 rounded-full px-2 py-0.5 text-xs ${
+                          dayObj.badgeClass
+                        }`}
+                          title={dayObj.badgeText}
+                        >
+                          {dayObj.badgeText}
+                        </span>
+                      ) : null}
                     </button>
                   ))}
                 </div>
@@ -355,6 +398,16 @@ export function AppointmentRequestForm() {
                     </div>
                   </div>
                 ))}
+              </div>
+              <div className="mt-3 flex items-center gap-2 text-xs">
+                <span className="flex items-center">
+                  <span className="w-2 h-2 rounded-full bg-green-500 mr-1"></span>
+                  🟢 Available
+                </span>
+                <span className="flex items-center ml-4">
+                  <span className="w-2 h-2 rounded-full bg-red-500 mr-1"></span>
+                  🔴 Fully Booked/Closed
+                </span>
               </div>
             </div>
           )}
