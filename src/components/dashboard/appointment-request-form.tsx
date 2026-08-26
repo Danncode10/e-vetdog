@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ArrowLeft, Calendar, Clock3, Loader2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Calendar, Clock3, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { CalendarRange } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -314,7 +314,19 @@ export function AppointmentRequestForm() {
                 </div>
 
                 <div className="grid grid-cols-7 gap-1">
-                  {generateCalendarDays(currentMonth)}
+                  {generateCalendarDays(currentMonth).map((dayObj, index) => (
+                    <button
+                      key={index}
+                      className={`rounded-md border ${dayObj.disabled ? 'border-border' : 'border-none'} px-2 py-1 text-sm ${
+                        dayObj.disabled
+                          ? 'bg-muted/50 opacity-50 cursor-not-allowed'
+                          : 'bg-background text-foreground hover:bg-muted transition-colors'}
+                      `}
+                      disabled={dayObj.disabled}
+                    >
+                      {dayObj.day}
+                    </button>
+                  ))}
                 </div>
 
                 <div className="mt-4 text-right">
