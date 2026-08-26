@@ -371,8 +371,10 @@ export function AppointmentRequestForm() {
   };
   const goBack = () => { setFormError(null); setStep((s) => s - 1); };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    // Guard: only allow submission when on the final step
+    if (step !== 3) return;
     if (!formData.petId || !formData.serviceId || !formData.preferredDate || !formData.preferredTime) {
       setFormError("Please complete all required steps.");
       return;
@@ -384,11 +386,21 @@ export function AppointmentRequestForm() {
     setIsPending(true);
     setFormError(null);
     try {
+      const slotStart = new Date(formData.preferredDate);
+      const [startH, startM] = selectedSlot!.start.split(":").map(Number);
+      slotStart.setHours(startH, startM, 0, 0);
+
+      const slotEnd = new Date(formData.preferredDate);
+      const [endH, endM] = selectedSlot!.end.split(":").map(Number);
+      slotEnd.setHours(endH, endM, 0, 0);
+
       await requestAppointment({
         pet_id: formData.petId,
         service_id: formData.serviceId,
         preferred_date: formData.preferredDate,
         preferred_time: formData.preferredTime,
+        scheduled_start: slotStart.toISOString(),
+        scheduled_end: slotEnd.toISOString(),
         reason: formData.reason,
         notes: formData.notes,
       });
@@ -676,7 +688,7 @@ export function AppointmentRequestForm() {
 
         {/* ── STEP 3: Details & Review ── */}
         {step === 3 && (
-          <form onSubmit={handleSubmit} id="appt-form" className="p-6 space-y-6">
+          <div className="p-6 space-y-6">
             <div className="flex items-center gap-3 mb-1">
               <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                 <FileText className="w-5 h-5 text-primary" />
@@ -747,7 +759,7 @@ export function AppointmentRequestForm() {
                 className="block w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none"
               />
             </div>
-          </form>
+          </div>
         )}
 
         {/* Error banner */}
@@ -795,8 +807,8 @@ export function AppointmentRequestForm() {
             </Button>
           ) : (
             <Button
-              type="submit"
-              form="appt-form"
+              type="button"
+              onClick={() => handleSubmit()}
               disabled={isPending}
               id="submit-appt-btn"
               className="flex items-center gap-2"

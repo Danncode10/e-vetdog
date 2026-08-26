@@ -188,8 +188,10 @@ function DayCell({ day, dateStr, schedule, isToday, onEdit, onDelete }: DayCellP
             text-sm font-bold leading-none block mb-1.5
             ${isToday
               ? "w-6 h-6 flex items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold"
-              : hasSchedule
+              : hasSchedule && !isClosed
               ? "text-emerald-950 dark:text-emerald-200"
+              : hasSchedule && isClosed
+              ? "text-orange-900 dark:text-orange-200"
               : "text-foreground/80 font-semibold"
             }
           `}

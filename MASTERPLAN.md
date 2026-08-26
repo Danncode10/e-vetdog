@@ -102,15 +102,16 @@
   - **Dependencies:** [P2.1].
   - **Acceptance criteria:** Staff can schedule, reschedule, cancel, complete, and mark no-show only through valid transitions; walk-ins capture required minimum data; the schedule/logbook handles loading, conflicts, empty periods, and status; appointment RLS and service tests cover staff and owner access.
 
-- [x] **[P2.3.1] Admin-managed appointment schedules and configuration** *(in progress)*
-  - **Goal:** Admins can define weekly available schedules with per-slot capacity limits, and owners see available/filled slots when requesting appointments.
+- [x] **[P2.3.1] Admin-managed appointment schedules and configuration**
+  - **Goal:** Admins can define weekly available schedules with per-slot capacity limits, and owners see available/filled slots when requesting appointments in a Google Calendar-style UI.
   - **Dependencies:** [P2.1], [P2.2].
   - **Acceptance criteria:** 
     - Admins can create/update weekly appointment schedules with start/end times and max capacity per slot (e.g., max 3 appointments per time slot)
-    - Owners see a calendar UI showing available (white) and filled (grayed) time slots when requesting/new appointments
-    - Attempting to book beyond capacity returns a clear error
+    - Owners see a Google Calendar-style UI showing available and filled time slots when requesting/new appointments
+    - Attempting to book beyond capacity returns a clear error and disables the slot
     - Admins can modify or cancel scheduled time slots, with appropriate RLS
-    - Existing appointment flow integrates: request → view available slots → book within capacity → schedule appointment
+    - Existing appointment flow integrates: request → view available slots → book within capacity → auto-schedule appointment (removed legacy "requested" state)
+    - Consolidated scheduling to remove redundant Clinic tab in favor of the new Schedules tab
 
 ## **PHASE 3: Clinical workspace and signed records**
 

@@ -2,7 +2,7 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
-type ButtonVariant = "default" | "outline";
+type ButtonVariant = "default" | "outline" | "destructive" | "ghost";
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
@@ -11,6 +11,8 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 const variantClasses: Record<ButtonVariant, string> = {
   default: "bg-primary text-primary-foreground hover:bg-primary/90",
   outline: "border border-border bg-background text-foreground hover:bg-muted",
+  destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+  ghost: "bg-transparent hover:bg-muted text-foreground",
 };
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(

@@ -3,33 +3,209 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CalendarDays, Plus, ExternalLink } from "lucide-react";
-import { listOwnerAppointments, listAppointments } from "@/services/appointments";
+import {
+  CalendarDays,
+  Plus,
+  ExternalLink,
+  XCircle,
+  Clock,
+  Loader2,
+  Calendar,
+  Stethoscope,
+} from "lucide-react";
+import { listOwnerAppointments, listAppointments, cancelAppointment } from "@/services/appointments";
 import type { UserRole } from "@/lib/dashboard-features";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 function fmtDate(iso: string) {
-  return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" }).format(new Date(iso));
+  return new Intl.DateTimeFormat("en-US", { month: "long", day: "numeric", year: "numeric" }).format(new Date(iso));
+}
+function fmtPreferredDate(dateStr: string) {
+  // Parse YYYY-MM-DD without timezone shift
+  const [y, m, d] = dateStr.split("-").map(Number);
+  return new Intl.DateTimeFormat("en-US", { month: "long", day: "numeric", year: "numeric" }).format(new Date(y, m - 1, d));
 }
 function fmtTime(iso: string) {
   return new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit" }).format(new Date(iso));
 }
 
-const STATUS_STYLES: Record<string, string> = {
-  requested: "bg-amber-100 text-amber-800 border-amber-200",
-  scheduled: "bg-blue-100 text-blue-800 border-blue-200",
-  completed: "bg-green-100 text-green-800 border-green-200",
-  cancelled: "bg-red-100 text-red-800 border-red-200",
-  no_show: "bg-gray-100 text-gray-800 border-gray-200",
+const STATUS_CONFIG: Record<string, { label: string; dot: string; badge: string; stripe: string }> = {
+  requested: {
+    label: "Requested",
+    dot: "bg-amber-500",
+    badge: "bg-amber-100 text-amber-900 border-amber-300",
+    stripe: "bg-amber-400",
+  },
+  scheduled: {
+    label: "Confirmed",
+    dot: "bg-blue-500",
+    badge: "bg-blue-100 text-blue-900 border-blue-300",
+    stripe: "bg-blue-500",
+  },
+  completed: {
+    label: "Completed",
+    dot: "bg-green-500",
+    badge: "bg-green-100 text-green-900 border-green-300",
+    stripe: "bg-green-500",
+  },
+  cancelled: {
+    label: "Cancelled",
+    dot: "bg-red-500",
+    badge: "bg-red-100 text-red-900 border-red-300",
+    stripe: "bg-red-400",
+  },
+  no_show: {
+    label: "No Show",
+    dot: "bg-gray-500",
+    badge: "bg-gray-200 text-gray-800 border-gray-300",
+    stripe: "bg-gray-400",
+  },
 };
 
 function StatusBadge({ status }: { status: string }) {
-  const cls = STATUS_STYLES[status] ?? "bg-muted text-muted-foreground border-border";
+  const cfg = STATUS_CONFIG[status] ?? {
+    label: status,
+    dot: "bg-muted-foreground",
+    badge: "bg-muted text-muted-foreground border-border",
+    stripe: "bg-muted",
+  };
   return (
-    <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold capitalize ${cls}`}>
-      {status.replace("_", " ")}
+    <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-semibold ${cfg.badge}`}>
+      <span className={`h-1.5 w-1.5 rounded-full ${cfg.dot} shrink-0`} />
+      {cfg.label}
     </span>
+  );
+}
+
+interface CancelModalProps {
+  appointment: any;
+  onConfirm: (reason: string) => Promise<void>;
+  onClose: () => void;
+}
+
+const CANCEL_REASONS = [
+  { value: "owner_request", label: "I need to reschedule" },
+  { value: "pet_health_issue", label: "My pet is unwell / not ready" },
+  { value: "other", label: "Other reason" },
+];
+
+function CancelModal({ appointment, onConfirm, onClose }: CancelModalProps) {
+  const [reason, setReason] = React.useState("owner_request");
+  const [isPending, setIsPending] = React.useState(false);
+
+  const petName = appointment.pets?.name || "your pet";
+  const serviceName = appointment.services?.name || "this appointment";
+  const dateStr = appointment.scheduled_start
+    ? fmtDate(appointment.scheduled_start)
+    : appointment.preferred_date || "the scheduled date";
+  const timeStr = appointment.scheduled_start ? fmtTime(appointment.scheduled_start) : "";
+
+  async function handleConfirm() {
+    setIsPending(true);
+    try {
+      await onConfirm(reason);
+    } finally {
+      setIsPending(false);
+    }
+  }
+
+  React.useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [onClose]);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="cancel-modal-title"
+    >
+      <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={onClose} />
+
+      <div className="relative z-10 w-full max-w-md rounded-2xl border border-border bg-card shadow-2xl overflow-hidden">
+        <div className="h-1 w-full bg-gradient-to-r from-destructive/60 via-destructive to-destructive/60" />
+
+        <div className="p-6">
+          <div className="flex items-start gap-4 mb-5">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-destructive/10 ring-1 ring-destructive/20">
+              <XCircle className="h-5 w-5 text-destructive" strokeWidth={1.5} />
+            </div>
+            <div>
+              <h2 id="cancel-modal-title" className="text-base font-semibold text-foreground leading-tight">
+                Cancel appointment?
+              </h2>
+              <p className="text-sm text-muted-foreground mt-0.5">This action cannot be undone.</p>
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-border bg-muted/40 p-4 mb-5 space-y-2.5">
+            <div className="flex items-center gap-2">
+              <Stethoscope className="h-3.5 w-3.5 text-muted-foreground shrink-0" strokeWidth={1.5} />
+              <span className="text-sm font-medium text-foreground">{serviceName}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-bold text-primary uppercase tracking-widest">Patient</span>
+              <span className="text-sm text-foreground">{petName}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Calendar className="h-3.5 w-3.5 text-muted-foreground shrink-0" strokeWidth={1.5} />
+              <span className="text-sm text-foreground">{dateStr}{timeStr ? ` · ${timeStr}` : ""}</span>
+            </div>
+          </div>
+
+          <div className="space-y-2 mb-6">
+            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+              Reason for cancellation
+            </p>
+            <div className="space-y-2">
+              {CANCEL_REASONS.map((r) => (
+                <label
+                  key={r.value}
+                  className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all select-none ${
+                    reason === r.value
+                      ? "border-destructive/60 bg-destructive/5"
+                      : "border-border bg-card hover:border-border/80 hover:bg-muted/40"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="cancel-reason"
+                    value={r.value}
+                    checked={reason === r.value}
+                    onChange={() => setReason(r.value)}
+                    className="sr-only"
+                  />
+                  <span className={`h-4 w-4 rounded-full border-2 shrink-0 flex items-center justify-center transition-colors ${
+                    reason === r.value ? "border-destructive bg-destructive" : "border-muted-foreground/40"
+                  }`}>
+                    {reason === r.value && <span className="h-1.5 w-1.5 rounded-full bg-destructive-foreground" />}
+                  </span>
+                  <span className={`text-sm leading-tight ${reason === r.value ? "text-foreground font-medium" : "text-muted-foreground"}`}>
+                    {r.label}
+                  </span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex flex-col-reverse sm:flex-row gap-2">
+            <Button variant="outline" className="flex-1" onClick={onClose} disabled={isPending}>
+              Keep appointment
+            </Button>
+            <Button variant="destructive" className="flex-1 gap-2" onClick={handleConfirm} disabled={isPending}>
+              {isPending ? (
+                <><Loader2 className="h-4 w-4 animate-spin" /> Cancelling…</>
+              ) : (
+                <><XCircle className="h-4 w-4" /> Yes, cancel appointment</>
+              )}
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -37,111 +213,147 @@ export function AppointmentsTab({ role, userId }: { role: UserRole; userId: stri
   const router = useRouter();
   const [appointments, setAppointments] = React.useState<any[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
+  const [cancelTarget, setCancelTarget] = React.useState<any | null>(null);
+
+  async function loadAppointments() {
+    setIsLoading(true);
+    try {
+      const data = role === "owner"
+        ? await listOwnerAppointments(userId)
+        : await listAppointments();
+      setAppointments(data);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
   React.useEffect(() => {
-    async function load() {
-      try {
-        const data =
-          role === "owner"
-            ? await listOwnerAppointments(userId)
-            : await listAppointments();
-        setAppointments(data);
-      } catch (e) {
-        console.error(e);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    load();
+    loadAppointments();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [role, userId]);
 
+  async function handleCancelConfirm(reason: string) {
+    if (!cancelTarget) return;
+    await cancelAppointment(cancelTarget.id, reason);
+    toast.success("Appointment cancelled", {
+      description: `Your ${cancelTarget.services?.name || "appointment"} has been cancelled.`,
+    });
+    setCancelTarget(null);
+    await loadAppointments();
+  }
+
+  const canCancel = (status: string) => ["requested", "scheduled"].includes(status);
+
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-semibold text-foreground tracking-tight">Appointments</h2>
-          <p className="mt-1 text-[14px] text-muted-foreground">
-            Manage appointment requests, scheduling, and check-ins.
-          </p>
+    <>
+      <div className="space-y-6">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h2 className="text-2xl font-semibold text-foreground tracking-tight">Appointments</h2>
+            <p className="mt-1 text-[14px] text-muted-foreground">
+              Manage appointment requests, scheduling, and check-ins.
+            </p>
+          </div>
+          {role === "owner" && (
+            <Link
+              href="/dashboard/appointments/new"
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            >
+              <Plus className="h-4 w-4" strokeWidth={1.5} />
+              Request appointment
+            </Link>
+          )}
         </div>
-        {role === "owner" && (
-          <Link
-            href="/dashboard/appointments/new"
-            className="inline-flex min-h-12 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-          >
-            <Plus className="mr-2 h-4 w-4" strokeWidth={1.5} />
-            Request appointment
-          </Link>
+
+        {isLoading ? (
+          <div className="grid gap-4 lg:grid-cols-2">
+            <div className="h-52 animate-pulse rounded-2xl bg-muted" />
+            <div className="h-52 animate-pulse rounded-2xl bg-muted" />
+          </div>
+        ) : appointments.length === 0 ? (
+          <div className="rounded-2xl border border-border bg-card p-12 text-center">
+            <CalendarDays className="w-10 h-10 text-muted-foreground mx-auto mb-3" strokeWidth={1.5} />
+            <p className="text-[14px] text-muted-foreground">No appointments yet. Schedule a visit to get started.</p>
+          </div>
+        ) : (
+          <div className="grid gap-4 lg:grid-cols-2">
+            {appointments.map((app) => {
+              const cfg = STATUS_CONFIG[app.status];
+              return (
+                <div key={app.id} className="group relative flex flex-col rounded-2xl border border-border bg-card overflow-hidden transition-shadow hover:shadow-md">
+                  <div className={`h-0.5 w-full ${cfg?.stripe ?? "bg-muted"}`} />
+
+                  <div className="p-5 flex-1">
+                    <div className="flex items-start justify-between gap-3 mb-4">
+                      <div>
+                        <p className="text-base font-semibold text-foreground leading-tight">
+                          {app.pets?.name || "Unknown Pet"}
+                        </p>
+                        <p className="text-sm text-muted-foreground mt-0.5">
+                          {app.services?.name || "General Visit"}
+                        </p>
+                      </div>
+                      <StatusBadge status={app.status} />
+                    </div>
+
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <Calendar className="h-3.5 w-3.5 shrink-0" strokeWidth={1.5} />
+                        <span>
+                          {app.scheduled_start ? fmtDate(app.scheduled_start) : app.preferred_date ? fmtPreferredDate(app.preferred_date) : "Date TBD"}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <Clock className="h-3.5 w-3.5 shrink-0" strokeWidth={1.5} />
+                        <span>
+                          {app.scheduled_start ? fmtTime(app.scheduled_start) : app.preferred_time ? (() => { const [h, m] = app.preferred_time.split(":").map(Number); const p = h >= 12 ? "PM" : "AM"; return `${h % 12 || 12}:${String(m).padStart(2,"0")} ${p}`; })() : "Time TBD"}
+                        </span>
+                      </div>
+                      {app.reason && (
+                        <div className="flex items-start gap-2 text-muted-foreground pt-2 border-t border-border/50 mt-2">
+                          <Stethoscope className="h-3.5 w-3.5 shrink-0 mt-0.5" strokeWidth={1.5} />
+                          <span className="line-clamp-2 text-foreground/80">{app.reason}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="border-t border-border px-5 py-3 flex gap-2 bg-muted/20">
+                    <Button
+                      variant="outline"
+                      className="flex-1 gap-2 text-xs h-9"
+                      onClick={() => router.push(`/dashboard/appointments/${app.id}`)}
+                    >
+                      <ExternalLink className="h-3.5 w-3.5" />
+                      View details
+                    </Button>
+                    {canCancel(app.status) && (
+                      <Button
+                        variant="ghost"
+                        className="flex-1 gap-2 text-xs h-9 text-destructive hover:text-destructive hover:bg-destructive/10 border border-transparent hover:border-destructive/20 transition-all"
+                        onClick={() => setCancelTarget(app)}
+                      >
+                        <XCircle className="h-3.5 w-3.5" />
+                        Cancel appointment
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         )}
       </div>
 
-      {isLoading ? (
-        <div className="grid gap-4 lg:grid-cols-2">
-          <div className="h-40 animate-pulse rounded-2xl bg-muted" />
-          <div className="h-40 animate-pulse rounded-2xl bg-muted" />
-        </div>
-      ) : appointments.length === 0 ? (
-        <div className="rounded-2xl border border-border bg-card p-12 text-center">
-          <CalendarDays className="w-10 h-10 text-muted-foreground mx-auto mb-3" strokeWidth={1.5} />
-          <p className="text-[14px] text-muted-foreground">
-            No appointments yet. Schedule a visit to get started.
-          </p>
-        </div>
-      ) : (
-        <div className="grid gap-4 lg:grid-cols-2">
-          {appointments.map((app) => (
-            <Card key={app.id} className="flex flex-col">
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <CardTitle className="text-lg">{app.pets?.name || "Unknown Pet"}</CardTitle>
-                    <CardDescription className="mt-1">
-                      {app.services?.name || "General Visit"}
-                    </CardDescription>
-                  </div>
-                  <StatusBadge status={app.status} />
-                </div>
-              </CardHeader>
-              <CardContent className="flex-1">
-                <div className="text-sm space-y-2">
-                  <div className="flex justify-between border-b pb-2">
-                    <span className="text-muted-foreground">Date</span>
-                    <span className="font-medium">
-                      {app.scheduled_start
-                        ? fmtDate(app.scheduled_start)
-                        : app.preferred_date || "TBD"}
-                    </span>
-                  </div>
-                  <div className="flex justify-between border-b pb-2">
-                    <span className="text-muted-foreground">Time</span>
-                    <span className="font-medium">
-                      {app.scheduled_start
-                        ? fmtTime(app.scheduled_start)
-                        : app.preferred_time || "TBD"}
-                    </span>
-                  </div>
-                  {app.reason && (
-                    <div className="pt-1">
-                      <span className="text-muted-foreground block mb-1">Reason for visit</span>
-                      <p className="text-foreground line-clamp-2">{app.reason}</p>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-              <CardFooter className="pt-0">
-                <Button
-                  variant="outline"
-                  className="w-full gap-2"
-                  onClick={() => router.push(`/dashboard/appointments/${app.id}`)}
-                >
-                  <ExternalLink className="h-4 w-4" />
-                  View details
-                </Button>
-              </CardFooter>
-            </Card>
-          ))}
-        </div>
+      {cancelTarget && (
+        <CancelModal
+          appointment={cancelTarget}
+          onConfirm={handleCancelConfirm}
+          onClose={() => setCancelTarget(null)}
+        />
       )}
-    </div>
+    </>
   );
 }

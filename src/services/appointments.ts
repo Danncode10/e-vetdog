@@ -97,8 +97,9 @@ export async function createAppointment(input: AppointmentInsert) {
     .from("appointments")
     .insert({
       ...input,
-      status: 'requested',
+      status: 'scheduled',
       requested_at: new Date().toISOString(),
+      confirmed_at: new Date().toISOString(),
     })
     .select()
     .single();
@@ -662,52 +663,88 @@ export async function getAvailableSlots(
     return { slots: [], scheduled: [] };
   }
 
-  // 3. Determine the query builder based on whether a vet ID is provided
-  let queryBuilder = supabase.from("appointments").select("scheduled_start, scheduled_end");
-
-  if (veterinarianId) {
-    queryBuilder = queryBuilder.eq("assigned_veterinarian_id", veterinarianId);
-  }
-
   // 3. Get already-booked appointments for this date
-  const startOfDay = new Date(date);
-  startOfDay.setHours(0, 0, 0, 0);
-  const endOfDay = new Date(date);
-  endOfDay.setHours(23, 59, 59, 999);
+  //
+  // IMPORTANT: scheduled_start was created with new Date(date).setHours(h,m,0,0).toISOString()
+  // which uses the *server/browser local time* — NOT UTC. For UTC+8, 9 AM local = 01:00 UTC.
+  // To safely cover any timezone, we widen the query window by ±24 hours and then
+  // filter precisely in JS using local-hour comparison (preferred_date string match).
+  //
+  // For legacy appointments (scheduled_start IS NULL), we match by preferred_date directly.
 
-  const { data: bookedAppts, error: bookError } = await queryBuilder
-    .gte("scheduled_start", startOfDay.toISOString())
-    .lte("scheduled_start", endOfDay.toISOString())
-    .in("status", ["requested", "scheduled"]);
+  // Build a wide UTC window: the full 24-hour span of the date ±1 day so we never miss
+  // an appointment regardless of server timezone.
+  const [yr, mo, dy] = date.split("-").map(Number);
+  const windowStart = new Date(Date.UTC(yr, mo - 1, dy - 1, 0, 0, 0, 0)); // day before UTC midnight
+  const windowEnd   = new Date(Date.UTC(yr, mo - 1, dy + 1, 23, 59, 59, 999)); // day after UTC midnight
 
-  if (bookError) throw bookError;
+  // Query 1: appointments that have scheduled_start (new flow)
+  let q1 = supabase
+    .from("appointments")
+    .select("scheduled_start, scheduled_end, preferred_date, preferred_time")
+    .in("status", ["requested", "scheduled"])
+    .gte("scheduled_start", windowStart.toISOString())
+    .lte("scheduled_start", windowEnd.toISOString());
+
+  if (veterinarianId) q1 = q1.eq("assigned_veterinarian_id", veterinarianId);
+
+  // Query 2: legacy appointments with preferred_date and no scheduled_start
+  let q2 = supabase
+    .from("appointments")
+    .select("scheduled_start, scheduled_end, preferred_date, preferred_time")
+    .in("status", ["requested", "scheduled"])
+    .eq("preferred_date", date)
+    .is("scheduled_start", null);
+
+  if (veterinarianId) q2 = q2.eq("assigned_veterinarian_id", veterinarianId);
+
+  const [{ data: bookedByStart, error: err1 }, { data: bookedByDate, error: err2 }] =
+    await Promise.all([q1, q2]);
+
+  if (err1) throw err1;
+  if (err2) throw err2;
+
+  // Filter q1 results to only those actually on the target local date using preferred_date
+  // (since some appointments may span midnight UTC but belong to a different local date)
+  const bookedOnDate = (bookedByStart || []).filter((a) => a.preferred_date === date);
+  const bookedAppts = [...bookedOnDate, ...(bookedByDate || [])];
 
   // 4. Build slots from schedules, marking capacity
   const slots = schedules.map((schedule) => {
     // Parse time strings from Supabase (format: "HH:MM:SS")
     const [startH, startM] = schedule.start_time.split(":").map(Number);
-    const [endH, endM] = schedule.end_time.split(":").map(Number);
+    const [endH, endM]     = schedule.end_time.split(":").map(Number);
 
-    const slotStart = new Date(date);
-    slotStart.setHours(startH, startM, 0, 0);
-
-    const slotEnd = new Date(date);
-    slotEnd.setHours(endH, endM, 0, 0);
+    // Build slot boundaries using LOCAL time strings — this matches how scheduled_start
+    // was created (new Date(date).setHours(h, m, 0, 0) uses local time).
+    const slotStart = new Date(`${date}T${String(startH).padStart(2,"0")}:${String(startM).padStart(2,"0")}:00`);
+    const slotEnd   = new Date(`${date}T${String(endH).padStart(2,"0")}:${String(endM).padStart(2,"0")}:00`);
 
     // Count how many appointments overlap this slot
-    const booked = (bookedAppts || []).filter((appt) => {
-      const apptStart = new Date(appt.scheduled_start);
-      const apptEnd = new Date(appt.scheduled_end);
-      return apptStart < slotEnd && apptEnd > slotStart;
+    const booked = bookedAppts.filter((appt) => {
+      if (appt.scheduled_start && appt.scheduled_end) {
+        // Use UTC timestamp comparison — both sides are now consistent (local time → UTC)
+        const apptStart = new Date(appt.scheduled_start);
+        const apptEnd   = new Date(appt.scheduled_end);
+        // Standard half-open interval overlap: [apptStart, apptEnd) overlaps [slotStart, slotEnd)
+        return apptStart < slotEnd && apptEnd > slotStart;
+      }
+      // Legacy: match by preferred_time hour against slot hour range
+      if (appt.preferred_time) {
+        const [ph] = appt.preferred_time.split(":").map(Number);
+        return ph >= startH && ph < endH;
+      }
+      // No time info — count against this slot
+      return true;
     });
 
     const currentBookings = booked.length;
-    const available = schedule.max_capacity - currentBookings;
-    const isAvailable = available > 0;
+    const available       = schedule.max_capacity - currentBookings;
+    const isAvailable     = available > 0;
 
     // Format time for display (HH:MM AM/PM)
     const formatTime = (h: number, m: number) => {
-      const period = h >= 12 ? "PM" : "AM";
+      const period   = h >= 12 ? "PM" : "AM";
       const displayH = h % 12 || 12;
       return `${displayH}:${m.toString().padStart(2, "0")} ${period}`;
     };
@@ -715,8 +752,8 @@ export async function getAvailableSlots(
     return {
       id: schedule.id,
       start: schedule.start_time,
-      end: schedule.end_time,
-      maxCapacity: schedule.max_capacity,
+      end:   schedule.end_time,
+      maxCapacity:     schedule.max_capacity,
       currentBookings,
       available,
       isAvailable,
@@ -724,5 +761,5 @@ export async function getAvailableSlots(
     };
   });
 
-  return { slots, scheduled: bookedAppts || [] };
+  return { slots, scheduled: bookedAppts };
 }
