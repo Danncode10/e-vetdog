@@ -460,13 +460,25 @@ export async function getVeterinarianSchedule(veterinarianId: string, date: stri
  */
 export async function listAppointmentSchedules() {
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("appointment_schedules")
-    .select("*")
-    .eq("status", "active")
-    .order("is_recurring DESC, day_of_week, specific_date");
-  if (error) throw error;
-  return data;
+  try {
+    const { data, error } = await supabase
+      .from("appointment_schedules")
+      .select("*")
+      .eq("status", "active")
+      .order("is_recurring DESC, day_of_week, specific_date");
+    if (error) {
+      console.error("EXACT_PG_ERROR:", JSON.stringify({
+        message: error.message,
+        hint: error.hint,
+        code: error.code
+      }, null, 2));
+      throw error;
+    }
+    return data;
+  } catch (err) {
+    console.error("EXACT_PG_ERROR_CATCH:", JSON.stringify(err, null, 2));
+    throw err;
+  }
 }
 
 export async function createAppointmentSchedule(input: {
@@ -527,15 +539,27 @@ export async function getAvailableSlots(
   const supabase = await createClient();
   if (!date) return { slots: [], scheduled: [] };
 
-  // 1. First, check for specific date schedules (is_recurring=false or specific_date set)
-  const specificDate = new Date(date).toISOString().split("T")[0];
-  const { data: specificSchedules, error: specificError } = await supabase
-    .from("appointment_schedules")
-    .select("*")
-    .or(`is_closed.eq.false,specific_date.eq.${specificDate}`)
-    .eq("status", 'active');
+  try {
+    // 1. First, check for specific date schedules (is_recurring=false or specific_date set)
+    const specificDate = new Date(date).toISOString().split("T")[0];
+    const { data: specificSchedules, error: specificError } = await supabase
+      .from("appointment_schedules")
+      .select("*")
+      .or(`is_closed.eq.false,specific_date.eq.${specificDate}`)
+      .eq("status", 'active');
 
-  if (specificError) throw specificError;
+    if (specificError) {
+      console.error("EXACT_PG_ERROR:", JSON.stringify({
+        message: specificError.message,
+        hint: specificError.hint,
+        code: specificError.code
+      }, null, 2));
+      throw specificError;
+    }
+  } catch (err) {
+    console.error("EXACT_PG_ERROR_CATCH:", JSON.stringify(err, null, 2));
+    throw err;
+  }
 
   // 2. If no specific date schedule found, fall back to recurring day-of-week schedules
   let schedules: any[] = [];
