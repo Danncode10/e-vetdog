@@ -465,9 +465,11 @@ export async function listAppointmentSchedules() {
       .from("appointment_schedules")
       .select("*")
       .eq("status", "active")
-      .order("is_recurring DESC, day_of_week, specific_date");
+      .order("is_recurring", { ascending: false })
+      .order("day_of_week", { ascending: true })
+      .order("specific_date", { ascending: true });
     if (error) {
-      console.error("EXACT_PG_ERROR:", JSON.stringify({
+      console.error("EXACT_PG_ERROR_listAppointmentSchedules:", JSON.stringify({
         message: error.message,
         hint: error.hint,
         code: error.code
@@ -476,7 +478,7 @@ export async function listAppointmentSchedules() {
     }
     return data;
   } catch (err) {
-    console.error("EXACT_PG_ERROR_CATCH:", JSON.stringify(err, null, 2));
+    console.error("EXACT_PG_ERROR_CATCH_listAppointmentSchedules:", JSON.stringify(err, null, 2));
     throw err;
   }
 }
@@ -549,7 +551,7 @@ export async function getAvailableSlots(
       .eq("status", 'active');
 
     if (specificError) {
-      console.error("EXACT_PG_ERROR:", JSON.stringify({
+      console.error("EXACT_PG_ERROR_getAvailableSlots_specific:", JSON.stringify({
         message: specificError.message,
         hint: specificError.hint,
         code: specificError.code
@@ -557,7 +559,7 @@ export async function getAvailableSlots(
       throw specificError;
     }
   } catch (err) {
-    console.error("EXACT_PG_ERROR_CATCH:", JSON.stringify(err, null, 2));
+    console.error("EXACT_PG_ERROR_CATCH_getAvailableSlots_specific:", JSON.stringify(err, null, 2));
     throw err;
   }
 
