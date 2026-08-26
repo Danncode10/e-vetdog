@@ -1,31 +1,258 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { Calendar, ArrowLeft, ArrowRight } from "lucide-react";
+export default function SchedulesPageDefault() {
+  return <SchedulesCalendarPage />;
+}
 
-import { listAppointmentSchedules, createAppointmentSchedule, updateAppointmentSchedule, deleteAppointmentSchedule } from "@/services/appointments";
+import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
+import { ChevronLeft, ChevronRight, Plus, CalendarDays, Clock, Users, X, Pencil, Trash2 } from "lucide-react";
+import { listAppointmentSchedules, deleteAppointmentSchedule } from "@/services/appointments";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
 export function SchedulesTab({ role }: { role: string }) {
-  return <SchedulesPage />;
+  return <SchedulesCalendarPage />;
 }
 
-function SchedulesPage() {
+// ──────────────────────────────────────────────────────────────
+// Helpers
+// ──────────────────────────────────────────────────────────────
+
+const DAYS_OF_WEEK = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const MONTH_NAMES = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+
+function toLocalDateString(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+function formatTime12(time: string): string {
+  // time is "HH:MM:SS" or "HH:MM"
+  const [h, m] = time.split(":").map(Number);
+  const period = h >= 12 ? "PM" : "AM";
+  const displayH = h % 12 || 12;
+  return `${displayH}:${String(m).padStart(2, "0")} ${period}`;
+}
+
+// ──────────────────────────────────────────────────────────────
+// Popover component
+// ──────────────────────────────────────────────────────────────
+
+interface SchedulePopoverProps {
+  schedule: any;
+  anchorRef: React.RefObject<HTMLButtonElement | null>;
+  onClose: () => void;
+  onEdit: (schedule: any) => void;
+  onDelete: (id: string) => void;
+}
+
+function SchedulePopover({ schedule, anchorRef, onClose, onEdit, onDelete }: SchedulePopoverProps) {
+  const popoverRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (
+        popoverRef.current &&
+        !popoverRef.current.contains(e.target as Node) &&
+        anchorRef.current &&
+        !anchorRef.current.contains(e.target as Node)
+      ) {
+        onClose();
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [onClose, anchorRef]);
+
+  const dateObj = new Date(schedule.specific_date + "T00:00:00");
+  const dateLabel = dateObj.toLocaleDateString(undefined, {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+
+  return (
+    <div
+      ref={popoverRef}
+      className="absolute z-50 w-72 bg-card border border-border rounded-xl shadow-xl p-4 top-full mt-1 left-1/2 -translate-x-1/2"
+      style={{ minWidth: 260 }}
+    >
+      {/* Close */}
+      <button
+        onClick={onClose}
+        className="absolute top-3 right-3 text-muted-foreground hover:text-foreground transition-colors"
+      >
+        <X className="w-4 h-4" />
+      </button>
+
+      <p className="text-xs font-semibold text-primary uppercase tracking-wider mb-3">
+        Schedule Details
+      </p>
+
+      <p className="text-sm font-semibold text-foreground mb-3 leading-tight">{dateLabel}</p>
+
+      <div className="space-y-2 mb-4">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Clock className="w-4 h-4 text-primary shrink-0" />
+          <span>
+            {formatTime12(schedule.start_time)} – {formatTime12(schedule.end_time)}
+          </span>
+        </div>
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Users className="w-4 h-4 text-primary shrink-0" />
+          <span>Max {schedule.max_capacity} slot{schedule.max_capacity !== 1 ? "s" : ""}</span>
+        </div>
+        <div className="flex items-center gap-2 text-sm">
+          <span
+            className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+              schedule.is_closed
+                ? "bg-destructive/10 text-destructive"
+                : "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+            }`}
+          >
+            {schedule.is_closed ? "Closed" : "Open"}
+          </span>
+        </div>
+      </div>
+
+      <div className="flex gap-2">
+        <button
+          onClick={() => onEdit(schedule)}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-primary hover:bg-primary/10 border border-primary/20 transition-colors"
+        >
+          <Pencil className="w-3.5 h-3.5" />
+          Edit
+        </button>
+        <button
+          onClick={() => onDelete(schedule.id)}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-destructive hover:bg-destructive/10 border border-destructive/20 transition-colors"
+        >
+          <Trash2 className="w-3.5 h-3.5" />
+          Delete
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ──────────────────────────────────────────────────────────────
+// Day cell
+// ──────────────────────────────────────────────────────────────
+
+interface DayCellProps {
+  day: number | null;
+  dateStr: string | null;
+  schedule: any | null;
+  isToday: boolean;
+  onEdit: (schedule: any) => void;
+  onDelete: (id: string) => void;
+}
+
+function DayCell({ day, dateStr, schedule, isToday, onEdit, onDelete }: DayCellProps) {
+  const [showPopover, setShowPopover] = useState(false);
+  const btnRef = useRef<HTMLButtonElement | null>(null);
+
+  if (day === null || dateStr === null) {
+    return <div className="min-h-[72px] rounded-xl" />;
+  }
+
+  const hasSchedule = !!schedule;
+  const isClosed = schedule?.is_closed;
+
+  return (
+    <div className="relative">
+      <button
+        ref={btnRef}
+        onClick={() => hasSchedule && setShowPopover((v) => !v)}
+        className={`
+          w-full min-h-[72px] rounded-xl border text-left p-2 transition-all duration-150 group
+          ${hasSchedule && !isClosed
+            ? "bg-green-50 border-green-300 hover:bg-green-100 hover:border-green-400 dark:bg-green-900/20 dark:border-green-700 dark:hover:bg-green-900/40 cursor-pointer"
+            : isClosed
+            ? "bg-orange-50 border-orange-200 hover:bg-orange-100 dark:bg-orange-900/20 dark:border-orange-800 cursor-pointer"
+            : "bg-muted/40 border-border hover:bg-muted/70 cursor-default"
+          }
+          ${isToday ? "ring-2 ring-primary ring-offset-1" : ""}
+        `}
+      >
+        {/* Day number */}
+        <span
+          className={`
+            text-sm font-semibold leading-none block mb-1.5
+            ${isToday
+              ? "w-6 h-6 flex items-center justify-center rounded-full bg-primary text-primary-foreground text-xs"
+              : hasSchedule
+              ? "text-green-800 dark:text-green-300"
+              : "text-muted-foreground"
+            }
+          `}
+        >
+          {day}
+        </span>
+
+        {/* Schedule indicator */}
+        {hasSchedule && (
+          <div className="space-y-0.5">
+            <div
+              className={`text-[10px] font-medium truncate leading-tight ${
+                isClosed
+                  ? "text-orange-600 dark:text-orange-400"
+                  : "text-green-700 dark:text-green-400"
+              }`}
+            >
+              {isClosed ? "Closed" : formatTime12(schedule.start_time)}
+            </div>
+            {!isClosed && (
+              <div className="text-[10px] text-green-600 dark:text-green-500 leading-tight">
+                – {formatTime12(schedule.end_time)}
+              </div>
+            )}
+          </div>
+        )}
+      </button>
+
+      {/* Popover */}
+      {showPopover && schedule && (
+        <SchedulePopover
+          schedule={schedule}
+          anchorRef={btnRef}
+          onClose={() => setShowPopover(false)}
+          onEdit={(s) => {
+            setShowPopover(false);
+            onEdit(s);
+          }}
+          onDelete={(id) => {
+            setShowPopover(false);
+            onDelete(id);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+// ──────────────────────────────────────────────────────────────
+// Main calendar page
+// ──────────────────────────────────────────────────────────────
+
+function SchedulesCalendarPage() {
   const router = useRouter();
 
+  const today = new Date();
+  const [viewDate, setViewDate] = useState(() => {
+    const d = new Date();
+    d.setDate(1);
+    return d;
+  });
   const [schedules, setSchedules] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [newSchedule, setNewSchedule] = useState({
-    specificDate: "" as string,
-    startTime: "09:00" as string,
-    endTime: "17:00" as string,
-    maxCapacity: 3 as number,
-    isClosed: false as boolean,
-  });
-  const [editingSchedule, setEditingSchedule] = useState<any | null>(null);
-  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     fetchSchedules();
@@ -44,257 +271,211 @@ function SchedulesPage() {
     }
   };
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setFormErrors({});
-
-    const { specificDate, startTime, endTime, maxCapacity, isClosed } = newSchedule;
-
-    if (!specificDate || !startTime || !endTime) {
-      toast.error("Please fill in all required fields");
-      return;
-    }
-
-    if (maxCapacity <= 0) {
-      toast.error("Max capacity must be greater than 0");
-      return;
-    }
-
-    // Validate date format YYYY-MM-DD
-    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-    if (!dateRegex.test(specificDate)) {
-      toast.error("Please enter a valid date in YYYY-MM-DD format");
-      return;
-    }
-
-    // Parse date to get day of week (0=Sunday, 6=Saturday)
-    const dateObj = new Date(`${specificDate}T00:00:00`);
-    const dayOfWeek = isNaN(dateObj.getDay()) ? 0 : dateObj.getDay();
-
-    // Ensure TIME format is HH:MM:SS for PostgreSQL
-    const formatTime = (time: string) => {
-      // If time is already in HH:MM:SS format, return as-is
-      if (/^\d{2}:\d{2}:\d{2}$/.test(time)) {
-        return time;
-      }
-      // If time is in HH:MM format, append :00 for seconds
-      if (/^\d{2}:\d{2}$/.test(time)) {
-        return `${time}:00`;
-      }
-      // Fallback - should not happen with proper form validation
-      return time;
-    };
-
-    if (editingSchedule) {
-      try {
-        await updateAppointmentSchedule(editingSchedule.id, {
-          specific_date: specificDate,
-          start_time: formatTime(startTime),
-          end_time: formatTime(endTime),
-          max_capacity: maxCapacity,
-          day_of_week: dayOfWeek,
-          is_closed: isClosed,
-        });
-        setFormErrors({});
-        setNewSchedule({
-          specificDate: "",
-          startTime: "09:00",
-          endTime: "17:00",
-          maxCapacity: 3,
-          isClosed: false,
-        });
-        setEditingSchedule(null);
-        fetchSchedules();
-        toast.success("Schedule updated successfully");
-      } catch (error: any) {
-        toast.error(error.message || "Failed to update schedule");
-      }
-    } else {
-      try {
-        await createAppointmentSchedule({
-          specific_date: specificDate,
-          start_time: formatTime(startTime),
-          end_time: formatTime(endTime),
-          max_capacity: maxCapacity,
-          day_of_week: dayOfWeek,
-          is_closed: isClosed,
-        });
-        setFormErrors({});
-        setNewSchedule({
-          specificDate: "",
-          startTime: "09:00",
-          endTime: "17:00",
-          maxCapacity: 3,
-          isClosed: false,
-        });
-        fetchSchedules();
-        toast.success("Schedule created successfully");
-      } catch (error: any) {
-        toast.error(error.message || "Failed to create schedule");
-      }
-    }
-  };
-
   const handleDelete = async (id: string) => {
-    if (confirm("Are you sure you want to delete this schedule?")) {
-      try {
-        await deleteAppointmentSchedule(id);
-        fetchSchedules();
-        toast.success("Schedule deleted successfully");
-      } catch (error: any) {
-        toast.error(error.message || "Failed to delete schedule");
-      }
+    if (!confirm("Are you sure you want to delete this schedule?")) return;
+    try {
+      await deleteAppointmentSchedule(id);
+      await fetchSchedules();
+      toast.success("Schedule deleted successfully");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to delete schedule");
     }
   };
+
+  const handleEdit = (schedule: any) => {
+    router.push(`/dashboard/schedules/new?edit=${schedule.id}`);
+  };
+
+  // Build schedule lookup map: "YYYY-MM-DD" → schedule
+  const scheduleMap = new Map<string, any>();
+  for (const s of schedules) {
+    if (s.specific_date) {
+      // Normalize to YYYY-MM-DD (strip time zone offset if any)
+      const key = String(s.specific_date).slice(0, 10);
+      scheduleMap.set(key, s);
+    }
+  }
+
+  // Calendar grid
+  const year = viewDate.getFullYear();
+  const month = viewDate.getMonth();
+  const firstDay = new Date(year, month, 1).getDay(); // 0=Sun
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const todayStr = toLocalDateString(today);
+
+  const prevMonth = () => {
+    setViewDate((d) => {
+      const n = new Date(d);
+      n.setMonth(n.getMonth() - 1);
+      n.setDate(1);
+      return n;
+    });
+  };
+
+  const nextMonth = () => {
+    setViewDate((d) => {
+      const n = new Date(d);
+      n.setMonth(n.getMonth() + 1);
+      n.setDate(1);
+      return n;
+    });
+  };
+
+  const goToday = () => {
+    const n = new Date();
+    n.setDate(1);
+    setViewDate(n);
+  };
+
+  // Build grid rows
+  type GridCell = { day: number | null; dateStr: string | null };
+  const cells: GridCell[] = [];
+  for (let i = 0; i < firstDay; i++) cells.push({ day: null, dateStr: null });
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateObj = new Date(year, month, d);
+    cells.push({ day: d, dateStr: toLocalDateString(dateObj) });
+  }
+  // Pad to complete last row
+  while (cells.length % 7 !== 0) cells.push({ day: null, dateStr: null });
+
+  const totalWithSchedule = schedules.length;
 
   return (
-    <div className="mx-auto w-full max-w-7xl py-8">
-      <div className="bg-card border border-border rounded-2xl p-6 sm:p-8">
-        <h2 className="text-2xl font-semibold text-foreground tracking-tight mb-6">
-          Manage Appointment Schedules
-        </h2>
+    <div className="mx-auto w-full max-w-7xl py-6">
+      {/* ── Header ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div>
+          <h2 className="text-2xl font-semibold text-foreground tracking-tight">
+            Appointment Schedule
+          </h2>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            {isLoading
+              ? "Loading schedules…"
+              : `${totalWithSchedule} date${totalWithSchedule !== 1 ? "s" : ""} configured this year`}
+          </p>
+        </div>
 
-        <form onSubmit={handleSubmit} className="grid gap-4 sm:grid-cols-3 mb-6">
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-2">
-              Date
-            </label>
-            <input
-              type="date"
-              value={newSchedule.specificDate}
-              onChange={(e) =>
-                setNewSchedule((prev) => ({ ...prev, specificDate: e.target.value as string }))
-              }
-              className="block w-full rounded-md border border-input bg-background px-3 py-2 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              min={new Date().toISOString().split("T")[0]}
-            />
-          </div>
+        <Button
+          onClick={() => router.push("/dashboard/schedules/new")}
+          className="flex items-center gap-2 shrink-0"
+          id="add-schedule-btn"
+        >
+          <Plus className="w-4 h-4" />
+          Add Schedule
+        </Button>
+      </div>
 
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-2">
-              Start Time (HH:MM)
-            </label>
-            <input
-              type="time"
-              value={newSchedule.startTime}
-              onChange={(e) =>
-                setNewSchedule((prev) => ({ ...prev, startTime: e.target.value as string }))
-              }
-              className="block w-full rounded-md border border-input bg-background px-3 py-2 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            />
-          </div>
+      {/* ── Calendar Card ── */}
+      <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm">
 
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-2">
-              End Time (HH:MM)
-            </label>
-            <input
-              type="time"
-              value={newSchedule.endTime}
-              onChange={(e) =>
-                setNewSchedule((prev) => ({ ...prev, endTime: e.target.value as string }))
-              }
-              className="block w-full rounded-md border border-input bg-background px-3 py-2 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-2">
-              Max Capacity per Slot
-            </label>
-            <input
-              type="number"
-              value={newSchedule.maxCapacity}
-              onChange={(e) =>
-                setNewSchedule((prev) => ({ ...prev, maxCapacity: Number(e.target.value as string) }))
-              }
-              className="block w-full rounded-md border border-input bg-background px-3 py-2 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              min="1"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-2">
-              Is Closed
-            </label>
-            <select
-              value={newSchedule.isClosed ? "true" : "false"}
-              onChange={(e) =>
-                setNewSchedule((prev) => ({ ...prev, isClosed: e.target.value === "true" }))
-              }
-              className="block w-full rounded-md border border-input bg-background px-3 py-2 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        {/* Month nav */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border bg-card">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={prevMonth}
+              id="prev-month-btn"
+              className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
             >
-              <option value="false">Open</option>
-              <option value="true">Closed</option>
-            </select>
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <h3 className="text-base font-semibold text-foreground min-w-[160px] text-center">
+              {MONTH_NAMES[month]} {year}
+            </h3>
+            <button
+              onClick={nextMonth}
+              id="next-month-btn"
+              className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
           </div>
 
-          <Button type="submit">
-            {editingSchedule ? "Update Schedule" : "Add Schedule"}
-          </Button>
-        </form>
+          <button
+            onClick={goToday}
+            id="today-btn"
+            className="text-xs font-medium text-primary hover:bg-primary/10 border border-primary/20 px-3 py-1.5 rounded-lg transition-colors"
+          >
+            Today
+          </button>
+        </div>
 
-        <div className="mt-8">
-          <h3 className="text-lg font-semibold text-foreground mb-4">
-            Existing Schedules
-          </h3>
+        {/* Day-of-week headers */}
+        <div className="grid grid-cols-7 border-b border-border">
+          {DAYS_OF_WEEK.map((d) => (
+            <div
+              key={d}
+              className="py-2 text-center text-xs font-semibold text-muted-foreground uppercase tracking-wider"
+            >
+              {d}
+            </div>
+          ))}
+        </div>
 
-          {isLoading ? (
-            <div className="grid gap-4 lg:grid-cols-3">
-              <div className="h-40 animate-pulse rounded-2xl bg-muted" />
-              <div className="h-40 animate-pulse rounded-2xl bg-muted" />
-              <div className="h-40 animate-pulse rounded-2xl bg-muted" />
-            </div>
-          ) : schedules.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
-              <Calendar className="w-12 h-12 mx-auto mb-3" strokeWidth={1.5} />
-              <p>No appointment schedules configured yet</p>
-              <p className="mt-2 text-sm">
-                Admins can create specific-date schedules with date, time range, and max capacity per slot
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {schedules.map((schedule) => {
-                const isSpecificDate = !!schedule.specific_date;
-                const dateDisplay = isSpecificDate
-                  ? new Date(schedule.specific_date).toLocaleDateString(undefined, {
-                      weekday: "long",
-                      month: "long",
-                      day: "numeric",
-                    })
-                  : `${schedule.start_time} - ${schedule.end_time}`;
+        {/* Calendar grid */}
+        {isLoading ? (
+          <div className="grid grid-cols-7 gap-1.5 p-3">
+            {Array.from({ length: 35 }).map((_, i) => (
+              <div key={i} className="h-[72px] rounded-xl bg-muted animate-pulse" />
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-7 gap-1.5 p-3">
+            {cells.map(({ day, dateStr }, idx) => {
+              const schedule = dateStr ? (scheduleMap.get(dateStr) ?? null) : null;
+              const isToday = dateStr === todayStr;
+              return (
+                <DayCell
+                  key={idx}
+                  day={day}
+                  dateStr={dateStr}
+                  schedule={schedule}
+                  isToday={isToday}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                />
+              );
+            })}
+          </div>
+        )}
 
-                return (
-                  <div
-                    key={schedule.id}
-                    className="rounded-lg border border-border bg-card p-4 sm:p-6 hover:bg-muted/50 transition-colors"
-                  >
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-sm font-medium text-foreground">{dateDisplay}</span>
-                    </div>
-                    <div className="text-sm text-muted-foreground mb-2">
-                      <span className="font-medium">Time:</span> {schedule.start_time} - {schedule.end_time}
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      <span className="font-medium">Max Capacity:</span> {schedule.max_capacity}
-                      {schedule.is_closed && <span className="text-destructive ml-2 font-medium">Closed</span>}
-                    </div>
-                    <div className="mt-2">
-                      <span className="text-xs text-primary cursor-pointer" onClick={() => setEditingSchedule(schedule)}>
-                        Edit
-                      </span>
-                      <span className="ml-2 text-destructive cursor-pointer" onClick={() => handleDelete(schedule.id)}>
-                        Delete
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
+        {/* Legend */}
+        <div className="flex items-center gap-6 px-5 py-3 border-t border-border bg-muted/30">
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-sm bg-green-300 border border-green-400" />
+            <span className="text-xs text-muted-foreground">Open schedule</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-sm bg-orange-200 border border-orange-300" />
+            <span className="text-xs text-muted-foreground">Closed day</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-sm bg-muted border border-border" />
+            <span className="text-xs text-muted-foreground">No schedule</span>
+          </div>
+          <div className="flex items-center gap-2 ml-auto">
+            <div className="w-3 h-3 rounded-sm ring-2 ring-primary" />
+            <span className="text-xs text-muted-foreground">Today</span>
+          </div>
         </div>
       </div>
+
+      {/* Empty state hint */}
+      {!isLoading && schedules.length === 0 && (
+        <div className="mt-6 flex flex-col items-center justify-center py-12 text-center">
+          <CalendarDays className="w-12 h-12 text-muted-foreground/50 mb-3" strokeWidth={1.5} />
+          <p className="text-sm font-medium text-muted-foreground">No schedules configured yet</p>
+          <p className="text-xs text-muted-foreground/70 mt-1 mb-4">
+            Click &ldquo;Add Schedule&rdquo; to set available days for appointments.
+          </p>
+          <Button
+            variant="outline"
+            onClick={() => router.push("/dashboard/schedules/new")}
+          >
+            <Plus className="w-4 h-4 mr-1.5" />
+            Add your first schedule
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
