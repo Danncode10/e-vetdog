@@ -11,7 +11,7 @@ import { listAppointmentSchedules, deleteAppointmentSchedule } from "@/services/
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
-export function SchedulesTab({ role }: { role: string }) {
+export function SchedulesTab({ role }: { role?: string | null }) {
   return <SchedulesCalendarPage />;
 }
 

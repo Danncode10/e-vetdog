@@ -127,7 +127,7 @@ export function ClinicTab({ role, userId }: { role: UserRole; userId: string }) 
         ...prev,
         [appointmentId]: checkIn,
       }));
-    } catch {
+    } catch (error) {
       console.error("Failed to check-in:", error);
       alert("Failed to check-in. Please try again.");
     }
@@ -148,7 +148,7 @@ export function ClinicTab({ role, userId }: { role: UserRole; userId: string }) 
           service_start: new Date().toISOString(),
         },
       }));
-    } catch {
+    } catch (error) {
       console.error("Failed to start service:", error);
       alert("Failed to start service. Please try again.");
     }

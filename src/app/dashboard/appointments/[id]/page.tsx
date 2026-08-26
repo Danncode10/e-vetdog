@@ -4,7 +4,6 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 
 function fmtDate(iso: string) {
   return new Intl.DateTimeFormat("en-US", {
@@ -79,12 +78,13 @@ export default async function AppointmentDetailPage({
 
       {/* ── Back + actions ─────────────────────────────── */}
       <div className="flex items-center">
-        <Button variant="ghost" asChild className="gap-2 text-muted-foreground hover:text-foreground">
-          <Link href="/dashboard?tab=appointments">
-            <ArrowLeft className="h-4 w-4" />
-            Back to appointments
-          </Link>
-        </Button>
+        <Link
+          href="/dashboard?tab=appointments"
+          className="inline-flex min-h-12 items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to appointments
+        </Link>
       </div>
 
       {/* ── Status + title row ──────────────────────────── */}
