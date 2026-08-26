@@ -464,7 +464,7 @@ export async function listAppointmentSchedules() {
     .from("appointment_schedules")
     .select("*")
     .eq("status", "active")
-    .order("day_of_week", { ascending: true });
+    .order("is_recurring DESC, day_of_week, specific_date");
   if (error) throw error;
   return data;
 }
@@ -527,22 +527,40 @@ export async function getAvailableSlots(
   const supabase = await createClient();
   if (!date) return { slots: [], scheduled: [] };
 
-  const dayOfWeek = new Date(`${date}T00:00:00`).getDay(); // 0=Sunday, 6=Saturday - use T00:00:00 to ensure local midnight instead of UTC
-
-  // 1. Get admin-configured schedules for this day of week
-  const { data: schedules, error: schedError } = await supabase
+  // 1. First, check for specific date schedules (is_recurring=false or specific_date set)
+  const specificDate = new Date(date).toISOString().split("T")[0];
+  const { data: specificSchedules, error: specificError } = await supabase
     .from("appointment_schedules")
     .select("*")
-    .eq("day_of_week", dayOfWeek)
+    .or(`is_closed.eq.false,specific_date.eq.${specificDate}`)
     .eq("status", 'active');
 
-  if (schedError) throw schedError;
+  if (specificError) throw specificError;
+
+  // 2. If no specific date schedule found, fall back to recurring day-of-week schedules
+  let schedules: any[] = [];
+  if (!specificSchedules || specificSchedules.length === 0) {
+    // Fall back to recurring schedules for this day of week
+    const dayOfWeek = new Date(`${date}T00:00:00`).getDay();
+    const { data: fallbackSchedules, error: fallbackError } = await supabase
+      .from("appointment_schedules")
+      .select("*")
+      .eq("day_of_week", dayOfWeek)
+      .eq("is_recurring", true)
+      .eq("status", 'active');
+
+    if (fallbackError) throw fallbackError;
+    schedules = fallbackSchedules || [];
+  } else {
+    schedules = specificSchedules;
+  }
+
   if (!schedules || schedules.length === 0) {
     // No schedules configured; return no available slots
     return { slots: [], scheduled: [] };
   }
 
-  // 2. Determine the query builder based on whether a vet ID is provided
+  // 3. Determine the query builder based on whether a vet ID is provided
   let queryBuilder = supabase.from("appointments").select("scheduled_start, scheduled_end");
 
   if (veterinarianId) {

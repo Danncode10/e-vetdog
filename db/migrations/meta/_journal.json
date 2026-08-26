@@ -1,5 +1,5 @@
 {
-  "version": "7",
+  "version": "8",
   "dialect": "postgresql",
   "entries": [
     {
@@ -105,6 +105,13 @@
       "version": "7",
       "when": 1788020000000,
       "tag": "0015_fix_appointment_schedules",
+      "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1742000000000,
+      "tag": "0016_specific_date_schedules",
       "breakpoints": true
     }
   ]
