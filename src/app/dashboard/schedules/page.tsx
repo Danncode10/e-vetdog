@@ -41,36 +41,26 @@ function formatTime12(time: string): string {
 }
 
 // ──────────────────────────────────────────────────────────────
-// Popover component
+// Modal component
 // ──────────────────────────────────────────────────────────────
 
-interface SchedulePopoverProps {
-  schedule: any;
-  anchorRef: React.RefObject<HTMLButtonElement | null>;
+interface ScheduleModalProps {
+  schedules: any[];
   onClose: () => void;
   onEdit: (schedule: any) => void;
   onDelete: (id: string) => void;
 }
 
-function SchedulePopover({ schedule, anchorRef, onClose, onEdit, onDelete }: SchedulePopoverProps) {
-  const popoverRef = useRef<HTMLDivElement>(null);
-
+function ScheduleModal({ schedules, onClose, onEdit, onDelete }: ScheduleModalProps) {
   useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (
-        popoverRef.current &&
-        !popoverRef.current.contains(e.target as Node) &&
-        anchorRef.current &&
-        !anchorRef.current.contains(e.target as Node)
-      ) {
-        onClose();
-      }
+    function handleEscape(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose();
     }
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, [onClose, anchorRef]);
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [onClose]);
 
-  const dateObj = new Date(schedule.specific_date + "T00:00:00");
+  const dateObj = new Date(schedules[0].specific_date + "T00:00:00");
   const dateLabel = dateObj.toLocaleDateString(undefined, {
     weekday: "long",
     month: "long",
@@ -79,64 +69,76 @@ function SchedulePopover({ schedule, anchorRef, onClose, onEdit, onDelete }: Sch
   });
 
   return (
-    <div
-      ref={popoverRef}
-      className="absolute z-50 w-72 bg-card border border-border rounded-xl shadow-xl p-4 top-full mt-1 left-1/2 -translate-x-1/2"
-      style={{ minWidth: 260 }}
-    >
-      {/* Close */}
-      <button
-        onClick={onClose}
-        className="absolute top-3 right-3 text-muted-foreground hover:text-foreground transition-colors"
-      >
-        <X className="w-4 h-4" />
-      </button>
-
-      <p className="text-xs font-semibold text-primary uppercase tracking-wider mb-3">
-        Schedule Details
-      </p>
-
-      <p className="text-sm font-semibold text-foreground mb-3 leading-tight">{dateLabel}</p>
-
-      <div className="space-y-2 mb-4">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Clock className="w-4 h-4 text-primary shrink-0" />
-          <span>
-            {formatTime12(schedule.start_time)} – {formatTime12(schedule.end_time)}
-          </span>
-        </div>
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Users className="w-4 h-4 text-primary shrink-0" />
-          <span>Max {schedule.max_capacity} slot{schedule.max_capacity !== 1 ? "s" : ""}</span>
-        </div>
-        <div className="flex items-center gap-2 text-sm">
-          <span
-            className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-              schedule.is_closed
-                ? "bg-destructive/10 text-destructive"
-                : "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-            }`}
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+      {/* Backdrop click */}
+      <div className="absolute inset-0" onClick={onClose} />
+      
+      <div className="relative w-full max-w-lg bg-card border border-border rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+        {/* Header */}
+        <div className="flex items-center justify-between p-5 border-b border-border bg-muted/30">
+          <div>
+            <h3 className="text-lg font-semibold text-foreground tracking-tight">Schedules</h3>
+            <p className="text-sm text-muted-foreground mt-0.5">{dateLabel}</p>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-2 -mr-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-full transition-colors"
           >
-            {schedule.is_closed ? "Closed" : "Open"}
-          </span>
+            <X className="w-5 h-5" />
+          </button>
         </div>
-      </div>
 
-      <div className="flex gap-2">
-        <button
-          onClick={() => onEdit(schedule)}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-primary hover:bg-primary/10 border border-primary/20 transition-colors"
-        >
-          <Pencil className="w-3.5 h-3.5" />
-          Edit
-        </button>
-        <button
-          onClick={() => onDelete(schedule.id)}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-destructive hover:bg-destructive/10 border border-destructive/20 transition-colors"
-        >
-          <Trash2 className="w-3.5 h-3.5" />
-          Delete
-        </button>
+        {/* Content */}
+        <div className="p-5 overflow-y-auto space-y-4 flex-1" style={{ scrollbarWidth: "thin" }}>
+          {schedules.map((schedule, idx) => (
+            <div key={schedule.id || idx} className="bg-background border border-border rounded-xl p-4 shadow-sm relative">
+              <div className="flex items-start justify-between mb-4">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Clock className="w-4 h-4 text-primary shrink-0" />
+                    <span className="font-medium text-foreground">
+                      {formatTime12(schedule.start_time)} – {formatTime12(schedule.end_time)}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Users className="w-4 h-4 text-primary shrink-0" />
+                    <span>Max {schedule.max_capacity} slot{schedule.max_capacity !== 1 ? "s" : ""}</span>
+                  </div>
+                </div>
+                <span
+                  className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${
+                    schedule.is_closed
+                      ? "bg-destructive/10 text-destructive"
+                      : "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                  }`}
+                >
+                  {schedule.is_closed ? "Closed" : "Open"}
+                </span>
+              </div>
+
+              <div className="flex gap-3 pt-4 border-t border-border">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onEdit(schedule)}
+                  className="flex-1 text-primary hover:text-primary hover:bg-primary/5"
+                >
+                  <Pencil className="w-4 h-4 mr-2" />
+                  Edit
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onDelete(schedule.id)}
+                  className="flex-1 text-destructive border-destructive/20 hover:text-destructive hover:bg-destructive/10 hover:border-destructive/30"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -149,33 +151,31 @@ function SchedulePopover({ schedule, anchorRef, onClose, onEdit, onDelete }: Sch
 interface DayCellProps {
   day: number | null;
   dateStr: string | null;
-  schedule: any | null;
+  schedules: any[];
   isToday: boolean;
   onEdit: (schedule: any) => void;
   onDelete: (id: string) => void;
 }
 
-function DayCell({ day, dateStr, schedule, isToday, onEdit, onDelete }: DayCellProps) {
-  const [showPopover, setShowPopover] = useState(false);
-  const btnRef = useRef<HTMLButtonElement | null>(null);
+function DayCell({ day, dateStr, schedules, isToday, onEdit, onDelete }: DayCellProps) {
+  const [showModal, setShowModal] = useState(false);
 
   if (day === null || dateStr === null) {
     return <div className="min-h-[72px] rounded-xl" />;
   }
 
-  const hasSchedule = !!schedule;
-  const isClosed = schedule?.is_closed;
+  const hasSchedule = schedules && schedules.length > 0;
+  const isClosed = hasSchedule && schedules.every(s => s.is_closed);
 
   return (
-    <div className="relative">
+    <>
       <button
-        ref={btnRef}
-        onClick={() => hasSchedule && setShowPopover((v) => !v)}
+        onClick={() => hasSchedule && setShowModal(true)}
         className={`
-          w-full min-h-[72px] rounded-xl border text-left p-2 transition-all duration-150 group
+          w-full min-h-[72px] rounded-xl border text-left p-2 transition-all duration-150 group flex flex-col gap-1
           ${hasSchedule && !isClosed
             ? "bg-green-50 border-green-300 hover:bg-green-100 hover:border-green-400 dark:bg-green-900/20 dark:border-green-700 dark:hover:bg-green-900/40 cursor-pointer"
-            : isClosed
+            : hasSchedule && isClosed
             ? "bg-orange-50 border-orange-200 hover:bg-orange-100 dark:bg-orange-900/20 dark:border-orange-800 cursor-pointer"
             : "bg-muted/40 border-border hover:bg-muted/70 cursor-default"
           }
@@ -185,7 +185,7 @@ function DayCell({ day, dateStr, schedule, isToday, onEdit, onDelete }: DayCellP
         {/* Day number */}
         <span
           className={`
-            text-sm font-bold leading-none block mb-1.5
+            text-sm font-bold leading-none block
             ${isToday
               ? "w-6 h-6 flex items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold"
               : hasSchedule && !isClosed
@@ -201,42 +201,45 @@ function DayCell({ day, dateStr, schedule, isToday, onEdit, onDelete }: DayCellP
 
         {/* Schedule indicator */}
         {hasSchedule && (
-          <div className="space-y-0.5">
-            <div
-              className={`text-xs font-bold truncate leading-tight ${
-                isClosed
-                  ? "text-orange-700 dark:text-orange-300"
-                  : "text-emerald-800 dark:text-emerald-300"
-              }`}
-            >
-              {isClosed ? "Closed" : formatTime12(schedule.start_time)}
-            </div>
-            {!isClosed && (
-              <div className="text-[11px] font-medium text-emerald-700/90 dark:text-emerald-400 leading-tight">
-                – {formatTime12(schedule.end_time)}
+          <div className="flex flex-col gap-1 mt-1 overflow-hidden w-full">
+            {schedules.map((schedule, idx) => (
+              <div key={idx} className="space-y-0.5 text-left">
+                <div
+                  className={`text-[10px] font-bold truncate leading-tight ${
+                    schedule.is_closed
+                      ? "text-orange-700 dark:text-orange-300"
+                      : "text-emerald-800 dark:text-emerald-300"
+                  }`}
+                >
+                  {schedule.is_closed ? "Closed" : formatTime12(schedule.start_time)}
+                </div>
+                {!schedule.is_closed && (
+                  <div className="text-[9px] font-medium text-emerald-700/90 dark:text-emerald-400 leading-tight truncate">
+                    – {formatTime12(schedule.end_time)}
+                  </div>
+                )}
               </div>
-            )}
+            ))}
           </div>
         )}
       </button>
 
-      {/* Popover */}
-      {showPopover && schedule && (
-        <SchedulePopover
-          schedule={schedule}
-          anchorRef={btnRef}
-          onClose={() => setShowPopover(false)}
+      {/* Modal */}
+      {showModal && hasSchedule && (
+        <ScheduleModal
+          schedules={schedules}
+          onClose={() => setShowModal(false)}
           onEdit={(s) => {
-            setShowPopover(false);
+            setShowModal(false);
             onEdit(s);
           }}
           onDelete={(id) => {
-            setShowPopover(false);
+            setShowModal(false);
             onDelete(id);
           }}
         />
       )}
-    </div>
+    </>
   );
 }
 
@@ -288,14 +291,22 @@ function SchedulesCalendarPage() {
     router.push(`/dashboard/schedules/new?edit=${schedule.id}`);
   };
 
-  // Build schedule lookup map: "YYYY-MM-DD" → schedule
-  const scheduleMap = new Map<string, any>();
+  // Build schedule lookup map: "YYYY-MM-DD" → schedule[]
+  const scheduleMap = new Map<string, any[]>();
   for (const s of schedules) {
     if (s.specific_date) {
       // Normalize to YYYY-MM-DD (strip time zone offset if any)
       const key = String(s.specific_date).slice(0, 10);
-      scheduleMap.set(key, s);
+      if (!scheduleMap.has(key)) {
+        scheduleMap.set(key, []);
+      }
+      scheduleMap.get(key)!.push(s);
     }
+  }
+
+  // sort schedules by start_time
+  for (const scheds of scheduleMap.values()) {
+    scheds.sort((a, b) => (a.start_time || "").localeCompare(b.start_time || ""));
   }
 
   // Calendar grid
@@ -423,14 +434,14 @@ function SchedulesCalendarPage() {
         ) : (
           <div className="grid grid-cols-7 gap-1.5 p-3">
             {cells.map(({ day, dateStr }, idx) => {
-              const schedule = dateStr ? (scheduleMap.get(dateStr) ?? null) : null;
+              const schedulesForDay = dateStr ? (scheduleMap.get(dateStr) ?? []) : [];
               const isToday = dateStr === todayStr;
               return (
                 <DayCell
                   key={idx}
                   day={day}
                   dateStr={dateStr}
-                  schedule={schedule}
+                  schedules={schedulesForDay}
                   isToday={isToday}
                   onEdit={handleEdit}
                   onDelete={handleDelete}
