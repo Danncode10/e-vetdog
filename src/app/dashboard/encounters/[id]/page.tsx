@@ -7,10 +7,10 @@ import { getPetById } from "@/services/pets";
 export default async function EncounterPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
   const { profile } = await requireRole(["veterinarian", "admin"]);
-  const { id } = params;
+  const { id } = await params;
 
   const encounterData = await getEncounterDetails(id);
   if (!encounterData) {
