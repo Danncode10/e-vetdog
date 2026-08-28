@@ -155,9 +155,10 @@ interface DayCellProps {
   isToday: boolean;
   onEdit: (schedule: any) => void;
   onDelete: (id: string) => void;
+  onAddDate: (dateStr: string) => void;
 }
 
-function DayCell({ day, dateStr, schedules, isToday, onEdit, onDelete }: DayCellProps) {
+function DayCell({ day, dateStr, schedules, isToday, onEdit, onDelete, onAddDate }: DayCellProps) {
   const [showModal, setShowModal] = useState(false);
 
   if (day === null || dateStr === null) {
@@ -171,16 +172,18 @@ function DayCell({ day, dateStr, schedules, isToday, onEdit, onDelete }: DayCell
     <>
       <button
         onClick={() => hasSchedule && setShowModal(true)}
+        onDoubleClick={() => dateStr && onAddDate(dateStr)}
         className={`
-          w-full min-h-[72px] rounded-xl border text-left p-2 transition-all duration-150 group flex flex-col gap-1
+          w-full min-h-[72px] rounded-xl border text-left p-2 transition-all duration-150 group flex flex-col gap-1 select-none
           ${hasSchedule && !isClosed
             ? "bg-green-50 border-green-300 hover:bg-green-100 hover:border-green-400 dark:bg-green-900/20 dark:border-green-700 dark:hover:bg-green-900/40 cursor-pointer"
             : hasSchedule && isClosed
             ? "bg-orange-50 border-orange-200 hover:bg-orange-100 dark:bg-orange-900/20 dark:border-orange-800 cursor-pointer"
-            : "bg-muted/40 border-border hover:bg-muted/70 cursor-default"
+            : "bg-muted/40 border-border hover:bg-muted/70 hover:border-primary/40 cursor-pointer"
           }
           ${isToday ? "ring-2 ring-primary ring-offset-1" : ""}
         `}
+        title={dateStr ? "Double-click to add a schedule for this date" : undefined}
       >
         {/* Day number */}
         <span
@@ -285,6 +288,10 @@ function SchedulesCalendarPage() {
     } catch (error: any) {
       toast.error(error.message || "Failed to delete schedule");
     }
+  };
+
+  const handleAddDate = (dateStr: string) => {
+    router.push(`/dashboard/schedules/new?date=${dateStr}`);
   };
 
   const handleEdit = (schedule: any) => {
@@ -445,6 +452,7 @@ function SchedulesCalendarPage() {
                   isToday={isToday}
                   onEdit={handleEdit}
                   onDelete={handleDelete}
+                  onAddDate={handleAddDate}
                 />
               );
             })}

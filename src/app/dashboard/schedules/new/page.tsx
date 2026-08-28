@@ -36,18 +36,25 @@ export default function AddSchedulePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const editId = searchParams.get("edit");
+  const dateParam = searchParams.get("date");
   const isEditMode = !!editId;
 
   const [isLoadingEdit, setIsLoadingEdit] = useState(isEditMode);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [form, setForm] = useState({
-    specificDate: "",
+    specificDate: dateParam || "",
     startTime: "09:00",
     endTime: "17:00",
     maxCapacity: 3,
     isClosed: false,
   });
+
+  useEffect(() => {
+    if (dateParam && !isEditMode) {
+      setForm((prev) => ({ ...prev, specificDate: dateParam }));
+    }
+  }, [dateParam, isEditMode]);
 
   // If edit mode, fetch schedule and pre-fill form
   useEffect(() => {
