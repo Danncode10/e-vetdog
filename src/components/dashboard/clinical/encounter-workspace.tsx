@@ -11,8 +11,7 @@ import {
   Plus,
   Trash2,
   PawPrint,
-  Calendar,
-  DollarSign
+  Calendar
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -311,8 +310,8 @@ export function EncounterWorkspace({
                         <div key={i} className="flex gap-3 items-start group">
                           <Input placeholder="Treatment name..." value={t.name || ""} onChange={(e: any) => updateTreatment(i, "name", e.target.value)} disabled={isSigned} className="flex-1 bg-background" />
                           <div className="relative w-32">
-                            <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input type="number" placeholder="0.00" value={t.cost || ""} onChange={(e: any) => updateTreatment(i, "cost", e.target.value)} disabled={isSigned} className="w-full pl-9 bg-background" />
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm font-medium">₱</span>
+                            <Input type="number" placeholder="0.00" value={t.cost || ""} onChange={(e: any) => updateTreatment(i, "cost", e.target.value)} disabled={isSigned} className="w-full pl-7 bg-background" />
                           </div>
                           {!isSigned && (
                             <Button size="icon" variant="ghost" onClick={() => removeTreatment(i)} className="opacity-0 group-hover:opacity-100 transition-opacity">
