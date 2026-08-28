@@ -50,12 +50,6 @@ export async function createEncounter(input: Omit<EncounterInsert, "status" | "s
 
   if (error) throw error;
 
-  // Update appointment status to diagnosed when encounter starts
-  await supabase
-    .from("appointments")
-    .update({ status: "diagnosed" })
-    .eq("id", input.appointment_id);
-
   revalidatePath("/dashboard");
   return data;
 }
@@ -104,7 +98,7 @@ export async function signEncounter(id: string) {
   // Verify status is draft before signing
   const { data: current, error: fetchError } = await supabase
     .from("encounters")
-    .select("status")
+    .select("status, appointment_id")
     .eq("id", id)
     .single();
 
@@ -125,6 +119,14 @@ export async function signEncounter(id: string) {
     .single();
 
   if (error) throw error;
+
+  if (current.appointment_id) {
+    await supabase
+      .from("appointments")
+      .update({ status: "diagnosed" })
+      .eq("id", current.appointment_id);
+  }
+
   revalidatePath("/dashboard");
   return data;
 }

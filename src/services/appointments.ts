@@ -97,7 +97,7 @@ export async function createAppointment(input: AppointmentInsert) {
     .from("appointments")
     .insert({
       ...input,
-      status: 'scheduled',
+      status: 'booked',
       requested_at: new Date().toISOString(),
       confirmed_at: new Date().toISOString(),
     })
@@ -172,7 +172,7 @@ export async function scheduleAppointment(
   const { data, error } = await supabase
     .from("appointments")
     .update({
-      status: "scheduled",
+      status: "booked",
       scheduled_start: input.scheduledStart,
       scheduled_end: input.scheduledEnd,
       assigned_veterinarian_id: input.assignedVeterinarianId,
@@ -447,7 +447,7 @@ export async function getVeterinarianSchedule(veterinarianId: string, date: stri
     // Filter by scheduled_start, but also include appointments with preferred_date in range
     .gte("scheduled_start", startOfDay.toISOString())
     .lte("scheduled_start", endOfDay.toISOString())
-    .in("status", ["requested", "scheduled"])
+    .in("status", ["booked"])
     .order("scheduled_start", { ascending: true });
   if (error) throw error;
   return data;
@@ -709,7 +709,7 @@ export async function getAvailableSlots(
   let q1 = supabase
     .from("appointments")
     .select("scheduled_start, scheduled_end, preferred_date, preferred_time")
-    .in("status", ["requested", "scheduled"])
+    .in("status", ["booked"])
     .gte("scheduled_start", windowStart.toISOString())
     .lte("scheduled_start", windowEnd.toISOString());
 
@@ -719,7 +719,7 @@ export async function getAvailableSlots(
   let q2 = supabase
     .from("appointments")
     .select("scheduled_start, scheduled_end, preferred_date, preferred_time")
-    .in("status", ["requested", "scheduled"])
+    .in("status", ["booked"])
     .eq("preferred_date", date)
     .is("scheduled_start", null);
 
@@ -803,14 +803,14 @@ async function cancelAppointmentsForSchedule(schedule: Record<string, unknown>) 
   const q1 = supabase
     .from("appointments")
     .select("id, scheduled_start, scheduled_end, preferred_date, preferred_time")
-    .in("status", ["requested", "scheduled"])
+    .in("status", ["booked"])
     .gte("scheduled_start", windowStart.toISOString())
     .lte("scheduled_start", windowEnd.toISOString());
 
   const q2 = supabase
     .from("appointments")
     .select("id, scheduled_start, scheduled_end, preferred_date, preferred_time")
-    .in("status", ["requested", "scheduled"])
+    .in("status", ["booked"])
     .eq("preferred_date", date)
     .is("scheduled_start", null);
 

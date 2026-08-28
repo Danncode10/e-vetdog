@@ -37,17 +37,17 @@ function fmtTime(iso: string) {
 }
 
 const STATUS_CONFIG: Record<string, { label: string; dot: string; badge: string; stripe: string }> = {
-  requested: {
-    label: "Requested",
-    dot: "bg-amber-500",
-    badge: "bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-700",
-    stripe: "bg-amber-400",
-  },
-  scheduled: {
-    label: "Confirmed",
+  booked: {
+    label: "Booked",
     dot: "bg-blue-500",
     badge: "bg-blue-100 text-blue-900 border-blue-300 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-700",
     stripe: "bg-blue-500",
+  },
+  diagnosed: {
+    label: "Diagnosed",
+    dot: "bg-amber-500",
+    badge: "bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-700",
+    stripe: "bg-amber-400",
   },
   completed: {
     label: "Completed",
@@ -60,12 +60,6 @@ const STATUS_CONFIG: Record<string, { label: string; dot: string; badge: string;
     dot: "bg-red-500",
     badge: "bg-red-100 text-red-900 border-red-300 dark:bg-red-950/40 dark:text-red-300 dark:border-red-700",
     stripe: "bg-red-400",
-  },
-  no_show: {
-    label: "No Show",
-    dot: "bg-gray-500",
-    badge: "bg-gray-200 text-gray-800 border-gray-300 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700",
-    stripe: "bg-gray-400",
   },
 };
 
@@ -262,15 +256,14 @@ export function AppointmentsTab({ role, userId }: { role: UserRole; userId: stri
     await loadAppointments();
   }
 
-  const canCancel = (status: string) => ["requested", "scheduled"].includes(status);
+  const canCancel = (status: string) => ["booked"].includes(status);
 
   // Filter appointments
   const filteredAppointments = React.useMemo(() => {
     return appointments.filter((app) => {
       // 1. Status Filter
       if (statusFilter !== "all") {
-        if (statusFilter === "scheduled" && app.status !== "scheduled" && app.status !== "confirmed") return false;
-        if (statusFilter !== "scheduled" && app.status !== statusFilter) return false;
+        if (app.status !== statusFilter) return false;
       }
 
       // 2. Date Filter
@@ -398,15 +391,15 @@ export function AppointmentsTab({ role, userId }: { role: UserRole; userId: stri
               </span>
               {[
                 { id: "all", label: "All" },
-                { id: "requested", label: "Requested" },
-                { id: "scheduled", label: "Confirmed" },
+                { id: "booked", label: "Booked" },
+                { id: "diagnosed", label: "Diagnosed" },
                 { id: "completed", label: "Completed" },
                 { id: "cancelled", label: "Cancelled" },
               ].map((tab) => {
                 const isActive = statusFilter === tab.id;
                 const count = tab.id === "all"
                   ? appointments.length
-                  : appointments.filter(a => tab.id === "scheduled" ? (a.status === "scheduled" || a.status === "confirmed") : a.status === tab.id).length;
+                  : appointments.filter(a => a.status === tab.id).length;
                 return (
                   <button
                     key={tab.id}

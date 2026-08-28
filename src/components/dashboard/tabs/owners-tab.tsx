@@ -42,11 +42,10 @@ function fmtTime(iso: string) {
 }
 
 const STATUS_BADGE_STYLE: Record<string, string> = {
-  requested: "bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-950/40 dark:text-amber-300",
-  scheduled: "bg-blue-100 text-blue-900 border-blue-300 dark:bg-blue-950/40 dark:text-blue-300",
+  booked: "bg-blue-100 text-blue-900 border-blue-300 dark:bg-blue-950/40 dark:text-blue-300",
+  diagnosed: "bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-950/40 dark:text-amber-300",
   completed: "bg-green-100 text-green-900 border-green-300 dark:bg-green-950/40 dark:text-green-300",
   cancelled: "bg-red-100 text-red-900 border-red-300 dark:bg-red-950/40 dark:text-red-300",
-  no_show: "bg-gray-200 text-gray-800 border-gray-300 dark:bg-gray-800 dark:text-gray-300",
 };
 
 export function OwnersTab({ role }: { role: UserRole }) {
@@ -173,7 +172,7 @@ export function OwnersTab({ role }: { role: UserRole }) {
               const apptCount = owner.appointments?.length ?? 0;
 
               // Find latest/next active appointment
-              const activeAppt = owner.appointments?.find((a: any) => ["requested", "scheduled", "confirmed"].includes(a.status)) || owner.appointments?.[0];
+              const activeAppt = owner.appointments?.find((a: any) => ["booked"].includes(a.status)) || owner.appointments?.[0];
 
               return (
                 <div

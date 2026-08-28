@@ -3,6 +3,7 @@ import { pgEnum } from "drizzle-orm/pg-core";
 export const userRole = pgEnum("user_role", ["admin", "veterinarian", "owner"]);
 
 export const appointmentStatus = pgEnum("appointment_status", [
+  "booked",
   "requested",
   "scheduled",
   "completed",

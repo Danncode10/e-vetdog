@@ -51,15 +51,15 @@ function fmtDateTime(iso: string) {
 }
 
 const STATUS_CONFIG: Record<string, { label: string; badge: string; dot: string }> = {
-  requested: {
-    label: "Requested",
-    badge: "bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-950/40 dark:text-amber-300",
-    dot: "bg-amber-500",
-  },
-  scheduled: {
-    label: "Confirmed",
+  booked: {
+    label: "Booked",
     badge: "bg-blue-100 text-blue-900 border-blue-300 dark:bg-blue-950/40 dark:text-blue-300",
     dot: "bg-blue-500",
+  },
+  diagnosed: {
+    label: "Diagnosed",
+    badge: "bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-950/40 dark:text-amber-300",
+    dot: "bg-amber-500",
   },
   completed: {
     label: "Completed",
@@ -70,11 +70,6 @@ const STATUS_CONFIG: Record<string, { label: string; badge: string; dot: string 
     label: "Cancelled",
     badge: "bg-red-100 text-red-900 border-red-300 dark:bg-red-950/40 dark:text-red-300",
     dot: "bg-red-500",
-  },
-  no_show: {
-    label: "No Show",
-    badge: "bg-gray-200 text-gray-800 border-gray-300 dark:bg-gray-800 dark:text-gray-300",
-    dot: "bg-gray-500",
   },
 };
 
@@ -186,12 +181,11 @@ export function AppointmentDetailView({
           )}
           {existingEncounter ? (
             <Link
-              href={`/dashboard/encounters/${existingEncounter.id}/print`}
-              target="_blank"
+              href={`/dashboard/encounters/${existingEncounter.id}`}
               className="inline-flex items-center gap-2 text-xs h-9 px-3 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
             >
-              <Download className="h-3.5 w-3.5" />
-              Download PDF
+              <ExternalLink className="h-3.5 w-3.5" />
+              View/Edit Encounter
             </Link>
           ) : (
             <Button
@@ -200,8 +194,8 @@ export function AppointmentDetailView({
               onClick={() => window.print()}
               className="gap-2 text-xs"
             >
-              <Download className="h-3.5 w-3.5" />
-              Download PDF
+              <ExternalLink className="h-3.5 w-3.5" />
+              Print Details
             </Button>
           )}
         </div>

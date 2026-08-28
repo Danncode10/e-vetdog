@@ -141,6 +141,13 @@
       "when": 1787923257609,
       "tag": "0020_public_vets",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1787924807960,
+      "tag": "0021_appointment_statuses_booked",
+      "breakpoints": true
     }
   ]
 }
