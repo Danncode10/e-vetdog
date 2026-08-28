@@ -110,8 +110,22 @@
     {
       "idx": 16,
       "version": "7",
-      "when": 1742000000000,
+      "when": 1788030000000,
       "tag": "0016_specific_date_schedules",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1788040000000,
+      "tag": "0017_fix_appointment_rls",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1788050000000,
+      "tag": "0018_clinical_schema",
       "breakpoints": true
     }
   ]
