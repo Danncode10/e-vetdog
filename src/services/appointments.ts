@@ -577,6 +577,22 @@ export async function updateAppointmentSchedule(
     return time;
   };
 
+  const { data: currentSchedule } = await supabase
+    .from("appointment_schedules")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  const isClosing = input.is_closed === true && currentSchedule?.is_closed === false;
+  const isTimeOrDateChanged =
+    (input.specific_date && input.specific_date !== currentSchedule?.specific_date) ||
+    (input.start_time && formatTime(input.start_time) !== currentSchedule?.start_time) ||
+    (input.end_time && formatTime(input.end_time) !== currentSchedule?.end_time);
+
+  if (currentSchedule && (isClosing || isTimeOrDateChanged)) {
+    await cancelAppointmentsForSchedule(currentSchedule);
+  }
+
   const payload = {
     ...input,
     start_time: formatTime(input.start_time),
@@ -602,6 +618,17 @@ export async function updateAppointmentSchedule(
 
 export async function deleteAppointmentSchedule(id: string) {
   const supabase = await createClient();
+
+  const { data: currentSchedule } = await supabase
+    .from("appointment_schedules")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (currentSchedule) {
+    await cancelAppointmentsForSchedule(currentSchedule);
+  }
+
   const { error } = await supabase
     .from("appointment_schedules")
     .delete()
@@ -762,4 +789,70 @@ export async function getAvailableSlots(
   });
 
   return { slots, scheduled: bookedAppts };
+}
+
+async function cancelAppointmentsForSchedule(schedule: Record<string, unknown>) {
+  if (!schedule.specific_date) return;
+  const supabase = await createClient();
+  
+  const date = String(schedule.specific_date);
+  const [yr, mo, dy] = date.split("-").map(Number);
+  const windowStart = new Date(Date.UTC(yr, mo - 1, dy - 1, 0, 0, 0, 0));
+  const windowEnd   = new Date(Date.UTC(yr, mo - 1, dy + 1, 23, 59, 59, 999));
+
+  const q1 = supabase
+    .from("appointments")
+    .select("id, scheduled_start, scheduled_end, preferred_date, preferred_time")
+    .in("status", ["requested", "scheduled"])
+    .gte("scheduled_start", windowStart.toISOString())
+    .lte("scheduled_start", windowEnd.toISOString());
+
+  const q2 = supabase
+    .from("appointments")
+    .select("id, scheduled_start, scheduled_end, preferred_date, preferred_time")
+    .in("status", ["requested", "scheduled"])
+    .eq("preferred_date", date)
+    .is("scheduled_start", null);
+
+  const [{ data: bookedByStart }, { data: bookedByDate }] = await Promise.all([q1, q2]);
+  
+  const bookedOnDate = (bookedByStart || []).filter((a) => a.preferred_date === date);
+  const bookedAppts = [...bookedOnDate, ...(bookedByDate || [])];
+
+  const [startH, startM] = String(schedule.start_time).split(":").map(Number);
+  const [endH, endM]     = String(schedule.end_time).split(":").map(Number);
+  const slotStart = new Date(`${date}T${String(startH).padStart(2,"0")}:${String(startM).padStart(2,"0")}:00`);
+  const slotEnd   = new Date(`${date}T${String(endH).padStart(2,"0")}:${String(endM).padStart(2,"0")}:00`);
+
+  const toCancelIds: string[] = [];
+
+  for (const appt of bookedAppts) {
+    let overlap = false;
+    if (appt.scheduled_start && appt.scheduled_end) {
+      const apptStart = new Date(appt.scheduled_start);
+      const apptEnd   = new Date(appt.scheduled_end);
+      if (apptStart < slotEnd && apptEnd > slotStart) overlap = true;
+    } else if (appt.preferred_time) {
+      const [ph] = appt.preferred_time.split(":").map(Number);
+      if (ph >= startH && ph < endH) overlap = true;
+    } else {
+      overlap = true; // default to overlap if we don't know time
+    }
+
+    if (overlap) {
+      toCancelIds.push(appt.id);
+    }
+  }
+
+  if (toCancelIds.length > 0) {
+    await supabase
+      .from("appointments")
+      .update({
+        status: "cancelled",
+        cancelled_at: new Date().toISOString(),
+        cancellation_reason: "other",
+        updated_at: new Date().toISOString()
+      })
+      .in("id", toCancelIds);
+  }
 }
