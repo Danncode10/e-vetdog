@@ -443,3 +443,134 @@ export async function updatePrescription(id: string, updates: PrescriptionUpdate
   revalidatePath("/dashboard");
   return data;
 }
+
+/**
+ * Fetch longitudinal clinical history for a pet (only signed encounters).
+ */
+export async function getPetClinicalHistory(petId: string) {
+  await requireAuth();
+  const supabase = await createClient();
+
+  const { data: encounters, error: encountersError } = await supabase
+    .from("encounters")
+    .select(`
+      *,
+      veterinarian:profiles!encounters_veterinarian_id_fkey (id, full_name, email),
+      appointment:appointments (id, reason, scheduled_start)
+    `)
+    .eq("pet_id", petId)
+    .eq("status", "signed")
+    .order("signed_at", { ascending: false });
+
+  if (encountersError) throw encountersError;
+  if (!encounters || encounters.length === 0) return [];
+
+  const encounterIds = encounters.map((e) => e.id);
+
+  const [notesRes, diagnosesRes, treatmentsRes, prescriptionsRes, amendmentsRes] = await Promise.all([
+    supabase.from("clinical_notes").select("*").in("encounter_id", encounterIds),
+    supabase.from("diagnoses").select("*").in("encounter_id", encounterIds),
+    supabase.from("treatments").select("*").in("encounter_id", encounterIds),
+    supabase.from("prescriptions").select("*").in("encounter_id", encounterIds),
+    supabase.from("encounter_amendments").select(`
+      *,
+      veterinarian:profiles (id, full_name)
+    `).in("encounter_id", encounterIds).order("created_at", { ascending: true }),
+  ]);
+
+  return encounters.map((enc) => ({
+    encounter: enc,
+    notes: notesRes.data?.find((n) => n.encounter_id === enc.id) || null,
+    diagnoses: diagnosesRes.data?.filter((d) => d.encounter_id === enc.id) || [],
+    treatments: treatmentsRes.data?.filter((t) => t.encounter_id === enc.id) || [],
+    prescriptions: prescriptionsRes.data?.filter((p) => p.encounter_id === enc.id) || [],
+    amendments: amendmentsRes.data?.filter((a) => a.encounter_id === enc.id) || [],
+  }));
+}
+
+/**
+ * Save the entire encounter workspace as a draft in one shot.
+ */
+export async function saveEncounterDraft(
+  encounterId: string,
+  payload: {
+    encounterNotes?: string;
+    clinicalNote?: Omit<ClinicalNoteInsert, "encounter_id">;
+    diagnoses?: Omit<DiagnosisInsert, "encounter_id">[];
+    treatments?: Omit<TreatmentInsert, "encounter_id">[];
+    prescriptions?: Omit<PrescriptionInsert, "encounter_id" | "veterinarian_id" | "status">[];
+  }
+) {
+  const profile = await requireStaff();
+  const supabase = await createClient();
+
+  // Verify parent encounter status
+  const { data: encounter, error: encounterError } = await supabase
+    .from("encounters")
+    .select("status")
+    .eq("id", encounterId)
+    .single();
+
+  if (encounterError) throw encounterError;
+  if (encounter.status !== "draft") {
+    throw new Error("Cannot save draft for a signed encounter.");
+  }
+
+  // Update encounter notes if provided
+  if (payload.encounterNotes !== undefined) {
+    await updateEncounter(encounterId, { notes: payload.encounterNotes });
+  }
+
+  // Upsert clinical note
+  if (payload.clinicalNote) {
+    const { data: existingNote } = await supabase
+      .from("clinical_notes")
+      .select("id")
+      .eq("encounter_id", encounterId)
+      .single();
+
+    if (existingNote) {
+      await updateClinicalNote(existingNote.id, payload.clinicalNote);
+    } else {
+      await createClinicalNote({
+        ...payload.clinicalNote,
+        encounter_id: encounterId,
+      });
+    }
+  }
+
+  // Save Diagnoses & Treatments
+  if (payload.diagnoses) {
+    await saveDiagnoses(encounterId, payload.diagnoses);
+  }
+  if (payload.treatments) {
+    await saveTreatments(encounterId, payload.treatments);
+  }
+
+  // Save Prescriptions
+  if (payload.prescriptions) {
+    // For simplicity in draft saving, we drop existing active prescriptions for this encounter and re-insert.
+    // If they were dispensed/signed, the encounter wouldn't be in draft.
+    await supabase.from("prescriptions").delete().eq("encounter_id", encounterId);
+    if (payload.prescriptions.length > 0) {
+      // Need petId for prescriptions
+      const { data: encDetail } = await supabase.from("encounters").select("pet_id").eq("id", encounterId).single();
+      const petId = encDetail?.pet_id;
+      if (petId) {
+        await supabase.from("prescriptions").insert(
+          payload.prescriptions.map((p) => ({
+            ...p,
+            encounter_id: encounterId,
+            veterinarian_id: profile.id,
+            pet_id: petId,
+            status: "active",
+          }))
+        );
+      }
+    }
+  }
+
+  revalidatePath("/dashboard");
+  return { success: true };
+}
+

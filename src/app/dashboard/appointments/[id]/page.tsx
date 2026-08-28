@@ -1,8 +1,9 @@
 import { getAppointmentById, listOwnerAppointments } from "@/services/appointments";
 import { getOwnerRegistryDetail } from "@/services/pets";
 import { requireAuth } from "@/services/authorization";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { AppointmentDetailView } from "@/components/dashboard/appointments/appointment-detail-view";
+import { createEncounter } from "@/services/clinical";
 
 export default async function AppointmentDetailPage({
   params,
@@ -34,11 +35,23 @@ export default async function AppointmentDetailPage({
 
   const ownerPets = ownerRegistry?.linkedPets || [];
 
+  const handleStartEncounter = async () => {
+    "use server";
+    const encounter = await createEncounter({
+      appointment_id: appt.id,
+      pet_id: appt.pet_id,
+      veterinarian_id: profile.id,
+    });
+    redirect(`/dashboard/encounters/${encounter.id}`);
+  };
+
   return (
     <AppointmentDetailView
       appointment={appt}
       ownerAppointments={ownerAppointments}
       ownerPets={ownerPets}
+      userRole={profile.role || undefined}
+      onStartEncounter={handleStartEncounter}
     />
   );
 }

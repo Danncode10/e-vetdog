@@ -131,7 +131,7 @@
   - **Dependencies:** [P2.3].
   - **Acceptance criteria:** Veterinarians can read the clinic history required for care, edit only permitted drafts, sign encounters and prescriptions, and create linked amendments; signed records are not directly editable; service/RLS tests prove clinical visibility, draft editing, signing, prescription authority, and amendment boundaries.
 
-- [ ] **[P3.2] Deliver veterinarian encounter workspace and pet history**
+- [x] **[P3.2] Deliver veterinarian encounter workspace and pet history**
   - **Goal:** Build the veterinarian dashboard and encounter workspace for today's visits, longitudinal pet history, questionnaire data, clinical notes, diagnoses, treatments, and prescriptions.
   - **Dependencies:** [P3.1].
   - **Acceptance criteria:** The workflow opens from appointment/check-in context; history is ordered and readable; questionnaire, note, diagnosis, treatment, and prescription data are tied to the encounter; draft recovery, validation, saving, loading, and error states are clear.

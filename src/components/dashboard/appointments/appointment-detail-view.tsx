@@ -106,14 +106,19 @@ interface AppointmentDetailViewProps {
   appointment: any;
   ownerAppointments: any[];
   ownerPets: any[];
+  userRole?: string;
+  onStartEncounter?: () => Promise<void>;
 }
 
 export function AppointmentDetailView({
   appointment,
   ownerAppointments,
   ownerPets,
+  userRole,
+  onStartEncounter,
 }: AppointmentDetailViewProps) {
   const [activeTab, setActiveTab] = React.useState<"pets" | "history">("pets");
+  const [isStarting, setIsStarting] = React.useState(false);
 
   const owner = appointment.owner || appointment.profiles;
   const petProfile = appointment.pets;
@@ -134,15 +139,37 @@ export function AppointmentDetailView({
           <ArrowLeft className="h-4 w-4 group-hover:-translate-x-0.5 transition-transform" />
           Back to appointments
         </Link>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => window.print()}
-          className="gap-2 text-xs"
-        >
-          <Printer className="h-3.5 w-3.5" />
-          Print Details
-        </Button>
+        <div className="flex items-center gap-2">
+          {(userRole === "admin" || userRole === "veterinarian") && onStartEncounter && (
+            <Button
+              variant="default"
+              size="sm"
+              className="gap-2 text-xs"
+              disabled={isStarting}
+              onClick={async () => {
+                setIsStarting(true);
+                try {
+                  await onStartEncounter();
+                } catch (e) {
+                  console.error(e);
+                  setIsStarting(false);
+                }
+              }}
+            >
+              <Stethoscope className="h-3.5 w-3.5" />
+              {isStarting ? "Starting..." : "Start Encounter"}
+            </Button>
+          )}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => window.print()}
+            className="gap-2 text-xs"
+          >
+            <Printer className="h-3.5 w-3.5" />
+            Print Details
+          </Button>
+        </div>
       </div>
 
       {/* ── Header Title & Reference ── */}
