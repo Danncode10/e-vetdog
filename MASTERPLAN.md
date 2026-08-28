@@ -126,7 +126,7 @@
 
 **Exit state:** Veterinarians can safely complete, sign, amend, print, and review longitudinal clinical records without altering signed history.
 
-- [ ] **[P3.1] Implement encounter, prescription, signing, amendment, and RLS foundations**
+- [x] **[P3.1] Implement encounter, prescription, signing, amendment, and RLS foundations**
   - **Goal:** Add the clinical schema and service rules for encounters, notes, diagnoses, treatments, prescriptions, draft editing, signing authority, append-only amendments, and role-aware RLS.
   - **Dependencies:** [P2.3].
   - **Acceptance criteria:** Veterinarians can read the clinic history required for care, edit only permitted drafts, sign encounters and prescriptions, and create linked amendments; signed records are not directly editable; service/RLS tests prove clinical visibility, draft editing, signing, prescription authority, and amendment boundaries.
