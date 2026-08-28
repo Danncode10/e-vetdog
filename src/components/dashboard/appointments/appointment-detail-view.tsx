@@ -23,7 +23,10 @@ import {
   Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
+import { toast } from "sonner";
+import { cancelAppointment } from "@/services/appointments";
+import { CancelModal } from "@/components/dashboard/appointments/cancel-modal";
+import { useRouter } from "next/navigation";
 function fmtDate(iso: string) {
   return new Intl.DateTimeFormat("en-US", {
     weekday: "long",
@@ -118,6 +121,8 @@ export function AppointmentDetailView({
 }: AppointmentDetailViewProps) {
   const [activeTab, setActiveTab] = React.useState<"pets" | "history">("pets");
   const [isStarting, setIsStarting] = React.useState(false);
+  const [showCancelModal, setShowCancelModal] = React.useState(false);
+  const router = useRouter();
 
   const owner = appointment.owner || appointment.profiles;
   const petProfile = appointment.pets;
@@ -399,41 +404,44 @@ export function AppointmentDetailView({
               </div>
             </div>
 
-            {/* Other Pets Owned by User */}
-            {ownerPets.filter((p: any) => p.id !== petProfile?.id).length > 0 && (
-              <div className="space-y-3 pt-2">
-                <h4 className="text-sm font-semibold text-foreground">Other Pets Owned by {owner?.full_name || "Owner"}</h4>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  {ownerPets
-                    .filter((p: any) => p.id !== petProfile?.id)
-                    .map((otherPet: any) => (
-                      <div
-                        key={otherPet.id}
-                        className="flex items-center justify-between gap-3 p-4 rounded-xl border border-border bg-card shadow-xs"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-muted text-muted-foreground">
-                            <PawPrint className="h-5 w-5" />
-                          </div>
-                          <div>
-                            <p className="font-semibold text-foreground text-sm">{otherPet.name}</p>
-                            <p className="text-xs capitalize text-muted-foreground">
-                              {[otherPet.species, otherPet.breed].filter(Boolean).join(" • ")}
-                            </p>
-                          </div>
-                        </div>
-                        <Link
-                          href={`/user/${appointment.owner_id}/pet/${otherPet.id}`}
-                          className="text-xs text-primary hover:underline font-medium inline-flex items-center gap-1"
-                        >
-                          Records <ChevronRight className="h-3.5 w-3.5" />
-                        </Link>
-                      </div>
-                    ))}
+            {/* Cancel Appointment Button */}
+            {["booked", "requested", "scheduled", "confirmed"].includes(appointment.status) && (
+              <div className="mt-8 rounded-xl border border-destructive/20 bg-destructive/5 p-5 flex items-center justify-between gap-4">
+                <div>
+                  <h4 className="text-sm font-semibold text-destructive">Cancel this appointment</h4>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    This action cannot be undone. You will need to book a new appointment if you change your mind.
+                  </p>
                 </div>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => setShowCancelModal(true)}
+                  className="shrink-0"
+                >
+                  <XCircle className="mr-2 h-4 w-4" />
+                  Cancel Appointment
+                </Button>
               </div>
             )}
           </div>
+        )}
+
+        {showCancelModal && (
+          <CancelModal
+            appointment={appointment}
+            onClose={() => setShowCancelModal(false)}
+            onConfirm={async (reason) => {
+              try {
+                await cancelAppointment(appointment.id, reason);
+                toast.success("Appointment cancelled successfully");
+                setShowCancelModal(false);
+                router.refresh();
+              } catch (error: any) {
+                toast.error(error.message || "Failed to cancel appointment");
+              }
+            }}
+          />
         )}
 
         {/* ── TAB 2: APPOINTMENT HISTORY ── */}
