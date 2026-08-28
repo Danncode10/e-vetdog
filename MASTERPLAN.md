@@ -111,7 +111,16 @@
     - Attempting to book beyond capacity returns a clear error and disables the slot
     - Admins can modify or cancel scheduled time slots, with appropriate RLS
     - Existing appointment flow integrates: request → view available slots → book within capacity → auto-schedule appointment (removed legacy "requested" state)
-    - Consolidated scheduling to remove redundant Clinic tab in favor of the new Schedules tab
+- [x] **[P2.3.2] Advanced appointment management, schedule conflict prevention, and owner record integration**
+  - **Goal:** Enhance appointment scheduling with overlap prevention, quick calendar shortcuts, search/status/date filtering, pagination, and a 2-tab owner/patient appointment record view.
+  - **Dependencies:** [P2.3.1].
+  - **Acceptance criteria:** 
+    - `getAvailableSlots` strictly queries specific dates without invalid open-schedule OR leaks
+    - Schedule creation validates against existing schedules to prevent time overlaps on the same date
+    - Double-clicking calendar day cells auto-fills the target date in the schedule creation form
+    - Appointments tab supports real-time search, status filtering, date filtering, and pagination
+    - Owners directory cards display pet counts, visit counts, and an active appointment preview with search and pagination
+    - Appointment Detail page features a clean 2-tab view (Pets Details & Appointment History) with timeline tracking and owner metrics
 
 ## **PHASE 3: Clinical workspace and signed records**
 
