@@ -97,7 +97,7 @@
   - **Dependencies:** [P2.1].
   - **Acceptance criteria:** Only linked pets are selectable; requests follow the scheduling rules; owners never see another owner's pet or contact data; submission, validation, confirmation, history, and print states work on mobile and desktop.
 
-- [ ] **[P2.3] Deliver staff schedule, check-in, and status workspace**
+- [x] **[P2.3] Deliver staff schedule, check-in, and status workspace**
   - **Goal:** Give staff the operational schedule, appointment-detail actions, walk-in check-in, and clinic logbook needed for daily appointment handling.
   - **Dependencies:** [P2.1].
   - **Acceptance criteria:** Staff can schedule, reschedule, cancel, complete, and mark no-show only through valid transitions; walk-ins capture required minimum data; the schedule/logbook handles loading, conflicts, empty periods, and status; appointment RLS and service tests cover staff and owner access.
