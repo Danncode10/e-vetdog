@@ -3,20 +3,21 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import {
-  PawPrint,
-  Clock,
-  Calendar,
   Save,
   CheckCircle,
   FileText,
   History,
   ArrowLeft,
   Plus,
-  Trash2
+  Trash2,
+  PawPrint,
+  Calendar,
+  DollarSign
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { saveEncounterDraft, signEncounter } from "@/services/clinical";
 import Link from "next/link";
 
@@ -136,199 +137,332 @@ export function EncounterWorkspace({
   };
 
   return (
-    <div className="space-y-6 px-4 py-6 md:px-8">
-      {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-4">
+    <div className="space-y-8 px-4 py-8 md:px-10 max-w-7xl mx-auto">
+      {/* Header Area */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-border pb-6">
         <div>
-          <Link href={`/dashboard/appointments/${enc.appointment_id}`} className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1 mb-2">
-            <ArrowLeft className="h-3 w-3" /> Back to Appointment
+          <Link href={`/dashboard/appointments/${enc.appointment_id}`} className="text-sm text-muted-foreground hover:text-primary transition-colors inline-flex items-center gap-2 mb-3">
+            <ArrowLeft className="h-4 w-4" /> Back to Appointment
           </Link>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
-            Encounter Workspace
-            {isSigned && <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full border border-green-200">Signed</span>}
-            {!isSigned && <span className="bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded-full border border-amber-200">Draft</span>}
-          </h1>
-        </div>
-        {!isSigned && (
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={handleSaveDraft} disabled={isSaving}>
-              <Save className="h-4 w-4 mr-2" /> {isSaving ? "Saving..." : "Save Draft"}
-            </Button>
-            <Button variant="default" onClick={handleSignRecord} disabled={isSaving}>
-              <CheckCircle className="h-4 w-4 mr-2" /> Sign Record
-            </Button>
+          <div className="flex items-center gap-4">
+            <h1 className="text-3xl font-bold tracking-tight text-foreground">
+              Encounter Workspace
+            </h1>
+            {isSigned ? (
+              <Badge variant="default" className="bg-green-600 hover:bg-green-700 font-semibold px-3 py-1">Signed</Badge>
+            ) : (
+              <Badge variant="outline" className="text-amber-600 border-amber-400 bg-amber-50 font-semibold px-3 py-1">Draft Mode</Badge>
+            )}
           </div>
-        )}
-      </div>
-
-      {/* Patient Info */}
-      <div className="bg-card border border-border p-4 rounded-xl flex items-center gap-4">
-        <div className="h-12 w-12 bg-primary/10 rounded-full flex items-center justify-center text-primary">
-          <PawPrint className="h-6 w-6" />
-        </div>
-        <div>
-          <h2 className="text-lg font-bold">{petProfile?.name || "Patient"}</h2>
-          <p className="text-sm text-muted-foreground capitalize">
-            {[petProfile?.species, petProfile?.breed, petProfile?.age ? `${petProfile.age} yrs` : null].filter(Boolean).join(" • ")}
+          <p className="text-muted-foreground text-sm mt-1">
+            Complete the clinical record for this visit. {isSigned && "This record is finalized."}
           </p>
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex items-center gap-2 border-b border-border">
+      {/* Patient Highlight */}
+      <div className="bg-card shadow-sm border border-border p-6 rounded-2xl flex items-center gap-6">
+        <div className="h-16 w-16 bg-primary/10 rounded-2xl flex items-center justify-center text-primary shadow-inner">
+          <PawPrint className="h-8 w-8" />
+        </div>
+        <div>
+          <h2 className="text-2xl font-bold text-foreground">{petProfile?.name || "Patient"}</h2>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1 font-medium">
+            <span className="capitalize">{petProfile?.species || "Unknown Species"}</span>
+            <span className="opacity-50">•</span>
+            <span className="capitalize">{petProfile?.breed || "Unknown Breed"}</span>
+            {petProfile?.age && (
+              <>
+                <span className="opacity-50">•</span>
+                <span>{petProfile.age} yrs</span>
+              </>
+            )}
+            {petProfile?.sex && (
+              <>
+                <span className="opacity-50">•</span>
+                <span className="capitalize">{petProfile.sex}</span>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Navigation Tabs */}
+      <div className="flex items-center gap-6 border-b border-border">
         <button
           onClick={() => setActiveTab("current")}
-          className={`flex items-center gap-2 px-4 py-2 text-sm font-semibold border-b-2 ${
-            activeTab === "current" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"
+          className={`flex items-center gap-2 px-1 py-3 text-sm font-bold border-b-2 transition-all ${
+            activeTab === "current" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
           }`}
         >
-          <FileText className="h-4 w-4" /> Current Visit
+          <FileText className="h-4 w-4" /> Current Visit Note
         </button>
         <button
           onClick={() => setActiveTab("history")}
-          className={`flex items-center gap-2 px-4 py-2 text-sm font-semibold border-b-2 ${
-            activeTab === "history" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"
+          className={`flex items-center gap-2 px-1 py-3 text-sm font-bold border-b-2 transition-all ${
+            activeTab === "history" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
           }`}
         >
-          <History className="h-4 w-4" /> Medical History
+          <History className="h-4 w-4" /> Longitudinal Medical History
         </button>
       </div>
 
       {/* Tab Content */}
-      {activeTab === "current" && (
-        <div className="space-y-6">
-          <div className="grid gap-6 md:grid-cols-2">
-            {/* SOAP Notes */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">SOAP Notes</h3>
-              <div className="space-y-3">
-                <div>
-                  <label className="text-xs font-semibold text-muted-foreground">Chief Complaint / Notes</label>
-                  <Textarea value={chiefComplaint} onChange={(e: any) => setChiefComplaint(e.target.value)} disabled={isSigned} placeholder="Reason for visit..." className="mt-1" />
+      <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+        {activeTab === "current" && (
+          <div className="space-y-2">
+            <div className="grid gap-8 lg:grid-cols-12">
+              {/* Left Column: SOAP Notes (Larger width) */}
+              <div className="lg:col-span-7 space-y-6">
+              <div className="bg-card shadow-sm border border-border rounded-2xl overflow-hidden">
+                <div className="bg-muted/40 px-6 py-4 border-b border-border">
+                  <h3 className="text-lg font-bold text-foreground">SOAP Notes</h3>
+                  <p className="text-xs text-muted-foreground mt-1">Subjective, Objective, Assessment, and Plan</p>
                 </div>
-                <div>
-                  <label className="text-xs font-semibold text-muted-foreground">Subjective</label>
-                  <Textarea value={subjective} onChange={(e: any) => setSubjective(e.target.value)} disabled={isSigned} placeholder="History, client observations..." className="mt-1" />
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-muted-foreground">Objective</label>
-                  <Textarea value={objective} onChange={(e: any) => setObjective(e.target.value)} disabled={isSigned} placeholder="Exam findings, vitals..." className="mt-1" />
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-muted-foreground">Assessment</label>
-                  <Textarea value={assessment} onChange={(e: any) => setAssessment(e.target.value)} disabled={isSigned} placeholder="Differentials, working diagnosis..." className="mt-1" />
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-muted-foreground">Plan</label>
-                  <Textarea value={plan} onChange={(e: any) => setPlan(e.target.value)} disabled={isSigned} placeholder="Treatment plan, diagnostics, follow-up..." className="mt-1" />
+                <div className="p-6 space-y-6">
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-foreground">Chief Complaint / Notes</label>
+                    <Textarea value={chiefComplaint} onChange={(e: any) => setChiefComplaint(e.target.value)} disabled={isSigned} placeholder="What is the primary reason for today's visit?" className="min-h-[80px] resize-none focus-visible:ring-primary/50" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-foreground">Subjective</label>
+                    <p className="text-xs text-muted-foreground mb-2">Historical information and client observations.</p>
+                    <Textarea value={subjective} onChange={(e: any) => setSubjective(e.target.value)} disabled={isSigned} placeholder="e.g. Lethargic for 2 days, not eating..." className="min-h-[100px] resize-none focus-visible:ring-primary/50" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-foreground">Objective</label>
+                    <p className="text-xs text-muted-foreground mb-2">Physical exam findings and vital signs.</p>
+                    <Textarea value={objective} onChange={(e: any) => setObjective(e.target.value)} disabled={isSigned} placeholder="e.g. Temp 101.5F, HR 120, pale mucous membranes..." className="min-h-[100px] resize-none focus-visible:ring-primary/50" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-foreground">Assessment</label>
+                    <p className="text-xs text-muted-foreground mb-2">Differential diagnoses or definitive working diagnosis.</p>
+                    <Textarea value={assessment} onChange={(e: any) => setAssessment(e.target.value)} disabled={isSigned} placeholder="e.g. Suspect acute gastroenteritis vs foreign body..." className="min-h-[100px] resize-none focus-visible:ring-primary/50" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-foreground">Plan</label>
+                    <p className="text-xs text-muted-foreground mb-2">Treatments, diagnostics, and follow-up instructions.</p>
+                    <Textarea value={plan} onChange={(e: any) => setPlan(e.target.value)} disabled={isSigned} placeholder="e.g. Run CBC/Chem, administer SQ fluids, send home with Cerenia..." className="min-h-[100px] resize-none focus-visible:ring-primary/50" />
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Right Column: Diagnoses, Treatments, Prescriptions */}
-            <div className="space-y-6">
+            {/* Right Column: Dynamic Lists */}
+            <div className="lg:col-span-5 space-y-6">
+              
               {/* Diagnoses */}
-              <div className="bg-muted/30 p-4 rounded-xl border border-border">
-                <div className="flex justify-between items-center mb-3">
-                  <h3 className="text-sm font-semibold">Diagnoses</h3>
-                  {!isSigned && <Button size="sm" variant="ghost" onClick={addDiagnosis}><Plus className="h-4 w-4" /></Button>}
+              <div className="bg-card shadow-sm border border-border rounded-2xl overflow-hidden">
+                <div className="bg-muted/40 px-5 py-4 border-b border-border flex justify-between items-center">
+                  <div>
+                    <h3 className="font-bold text-foreground">Diagnoses</h3>
+                    <p className="text-xs text-muted-foreground">Formal diagnosis codes and descriptions</p>
+                  </div>
+                  {!isSigned && (
+                    <Button size="sm" variant="outline" onClick={addDiagnosis} className="h-8 gap-1 font-semibold">
+                      <Plus className="h-3 w-3" /> Add
+                    </Button>
+                  )}
                 </div>
-                <div className="space-y-3">
-                  {diagnoses.length === 0 && <p className="text-xs text-muted-foreground">No diagnoses added.</p>}
-                  {diagnoses.map((d, i) => (
-                    <div key={i} className="flex gap-2">
-                      <Input placeholder="Code (opt)" value={d.diagnosis_code || ""} onChange={(e: any) => updateDiagnosis(i, "diagnosis_code", e.target.value)} disabled={isSigned} className="w-24" />
-                      <Input placeholder="Description" value={d.description || ""} onChange={(e: any) => updateDiagnosis(i, "description", e.target.value)} disabled={isSigned} className="flex-1" />
-                      {!isSigned && <Button size="icon" variant="ghost" onClick={() => removeDiagnosis(i)}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
+                <div className="p-5">
+                  {diagnoses.length === 0 ? (
+                    <div className="text-center py-6 text-muted-foreground bg-muted/20 rounded-xl border border-dashed border-border/60">
+                      <p className="text-sm">No diagnoses added.</p>
                     </div>
-                  ))}
+                  ) : (
+                    <div className="space-y-4">
+                      {diagnoses.map((d, i) => (
+                        <div key={i} className="flex gap-3 items-start group">
+                          <Input placeholder="Code (opt)" value={d.diagnosis_code || ""} onChange={(e: any) => updateDiagnosis(i, "diagnosis_code", e.target.value)} disabled={isSigned} className="w-24 bg-background" />
+                          <Input placeholder="Diagnosis description..." value={d.description || ""} onChange={(e: any) => updateDiagnosis(i, "description", e.target.value)} disabled={isSigned} className="flex-1 bg-background" />
+                          {!isSigned && (
+                            <Button size="icon" variant="ghost" onClick={() => removeDiagnosis(i)} className="opacity-0 group-hover:opacity-100 transition-opacity">
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
 
               {/* Treatments */}
-              <div className="bg-muted/30 p-4 rounded-xl border border-border">
-                <div className="flex justify-between items-center mb-3">
-                  <h3 className="text-sm font-semibold">Treatments</h3>
-                  {!isSigned && <Button size="sm" variant="ghost" onClick={addTreatment}><Plus className="h-4 w-4" /></Button>}
+              <div className="bg-card shadow-sm border border-border rounded-2xl overflow-hidden">
+                <div className="bg-muted/40 px-5 py-4 border-b border-border flex justify-between items-center">
+                  <div>
+                    <h3 className="font-bold text-foreground">Treatments</h3>
+                    <p className="text-xs text-muted-foreground">In-clinic procedures or administered items</p>
+                  </div>
+                  {!isSigned && (
+                    <Button size="sm" variant="outline" onClick={addTreatment} className="h-8 gap-1 font-semibold">
+                      <Plus className="h-3 w-3" /> Add
+                    </Button>
+                  )}
                 </div>
-                <div className="space-y-3">
-                  {treatments.length === 0 && <p className="text-xs text-muted-foreground">No treatments added.</p>}
-                  {treatments.map((t, i) => (
-                    <div key={i} className="flex gap-2">
-                      <Input placeholder="Name" value={t.name || ""} onChange={(e: any) => updateTreatment(i, "name", e.target.value)} disabled={isSigned} className="flex-1" />
-                      <Input type="number" placeholder="Cost" value={t.cost || ""} onChange={(e: any) => updateTreatment(i, "cost", e.target.value)} disabled={isSigned} className="w-24" />
-                      {!isSigned && <Button size="icon" variant="ghost" onClick={() => removeTreatment(i)}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
+                <div className="p-5">
+                  {treatments.length === 0 ? (
+                    <div className="text-center py-6 text-muted-foreground bg-muted/20 rounded-xl border border-dashed border-border/60">
+                      <p className="text-sm">No treatments added.</p>
                     </div>
-                  ))}
+                  ) : (
+                    <div className="space-y-4">
+                      {treatments.map((t, i) => (
+                        <div key={i} className="flex gap-3 items-start group">
+                          <Input placeholder="Treatment name..." value={t.name || ""} onChange={(e: any) => updateTreatment(i, "name", e.target.value)} disabled={isSigned} className="flex-1 bg-background" />
+                          <div className="relative w-32">
+                            <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input type="number" placeholder="0.00" value={t.cost || ""} onChange={(e: any) => updateTreatment(i, "cost", e.target.value)} disabled={isSigned} className="w-full pl-9 bg-background" />
+                          </div>
+                          {!isSigned && (
+                            <Button size="icon" variant="ghost" onClick={() => removeTreatment(i)} className="opacity-0 group-hover:opacity-100 transition-opacity">
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
 
               {/* Prescriptions */}
-              <div className="bg-muted/30 p-4 rounded-xl border border-border">
-                <div className="flex justify-between items-center mb-3">
-                  <h3 className="text-sm font-semibold">Prescriptions</h3>
-                  {!isSigned && <Button size="sm" variant="ghost" onClick={addPrescription}><Plus className="h-4 w-4" /></Button>}
+              <div className="bg-card shadow-sm border border-border rounded-2xl overflow-hidden">
+                <div className="bg-muted/40 px-5 py-4 border-b border-border flex justify-between items-center">
+                  <div>
+                    <h3 className="font-bold text-foreground">Prescriptions</h3>
+                    <p className="text-xs text-muted-foreground">Medications to send home</p>
+                  </div>
+                  {!isSigned && (
+                    <Button size="sm" variant="outline" onClick={addPrescription} className="h-8 gap-1 font-semibold">
+                      <Plus className="h-3 w-3" /> Add
+                    </Button>
+                  )}
                 </div>
-                <div className="space-y-3">
-                  {prescriptions.length === 0 && <p className="text-xs text-muted-foreground">No prescriptions added.</p>}
-                  {prescriptions.map((p, i) => (
-                    <div key={i} className="space-y-2 border-b border-border/50 pb-2 last:border-0 last:pb-0">
-                      <div className="flex gap-2">
-                        <Input placeholder="Medication" value={p.medication_name || ""} onChange={(e: any) => updatePrescription(i, "medication_name", e.target.value)} disabled={isSigned} className="flex-1" />
-                        {!isSigned && <Button size="icon" variant="ghost" onClick={() => removePrescription(i)}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
-                      </div>
-                      <div className="flex gap-2">
-                        <Input placeholder="Dosage" value={p.dosage || ""} onChange={(e: any) => updatePrescription(i, "dosage", e.target.value)} disabled={isSigned} className="w-1/3" />
-                        <Input placeholder="Freq." value={p.frequency || ""} onChange={(e: any) => updatePrescription(i, "frequency", e.target.value)} disabled={isSigned} className="w-1/3" />
-                        <Input placeholder="Dur." value={p.duration || ""} onChange={(e: any) => updatePrescription(i, "duration", e.target.value)} disabled={isSigned} className="w-1/3" />
-                      </div>
-                      <Input placeholder="Instructions" value={p.instructions || ""} onChange={(e: any) => updatePrescription(i, "instructions", e.target.value)} disabled={isSigned} />
+                <div className="p-5">
+                  {prescriptions.length === 0 ? (
+                    <div className="text-center py-6 text-muted-foreground bg-muted/20 rounded-xl border border-dashed border-border/60">
+                      <p className="text-sm">No prescriptions added.</p>
                     </div>
-                  ))}
+                  ) : (
+                    <div className="space-y-5">
+                      {prescriptions.map((p, i) => (
+                        <div key={i} className="p-4 bg-muted/10 border border-border rounded-xl space-y-3 relative group">
+                          {!isSigned && (
+                            <Button size="icon" variant="ghost" onClick={() => removePrescription(i)} className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity h-7 w-7">
+                              <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                            </Button>
+                          )}
+                          <div>
+                            <label className="text-xs font-semibold text-muted-foreground mb-1 block">Medication Name</label>
+                            <Input placeholder="e.g. Amoxicillin" value={p.medication_name || ""} onChange={(e: any) => updatePrescription(i, "medication_name", e.target.value)} disabled={isSigned} className="bg-background" />
+                          </div>
+                          <div className="grid grid-cols-3 gap-3">
+                            <div>
+                              <label className="text-xs font-semibold text-muted-foreground mb-1 block">Dosage</label>
+                              <Input placeholder="e.g. 50mg" value={p.dosage || ""} onChange={(e: any) => updatePrescription(i, "dosage", e.target.value)} disabled={isSigned} className="bg-background" />
+                            </div>
+                            <div>
+                              <label className="text-xs font-semibold text-muted-foreground mb-1 block">Frequency</label>
+                              <Input placeholder="e.g. BID" value={p.frequency || ""} onChange={(e: any) => updatePrescription(i, "frequency", e.target.value)} disabled={isSigned} className="bg-background" />
+                            </div>
+                            <div>
+                              <label className="text-xs font-semibold text-muted-foreground mb-1 block">Duration</label>
+                              <Input placeholder="e.g. 7 days" value={p.duration || ""} onChange={(e: any) => updatePrescription(i, "duration", e.target.value)} disabled={isSigned} className="bg-background" />
+                            </div>
+                          </div>
+                          <div>
+                            <label className="text-xs font-semibold text-muted-foreground mb-1 block">Instructions / Route</label>
+                            <Input placeholder="e.g. Give with food via mouth" value={p.instructions || ""} onChange={(e: any) => updatePrescription(i, "instructions", e.target.value)} disabled={isSigned} className="bg-background" />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
-
-      {activeTab === "history" && (
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold">Past Medical Records</h3>
-          {history.length === 0 ? (
-             <p className="text-sm text-muted-foreground">No signed past encounters found.</p>
-          ) : (
-             <div className="space-y-4">
-               {history.map((h: any) => (
-                 <div key={h.encounter.id} className="border border-border bg-card p-4 rounded-xl shadow-sm">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Calendar className="h-4 w-4 text-primary" />
-                      <span className="font-semibold">{new Date(h.encounter.signed_at).toLocaleDateString()}</span>
-                      <span className="text-xs text-muted-foreground ml-2">Vet: {h.encounter.veterinarian?.full_name}</span>
-                    </div>
-                    {h.notes?.chief_complaint && (
-                      <div className="mt-2 text-sm">
-                        <span className="font-medium">Reason: </span> {h.notes.chief_complaint}
-                      </div>
-                    )}
-                    {h.diagnoses?.length > 0 && (
-                      <div className="mt-2 text-sm">
-                        <span className="font-medium">Diagnoses: </span> 
-                        {h.diagnoses.map((d: any) => d.description).join(", ")}
-                      </div>
-                    )}
-                    {h.treatments?.length > 0 && (
-                      <div className="mt-2 text-sm">
-                        <span className="font-medium">Treatments: </span> 
-                        {h.treatments.map((t: any) => t.name).join(", ")}
-                      </div>
-                    )}
-                 </div>
-               ))}
-             </div>
+          
+          {!isSigned && (
+            <div className="flex items-center justify-end gap-4 mt-8 pt-6 border-t border-border">
+              <Button variant="outline" onClick={handleSaveDraft} disabled={isSaving} className="font-semibold shadow-sm h-12 px-6">
+                <Save className="h-4 w-4 mr-2" /> {isSaving ? "Saving..." : "Save Draft"}
+              </Button>
+              <Button variant="default" onClick={handleSignRecord} disabled={isSaving} className="font-semibold shadow-sm h-12 px-8">
+                <CheckCircle className="h-4 w-4 mr-2" /> Sign & Lock Record
+              </Button>
+            </div>
           )}
         </div>
-      )}
+        )}
+
+        {activeTab === "history" && (
+          <div className="bg-card shadow-sm border border-border rounded-2xl p-6 lg:p-8">
+            <div className="mb-6">
+              <h3 className="text-2xl font-bold text-foreground">Past Medical Records</h3>
+              <p className="text-muted-foreground text-sm mt-1">Review finalized clinical encounters from previous visits.</p>
+            </div>
+            
+            {history.length === 0 ? (
+               <div className="text-center py-12 bg-muted/20 border border-dashed border-border rounded-xl">
+                 <History className="h-10 w-10 text-muted-foreground/40 mx-auto mb-3" />
+                 <h4 className="text-base font-semibold text-foreground">No Historical Records</h4>
+                 <p className="text-sm text-muted-foreground mt-1">This pet has no previously signed clinical encounters.</p>
+               </div>
+            ) : (
+               <div className="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-border before:to-transparent">
+                 {history.map((h: any) => (
+                   <div key={h.encounter.id} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+                      <div className="flex items-center justify-center w-10 h-10 rounded-full border border-background bg-primary/10 text-primary shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">
+                        <CheckCircle className="h-5 w-5" />
+                      </div>
+                      <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-card border border-border p-5 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+                        <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+                          <div className="flex items-center gap-2">
+                            <Calendar className="h-4 w-4 text-primary" />
+                            <span className="font-bold text-foreground">{new Date(h.encounter.signed_at).toLocaleDateString()}</span>
+                          </div>
+                          <Badge variant="outline" className="bg-background">{h.encounter.veterinarian?.full_name}</Badge>
+                        </div>
+                        
+                        <div className="space-y-4">
+                          {h.notes?.chief_complaint && (
+                            <div className="text-sm">
+                              <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider block mb-1">Chief Complaint</span>
+                              <p className="text-foreground">{h.notes.chief_complaint}</p>
+                            </div>
+                          )}
+                          
+                          {(h.diagnoses?.length > 0 || h.treatments?.length > 0) && <div className="h-px bg-border/60 w-full" />}
+                          
+                          <div className="grid grid-cols-2 gap-4">
+                            {h.diagnoses?.length > 0 && (
+                              <div className="text-sm">
+                                <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider block mb-1">Diagnoses</span>
+                                <ul className="list-disc list-inside text-foreground space-y-1">
+                                  {h.diagnoses.map((d: any, idx: number) => <li key={idx}>{d.description}</li>)}
+                                </ul>
+                              </div>
+                            )}
+                            {h.treatments?.length > 0 && (
+                              <div className="text-sm">
+                                <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider block mb-1">Treatments</span>
+                                <ul className="list-disc list-inside text-foreground space-y-1">
+                                  {h.treatments.map((t: any, idx: number) => <li key={idx}>{t.name}</li>)}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                   </div>
+                 ))}
+               </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

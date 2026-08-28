@@ -135,6 +135,9 @@
   - **Goal:** Build the veterinarian dashboard and encounter workspace for today's visits, longitudinal pet history, questionnaire data, clinical notes, diagnoses, treatments, and prescriptions.
   - **Dependencies:** [P3.1].
   - **Acceptance criteria:** The workflow opens from appointment/check-in context; history is ordered and readable; questionnaire, note, diagnosis, treatment, and prescription data are tied to the encounter; draft recovery, validation, saving, loading, and error states are clear.
+  - **Requested Revisions (Post-P3.2 Verification):**
+    - Update the appointment status flow and ENUMs to include: `Confirmed`, `Cancelled`, `Diagnosed` (when encounter is started/drafted), and `Paid/Finished`.
+    - On the Appointment Detail view, replace the placeholder "Print Details" with a "View/Edit Encounter" button that links back to the Encounter Workspace if a draft or signed record exists.
 
 - [ ] **[P3.3] Deliver print-ready clinical record and prescription views**
   - **Goal:** Provide authorized staff with print-optimized clinical-record and prescription documents.
