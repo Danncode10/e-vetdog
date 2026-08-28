@@ -35,6 +35,12 @@ export default async function AppointmentDetailPage({
   ]);
 
   const ownerPets = ownerRegistry?.linkedPets || [];
+  
+  let encounterDetails = null;
+  if (existingEncounter) {
+    const { getEncounterDetails } = await import("@/services/clinical");
+    encounterDetails = await getEncounterDetails(existingEncounter.id).catch(() => null);
+  }
 
   const handleStartEncounter = async () => {
     "use server";
@@ -54,6 +60,7 @@ export default async function AppointmentDetailPage({
       userRole={profile.role || undefined}
       onStartEncounter={handleStartEncounter}
       existingEncounter={existingEncounter}
+      encounterDetails={encounterDetails}
     />
   );
 }

@@ -127,6 +127,20 @@
       "when": 1788050000000,
       "tag": "0018_clinical_schema",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1787922107374,
+      "tag": "0019_update_owner_rls",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1787923257609,
+      "tag": "0020_public_vets",
+      "breakpoints": true
     }
   ]
 }

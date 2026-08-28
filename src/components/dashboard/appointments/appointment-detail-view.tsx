@@ -109,6 +109,7 @@ interface AppointmentDetailViewProps {
   userRole?: string;
   onStartEncounter?: () => Promise<void>;
   existingEncounter?: { id: string; status: string } | null;
+  encounterDetails?: any;
 }
 
 export function AppointmentDetailView({
@@ -118,6 +119,7 @@ export function AppointmentDetailView({
   userRole,
   onStartEncounter,
   existingEncounter,
+  encounterDetails,
 }: AppointmentDetailViewProps) {
   const [activeTab, setActiveTab] = React.useState<"pets" | "history">("pets");
   const [isStarting, setIsStarting] = React.useState(false);
@@ -143,13 +145,23 @@ export function AppointmentDetailView({
         </Link>
         <div className="flex items-center gap-2">
           {existingEncounter ? (
-            <Link
-              href={`/dashboard/encounters/${existingEncounter.id}`}
-              className="inline-flex items-center gap-2 text-xs h-9 px-3 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm font-medium"
-            >
-              <Stethoscope className="h-3.5 w-3.5" />
-              {existingEncounter.status === "signed" ? "View Finalized Record" : "View / Edit Encounter"}
-            </Link>
+            userRole === "admin" || userRole === "veterinarian" ? (
+              <Link
+                href={`/dashboard/encounters/${existingEncounter.id}`}
+                className="inline-flex items-center gap-2 text-xs h-9 px-3 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm font-medium"
+              >
+                <Stethoscope className="h-3.5 w-3.5" />
+                {existingEncounter.status === "signed" ? "View Finalized Record" : "View / Edit Encounter"}
+              </Link>
+            ) : (
+              <Link
+                href={`/dashboard/appointments/${appointment.id}/prescriptions`}
+                className="inline-flex items-center gap-2 text-xs h-9 px-3 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm font-medium"
+              >
+                <FileText className="h-3.5 w-3.5" />
+                View Prescription
+              </Link>
+            )
           ) : (
             (userRole === "admin" || userRole === "veterinarian") && onStartEncounter && (
               <Button
@@ -529,6 +541,7 @@ export function AppointmentDetailView({
           </div>
         )}
       </div>
+
     </div>
   );
 }
