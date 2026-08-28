@@ -101,6 +101,26 @@ export default function AddSchedulePage() {
 
     setIsSubmitting(true);
     try {
+      // Check for overlapping schedules
+      const allSchedules = await listAppointmentSchedules();
+      const overlapping = allSchedules.find((s: any) => {
+        if (isEditMode && s.id === editId) return false;
+        if (s.specific_date === specificDate) {
+          const sStart = formatTime(s.start_time);
+          const sEnd = formatTime(s.end_time);
+          const fStart = formatTime(startTime);
+          const fEnd = formatTime(endTime);
+          
+          return fStart < sEnd && fEnd > sStart;
+        }
+        return false;
+      });
+
+      if (overlapping) {
+        toast.error("This schedule overlaps with an existing schedule for this date.");
+        setIsSubmitting(false);
+        return;
+      }
       if (isEditMode && editId) {
         await updateAppointmentSchedule(editId, {
           specific_date: specificDate,
