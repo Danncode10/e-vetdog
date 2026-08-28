@@ -108,6 +108,7 @@ interface AppointmentDetailViewProps {
   ownerPets: any[];
   userRole?: string;
   onStartEncounter?: () => Promise<void>;
+  existingEncounter?: { id: string; status: string } | null;
 }
 
 export function AppointmentDetailView({
@@ -116,6 +117,7 @@ export function AppointmentDetailView({
   ownerPets,
   userRole,
   onStartEncounter,
+  existingEncounter,
 }: AppointmentDetailViewProps) {
   const [activeTab, setActiveTab] = React.useState<"pets" | "history">("pets");
   const [isStarting, setIsStarting] = React.useState(false);
@@ -140,25 +142,35 @@ export function AppointmentDetailView({
           Back to appointments
         </Link>
         <div className="flex items-center gap-2">
-          {(userRole === "admin" || userRole === "veterinarian") && onStartEncounter && (
-            <Button
-              variant="default"
-              size="sm"
-              className="gap-2 text-xs"
-              disabled={isStarting}
-              onClick={async () => {
-                setIsStarting(true);
-                try {
-                  await onStartEncounter();
-                } catch (e) {
-                  console.error(e);
-                  setIsStarting(false);
-                }
-              }}
+          {existingEncounter ? (
+            <Link
+              href={`/dashboard/encounters/${existingEncounter.id}`}
+              className="inline-flex items-center gap-2 text-xs h-9 px-3 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm font-medium"
             >
               <Stethoscope className="h-3.5 w-3.5" />
-              {isStarting ? "Starting..." : "Start Encounter"}
-            </Button>
+              {existingEncounter.status === "signed" ? "View Finalized Record" : "View / Edit Encounter"}
+            </Link>
+          ) : (
+            (userRole === "admin" || userRole === "veterinarian") && onStartEncounter && (
+              <Button
+                variant="default"
+                size="sm"
+                className="gap-2 text-xs"
+                disabled={isStarting}
+                onClick={async () => {
+                  setIsStarting(true);
+                  try {
+                    await onStartEncounter();
+                  } catch (e) {
+                    console.error(e);
+                    setIsStarting(false);
+                  }
+                }}
+              >
+                <Stethoscope className="h-3.5 w-3.5" />
+                {isStarting ? "Starting..." : "Start Encounter"}
+              </Button>
+            )
           )}
           <Button
             variant="outline"

@@ -167,6 +167,21 @@ export async function listEncounters(filters?: {
 }
 
 /**
+ * Retrieve an encounter by its appointment ID.
+ */
+export async function getEncounterByAppointmentId(appointmentId: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("encounters")
+    .select("id, status")
+    .eq("appointment_id", appointmentId)
+    .maybeSingle();
+
+  if (error) throw error;
+  return data;
+}
+
+/**
  * Fetch detailed encounter payload including notes, diagnoses, treatments, prescriptions, and amendments.
  */
 export async function getEncounterDetails(id: string) {
