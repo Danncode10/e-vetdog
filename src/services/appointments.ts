@@ -652,7 +652,7 @@ export async function getAvailableSlots(
     const { data: specificSchedules, error: specificError } = await supabase
       .from("appointment_schedules")
       .select("*")
-      .or(`is_closed.eq.false,specific_date.eq.${specificDate}`)
+      .eq("specific_date", specificDate)
       .eq("status", 'active');
 
     if (specificError) {
