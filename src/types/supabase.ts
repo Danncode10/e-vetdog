@@ -10,10 +10,293 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.15"
+    PostgrestVersion: "14.17"
   }
   public: {
     Tables: {
+      appointment_schedules: {
+        Row: {
+          created_at: string
+          current_bookings: number
+          day_of_week: number
+          end_time: string
+          id: string
+          is_closed: boolean | null
+          is_recurring: boolean | null
+          max_capacity: number
+          specific_date: string | null
+          start_time: string
+          status: Database["public"]["Enums"]["schedule_status"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          current_bookings?: number
+          day_of_week: number
+          end_time: string
+          id?: string
+          is_closed?: boolean | null
+          is_recurring?: boolean | null
+          max_capacity?: number
+          specific_date?: string | null
+          start_time: string
+          status?: Database["public"]["Enums"]["schedule_status"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          current_bookings?: number
+          day_of_week?: number
+          end_time?: string
+          id?: string
+          is_closed?: boolean | null
+          is_recurring?: boolean | null
+          max_capacity?: number
+          specific_date?: string | null
+          start_time?: string
+          status?: Database["public"]["Enums"]["schedule_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      appointment_status_history: {
+        Row: {
+          appointment_id: string
+          changed_by_id: string | null
+          created_at: string
+          id: string
+          new_status: Database["public"]["Enums"]["appointment_status"]
+          notes: string | null
+          previous_status:
+            | Database["public"]["Enums"]["appointment_status"]
+            | null
+          reason: string | null
+        }
+        Insert: {
+          appointment_id: string
+          changed_by_id?: string | null
+          created_at?: string
+          id?: string
+          new_status: Database["public"]["Enums"]["appointment_status"]
+          notes?: string | null
+          previous_status?:
+            | Database["public"]["Enums"]["appointment_status"]
+            | null
+          reason?: string | null
+        }
+        Update: {
+          appointment_id?: string
+          changed_by_id?: string | null
+          created_at?: string
+          id?: string
+          new_status?: Database["public"]["Enums"]["appointment_status"]
+          notes?: string | null
+          previous_status?:
+            | Database["public"]["Enums"]["appointment_status"]
+            | null
+          reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointment_status_history_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointment_status_history_changed_by_id_fkey"
+            columns: ["changed_by_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      appointments: {
+        Row: {
+          assigned_veterinarian_id: string | null
+          cancellation_reason:
+            | Database["public"]["Enums"]["cancellation_reason"]
+            | null
+          cancelled_at: string | null
+          completed_at: string | null
+          confirmed_at: string | null
+          created_at: string
+          id: string
+          mode: Database["public"]["Enums"]["appointment_mode"]
+          no_show_at: string | null
+          notes: string | null
+          owner_id: string
+          pet_id: string
+          preferred_date: string | null
+          preferred_time: string | null
+          reason: string | null
+          requested_at: string
+          rescheduled_from: string | null
+          scheduled_end: string | null
+          scheduled_start: string | null
+          service_id: string | null
+          status: Database["public"]["Enums"]["appointment_status"]
+          updated_at: string
+        }
+        Insert: {
+          assigned_veterinarian_id?: string | null
+          cancellation_reason?:
+            | Database["public"]["Enums"]["cancellation_reason"]
+            | null
+          cancelled_at?: string | null
+          completed_at?: string | null
+          confirmed_at?: string | null
+          created_at?: string
+          id?: string
+          mode?: Database["public"]["Enums"]["appointment_mode"]
+          no_show_at?: string | null
+          notes?: string | null
+          owner_id: string
+          pet_id: string
+          preferred_date?: string | null
+          preferred_time?: string | null
+          reason?: string | null
+          requested_at?: string
+          rescheduled_from?: string | null
+          scheduled_end?: string | null
+          scheduled_start?: string | null
+          service_id?: string | null
+          status?: Database["public"]["Enums"]["appointment_status"]
+          updated_at?: string
+        }
+        Update: {
+          assigned_veterinarian_id?: string | null
+          cancellation_reason?:
+            | Database["public"]["Enums"]["cancellation_reason"]
+            | null
+          cancelled_at?: string | null
+          completed_at?: string | null
+          confirmed_at?: string | null
+          created_at?: string
+          id?: string
+          mode?: Database["public"]["Enums"]["appointment_mode"]
+          no_show_at?: string | null
+          notes?: string | null
+          owner_id?: string
+          pet_id?: string
+          preferred_date?: string | null
+          preferred_time?: string | null
+          reason?: string | null
+          requested_at?: string
+          rescheduled_from?: string | null
+          scheduled_end?: string | null
+          scheduled_start?: string | null
+          service_id?: string | null
+          status?: Database["public"]["Enums"]["appointment_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointments_assigned_veterinarian_id_fkey"
+            columns: ["assigned_veterinarian_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_pet_id_fkey"
+            columns: ["pet_id"]
+            isOneToOne: false
+            referencedRelation: "pets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_rescheduled_from_fkey"
+            columns: ["rescheduled_from"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      check_ins: {
+        Row: {
+          appointment_id: string | null
+          arrival_time: string
+          created_at: string
+          id: string
+          notes: string | null
+          owner_id: string | null
+          pet_id: string | null
+          service_end: string | null
+          service_start: string | null
+          status: Database["public"]["Enums"]["check_in_status"]
+          updated_at: string
+          walk_in: boolean
+        }
+        Insert: {
+          appointment_id?: string | null
+          arrival_time?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          owner_id?: string | null
+          pet_id?: string | null
+          service_end?: string | null
+          service_start?: string | null
+          status?: Database["public"]["Enums"]["check_in_status"]
+          updated_at?: string
+          walk_in?: boolean
+        }
+        Update: {
+          appointment_id?: string | null
+          arrival_time?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          owner_id?: string | null
+          pet_id?: string | null
+          service_end?: string | null
+          service_start?: string | null
+          status?: Database["public"]["Enums"]["check_in_status"]
+          updated_at?: string
+          walk_in?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "check_ins_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "check_ins_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "check_ins_pet_id_fkey"
+            columns: ["pet_id"]
+            isOneToOne: false
+            referencedRelation: "pets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           body: string | null
@@ -292,6 +575,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_double_booking: {
+        Args: {
+          p_end: string
+          p_exclude_appointment_id?: string
+          p_start: string
+          p_veterinarian_id: string
+        }
+        Returns: boolean
+      }
       create_owned_pet: {
         Args: {
           p_age?: number
@@ -327,9 +619,32 @@ export type Database = {
       }
     }
     Enums: {
+      appointment_mode: "in_person" | "virtual"
+      appointment_status:
+        | "requested"
+        | "scheduled"
+        | "completed"
+        | "cancelled"
+        | "no_show"
+      cancellation_reason:
+        | "owner_request"
+        | "clinic_emergency"
+        | "weather"
+        | "no_veterinarian_available"
+        | "pet_health_issue"
+        | "other"
+      check_in_status: "checked_in" | "in_progress" | "completed"
       owner_relationship: "owner" | "co_owner" | "family" | "caretaker"
       pet_sex: "male" | "female" | "unknown"
       pet_species: "dog" | "cat" | "bird" | "rabbit" | "reptile" | "other"
+      reschedule_reason:
+        | "owner_request"
+        | "veterinarian_unavailable"
+        | "clinic_schedule_conflict"
+        | "equipment_issue"
+        | "pet_health_issue"
+        | "other"
+      schedule_status: "active" | "inactive"
       user_role: "admin" | "veterinarian" | "owner"
     }
     CompositeTypes: {
@@ -458,9 +773,35 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      appointment_mode: ["in_person", "virtual"],
+      appointment_status: [
+        "requested",
+        "scheduled",
+        "completed",
+        "cancelled",
+        "no_show",
+      ],
+      cancellation_reason: [
+        "owner_request",
+        "clinic_emergency",
+        "weather",
+        "no_veterinarian_available",
+        "pet_health_issue",
+        "other",
+      ],
+      check_in_status: ["checked_in", "in_progress", "completed"],
       owner_relationship: ["owner", "co_owner", "family", "caretaker"],
       pet_sex: ["male", "female", "unknown"],
       pet_species: ["dog", "cat", "bird", "rabbit", "reptile", "other"],
+      reschedule_reason: [
+        "owner_request",
+        "veterinarian_unavailable",
+        "clinic_schedule_conflict",
+        "equipment_issue",
+        "pet_health_issue",
+        "other",
+      ],
+      schedule_status: ["active", "inactive"],
       user_role: ["admin", "veterinarian", "owner"],
     },
   },

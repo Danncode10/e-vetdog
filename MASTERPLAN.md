@@ -87,20 +87,40 @@
 
 **Exit state:** Owners can request visits, staff can schedule or check in visits and walk-ins, and all users see the correct appointment status and detail.
 
-- [ ] **[P2.1] Implement appointment rules, schema, lifecycle, and RLS**
+- [x] **[P2.1] Implement appointment rules, schema, lifecycle, and RLS**
   - **Goal:** Finalize the MVP scheduling decisions, reconcile the service catalogue, and model appointments, check-ins, status history, and RLS.
   - **Dependencies:** [P1.5].
   - **Acceptance criteria:** Service duration, assignment, double-booking, cancellation/rescheduling, owner cancellation, and walk-in minimum data have clear rules; appointments support requested, scheduled/confirmed, completed, cancelled, and no-show states; owner access follows `pet_owners`; status history and check-in data are retained.
 
-- [ ] **[P2.2] Deliver owner appointment requests and appointment history**
+- [x] **[P2.2] Deliver owner appointment requests and appointment history**
   - **Goal:** Let owners request visits for linked pets, view appointment status/history, and print appointment details.
   - **Dependencies:** [P2.1].
   - **Acceptance criteria:** Only linked pets are selectable; requests follow the scheduling rules; owners never see another owner's pet or contact data; submission, validation, confirmation, history, and print states work on mobile and desktop.
 
-- [ ] **[P2.3] Deliver staff schedule, check-in, and status workspace**
+- [x] **[P2.3] Deliver staff schedule, check-in, and status workspace**
   - **Goal:** Give staff the operational schedule, appointment-detail actions, walk-in check-in, and clinic logbook needed for daily appointment handling.
   - **Dependencies:** [P2.1].
   - **Acceptance criteria:** Staff can schedule, reschedule, cancel, complete, and mark no-show only through valid transitions; walk-ins capture required minimum data; the schedule/logbook handles loading, conflicts, empty periods, and status; appointment RLS and service tests cover staff and owner access.
+
+- [x] **[P2.3.1] Admin-managed appointment schedules and configuration**
+  - **Goal:** Admins can define weekly available schedules with per-slot capacity limits, and owners see available/filled slots when requesting appointments in a Google Calendar-style UI.
+  - **Dependencies:** [P2.1], [P2.2].
+  - **Acceptance criteria:** 
+    - Admins can create/update weekly appointment schedules with start/end times and max capacity per slot (e.g., max 3 appointments per time slot)
+    - Owners see a Google Calendar-style UI showing available and filled time slots when requesting/new appointments
+    - Attempting to book beyond capacity returns a clear error and disables the slot
+    - Admins can modify or cancel scheduled time slots, with appropriate RLS
+    - Existing appointment flow integrates: request → view available slots → book within capacity → auto-schedule appointment (removed legacy "requested" state)
+- [x] **[P2.3.2] Advanced appointment management, schedule conflict prevention, and owner record integration**
+  - **Goal:** Enhance appointment scheduling with overlap prevention, quick calendar shortcuts, search/status/date filtering, pagination, and a 2-tab owner/patient appointment record view.
+  - **Dependencies:** [P2.3.1].
+  - **Acceptance criteria:** 
+    - `getAvailableSlots` strictly queries specific dates without invalid open-schedule OR leaks
+    - Schedule creation validates against existing schedules to prevent time overlaps on the same date
+    - Double-clicking calendar day cells auto-fills the target date in the schedule creation form
+    - Appointments tab supports real-time search, status filtering, date filtering, and pagination
+    - Owners directory cards display pet counts, visit counts, and an active appointment preview with search and pagination
+    - Appointment Detail page features a clean 2-tab view (Pets Details & Appointment History) with timeline tracking and owner metrics
 
 ## **PHASE 3: Clinical workspace and signed records**
 

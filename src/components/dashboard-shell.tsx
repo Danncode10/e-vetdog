@@ -29,12 +29,14 @@ import { PetsTab } from "@/components/dashboard/tabs/pets-tab";
 import { OwnersTab } from "@/components/dashboard/tabs/owners-tab";
 import { AppointmentsTab } from "@/components/dashboard/tabs/appointments-tab";
 import { SettingsTab } from "@/components/dashboard/tabs/settings-tab";
+import { SchedulesTab } from "@/app/dashboard/schedules/page";
 
-const ICONS: Record<DashboardTabId, LucideIcon> = {
+const ICONS: Record<DashboardTabId | "schedules", LucideIcon> = {
   overview: LayoutDashboard,
   pets: PawPrint,
   owners: Users,
   appointments: CalendarDays,
+  schedules: CalendarDays, // Schedules tab
   team: ShieldCheck,
   settings: Settings,
 };
@@ -97,8 +99,8 @@ export function DashboardShell({ user, profile, children }: DashboardShellProps)
   const mainTabs = enabledTabs.filter((t) => t.id !== "settings");
   const isPetRecord = pathname.startsWith("/user/") && pathname.includes("/pet/");
   const isOwnerRecord = pathname.startsWith("/user/") && !isPetRecord;
-  const activeTabId = pathname === "/dashboard/team" ? "team" : pathname.startsWith("/dashboard/pets") || isPetRecord ? "pets" : isOwnerRecord ? "owners" : activeTab;
-  const activeLabel = pathname === "/dashboard/pets/new" ? "Add pet" : isPetRecord ? "Pet record" : isOwnerRecord ? "Owner record" : enabledTabs.find((t) => t.id === activeTabId)?.label ?? "Overview";
+  const activeTabId = pathname === "/dashboard/team" ? "team" : pathname.startsWith("/dashboard/pets") || isPetRecord ? "pets" : pathname.startsWith("/dashboard/appointments") ? "appointments" : isOwnerRecord ? "owners" : activeTab;
+  const activeLabel = pathname === "/dashboard/pets/new" ? "Add pet" : pathname === "/dashboard/appointments/new" ? "New appointment" : isPetRecord ? "Pet record" : isOwnerRecord ? "Owner record" : enabledTabs.find((t) => t.id === activeTabId)?.label ?? "Overview";
 
   return (
     <div className="h-screen bg-background flex overflow-hidden">
@@ -171,6 +173,24 @@ export function DashboardShell({ user, profile, children }: DashboardShellProps)
               </button>
             );
           })}
+          {isFeatureEnabled("schedules", userRole) && (
+            <button
+              key="schedules"
+              onClick={() => setTab("schedules")}
+              onMouseEnter={() => router.prefetch("/dashboard/schedules")}
+              onFocus={() => router.prefetch("/dashboard/schedules")}
+              title="Schedules"
+              className={`w-full flex items-center gap-3 rounded-lg text-[13px] transition-colors
+                ${collapsed ? "md:justify-center px-0 py-2.5" : "px-3 py-2"}
+                ${activeTabId === "schedules"
+                  ? "bg-primary/10 text-primary font-medium"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                }`}
+            >
+              <CalendarDays className="w-4 h-4 shrink-0" strokeWidth={1.5} />
+              <span className={collapsed ? "md:hidden" : ""}>Schedules</span>
+            </button>
+          )}
         </nav>
 
         <div className="shrink-0 border-t border-border p-2 space-y-0.5">
@@ -254,11 +274,14 @@ export function DashboardShell({ user, profile, children }: DashboardShellProps)
         <main className="flex-1 overflow-y-auto p-6 md:p-8">
           {pathname === "/dashboard" ? (
             <>
-              {activeTab === "overview"     && <OverviewTab displayName={displayName} setTab={setTab} role={userRole} />}
-              {activeTab === "pets"         && <PetsTab role={userRole} />}
-              {activeTab === "owners"       && <OwnersTab role={userRole} />}
-              {activeTab === "appointments" && <AppointmentsTab />}
-              {activeTab === "settings"     && <SettingsTab profile={currentProfile} onProfileUpdated={setCurrentProfile} />}
+              {activeTab === "overview" && <OverviewTab displayName={displayName} setTab={setTab} role={userRole} />}
+              {activeTab === "pets" && <PetsTab role={userRole} />}
+              {activeTab === "owners" && <OwnersTab role={userRole} />}
+              {activeTab === "appointments" && currentProfile ? (
+                <AppointmentsTab role={userRole} userId={currentProfile.id} />
+              ) : null}
+              {activeTab === "settings" && <SettingsTab profile={currentProfile} onProfileUpdated={setCurrentProfile} />}
+              {activeTab === "schedules" && <SchedulesTab role={userRole} />}
             </>
           ) : children}
         </main>

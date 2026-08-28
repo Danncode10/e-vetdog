@@ -43,8 +43,10 @@
     "next": "16.2.9",
     "postgres": "^3.4.9",
     "react": "19.2.7",
+    "react-clock": "^6.0.0",
     "react-dom": "19.2.7",
     "react-intersection-observer": "^10.0.3",
+    "react-time-picker": "^8.1.0",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.6.0"
   },
@@ -59,5 +61,6 @@
     "tailwindcss": "^4",
     "tsx": "^4.22.4",
     "typescript": "^6"
-  }
+  },
+  "packageManager": "pnpm@11.23.0+sha512.f00082e5b283a199b74e079da28d155c008fe232f44c8a06ea7ddfa014ecf719fc362f790ecc67b28106ddac2afb24c49a9a079159da560b2ce7d1e98efd11af"
 }

@@ -135,6 +135,37 @@
   }
 }
 
+@layer components {
+  .appointment-time-picker,
+  .appointment-time-picker .react-time-picker__wrapper {
+    width: 100%;
+  }
+
+  .appointment-time-picker .react-time-picker__wrapper {
+    border: 0;
+  }
+
+  .appointment-time-picker .react-time-picker__inputGroup {
+    min-height: 3rem;
+    align-items: center;
+  }
+
+  .appointment-time-picker .react-time-picker__inputGroup__input,
+  .appointment-time-picker .react-time-picker__inputGroup__amPm {
+    color: var(--color-foreground);
+    font: inherit;
+  }
+
+  .appointment-time-picker .react-time-picker__inputGroup__input:focus,
+  .appointment-time-picker .react-time-picker__inputGroup__amPm:focus {
+    outline: 0;
+  }
+
+  .appointment-time-picker .react-time-picker__button {
+    color: var(--color-muted-foreground);
+  }
+}
+
 /* Blinking cursor for Typewriter — bounded by typing duration.
    When typing completes the component swaps to .typewriter-cursor-done
    which has no animation, so the keyframe stops consuming CPU. */

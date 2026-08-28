@@ -110,7 +110,7 @@ export async function listOwnerRegistry() {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, full_name, email, phone, pet_owners(pet_id, relationship, is_primary_contact, can_view_medical_records, pets(id, name, species, breed))")
+    .select("id, full_name, email, phone, pet_owners(pet_id, relationship, is_primary_contact, can_view_medical_records, pets(id, name, species, breed)), appointments!appointments_owner_id_fkey(id, status, scheduled_start, preferred_date, preferred_time, reason, services(id, name), pets(id, name))")
     .eq("role", "owner")
     .order("full_name")
     .limit(100);
@@ -294,6 +294,17 @@ export async function getPetOwnersByOwner(ownerProfileId: string) {
     .eq("owner_profile_id", ownerProfileId);
   if (error) throw error;
   return data;
+}
+
+export async function getPetsByOwner(ownerProfileId: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("pet_owners")
+    .select("pets(id, name, species, breed, sex, date_of_birth, age, color, notes)")
+    .eq("owner_profile_id", ownerProfileId);
+  if (error) throw error;
+  // Extract pet objects from the pet_owners join
+  return data.map(link => link.pets);
 }
 
 export async function updatePetOwner(id: string, updates: PetOwnerUpdate) {

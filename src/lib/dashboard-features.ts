@@ -9,7 +9,8 @@ export type DashboardTabId =
   | "owners"
   | "appointments"
   | "team"
-  | "settings";
+  | "settings"
+  | "schedules";
 
 export type FeatureFlag =
   | "always"
@@ -17,7 +18,8 @@ export type FeatureFlag =
   | "owners"
   | "appointments"
   | "staff-only"
-  | "admin-only";
+  | "admin-only"
+  | "schedules";
 
 interface TabConfig {
   id: DashboardTabId;
@@ -30,6 +32,7 @@ export const TAB_CONFIG: TabConfig[] = [
   { id: "pets", label: "Pets", feature: "pets" },
   { id: "owners", label: "Owners", feature: "owners" },
   { id: "appointments", label: "Appointments", feature: "appointments" },
+  { id: "schedules", label: "Schedule", feature: "staff-only" },
   { id: "team", label: "Team", feature: "admin-only" },
   { id: "settings", label: "Settings", feature: "always" },
 ];
