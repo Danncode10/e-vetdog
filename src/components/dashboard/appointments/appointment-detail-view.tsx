@@ -13,7 +13,7 @@ import {
   Calendar,
   Stethoscope,
   ExternalLink,
-  Printer,
+  Download,
   History,
   FileText,
   CheckCircle2,
@@ -172,15 +172,26 @@ export function AppointmentDetailView({
               </Button>
             )
           )}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => window.print()}
-            className="gap-2 text-xs"
-          >
-            <Printer className="h-3.5 w-3.5" />
-            Print Details
-          </Button>
+          {existingEncounter ? (
+            <Link
+              href={`/dashboard/encounters/${existingEncounter.id}/print`}
+              target="_blank"
+              className="inline-flex items-center gap-2 text-xs h-9 px-3 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
+            >
+              <Download className="h-3.5 w-3.5" />
+              Download PDF
+            </Link>
+          ) : (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => window.print()}
+              className="gap-2 text-xs"
+            >
+              <Download className="h-3.5 w-3.5" />
+              Download PDF
+            </Button>
+          )}
         </div>
       </div>
 

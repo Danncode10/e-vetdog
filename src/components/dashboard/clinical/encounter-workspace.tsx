@@ -17,8 +17,11 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { saveEncounterDraft, signEncounter } from "@/services/clinical";
 import Link from "next/link";
+import { toast } from "sonner";
+import { Download } from "lucide-react";
 
 interface EncounterWorkspaceProps {
   encounterData: any;
@@ -36,6 +39,7 @@ export function EncounterWorkspace({
   const router = useRouter();
   const [activeTab, setActiveTab] = React.useState<"current" | "history">("current");
   const [isSaving, setIsSaving] = React.useState(false);
+  const [isSignDialogOpen, setIsSignDialogOpen] = React.useState(false);
 
   const enc = encounterData.encounter;
   const initialNote = encounterData.notes || {};
@@ -95,10 +99,10 @@ export function EncounterWorkspace({
         prescriptions,
       });
       router.refresh();
-      alert("Draft saved successfully!");
+      toast.success("Draft saved successfully!");
     } catch (e) {
       console.error(e);
-      alert("Failed to save draft.");
+      toast.error("Failed to save draft.");
     } finally {
       setIsSaving(false);
     }
@@ -106,7 +110,6 @@ export function EncounterWorkspace({
 
   const handleSignRecord = async () => {
     if (isSigned) return;
-    if (!confirm("Are you sure you want to sign this encounter? Once signed, it cannot be modified directly.")) return;
     
     setIsSaving(true);
     try {
@@ -126,10 +129,11 @@ export function EncounterWorkspace({
       });
       await signEncounter(enc.id);
       router.refresh();
-      alert("Encounter signed successfully!");
+      setIsSignDialogOpen(false);
+      toast.success("Encounter signed successfully!");
     } catch (e) {
       console.error(e);
-      alert("Failed to sign record.");
+      toast.error("Failed to sign record.");
     } finally {
       setIsSaving(false);
     }
@@ -138,7 +142,7 @@ export function EncounterWorkspace({
   return (
     <div className="space-y-8 px-4 py-8 md:px-10 max-w-7xl mx-auto">
       {/* Header Area */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-border pb-6">
+      <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 border-b border-border pb-6">
         <div>
           <Link href={`/dashboard/appointments/${enc.appointment_id}`} className="text-sm text-muted-foreground hover:text-primary transition-colors inline-flex items-center gap-2 mb-3">
             <ArrowLeft className="h-4 w-4" /> Back to Appointment
@@ -156,6 +160,17 @@ export function EncounterWorkspace({
           <p className="text-muted-foreground text-sm mt-1">
             Complete the clinical record for this visit. {isSigned && "This record is finalized."}
           </p>
+        </div>
+        
+        {/* Actions */}
+        <div className="flex items-center gap-3">
+          <Link
+            href={`/dashboard/encounters/${enc.id}/print`}
+            className="flex items-center gap-2 px-3 py-1.5 bg-muted hover:bg-muted/80 text-foreground text-sm font-medium rounded-md transition-colors"
+          >
+            <Download className="h-4 w-4" />
+            Download PDF
+          </Link>
         </div>
       </div>
 
@@ -388,7 +403,7 @@ export function EncounterWorkspace({
               <Button variant="outline" onClick={handleSaveDraft} disabled={isSaving} className="font-semibold shadow-sm h-12 px-6">
                 <Save className="h-4 w-4 mr-2" /> {isSaving ? "Saving..." : "Save Draft"}
               </Button>
-              <Button variant="default" onClick={handleSignRecord} disabled={isSaving} className="font-semibold shadow-sm h-12 px-8">
+              <Button variant="default" onClick={() => setIsSignDialogOpen(true)} disabled={isSaving} className="font-semibold shadow-sm h-12 px-8">
                 <CheckCircle className="h-4 w-4 mr-2" /> Sign & Lock Record
               </Button>
             </div>
@@ -462,6 +477,15 @@ export function EncounterWorkspace({
           </div>
         )}
       </div>
+      <ConfirmationDialog
+        open={isSignDialogOpen}
+        onOpenChange={setIsSignDialogOpen}
+        title="Sign & Lock Record"
+        description="Are you sure you want to sign this encounter? Once signed, it cannot be modified directly."
+        confirmLabel="Sign Record"
+        isPending={isSaving}
+        onConfirm={handleSignRecord}
+      />
     </div>
   );
 }

@@ -904,6 +904,10 @@ export type Database = {
         | "completed"
         | "cancelled"
         | "no_show"
+        | "confirmed"
+        | "diagnosed"
+        | "finished"
+        | "paid"
       cancellation_reason:
         | "owner_request"
         | "clinic_emergency"
@@ -1060,6 +1064,10 @@ export const Constants = {
         "completed",
         "cancelled",
         "no_show",
+        "confirmed",
+        "diagnosed",
+        "finished",
+        "paid",
       ],
       cancellation_reason: [
         "owner_request",

@@ -49,6 +49,13 @@ export async function createEncounter(input: Omit<EncounterInsert, "status" | "s
     .single();
 
   if (error) throw error;
+
+  // Update appointment status to diagnosed when encounter starts
+  await supabase
+    .from("appointments")
+    .update({ status: "diagnosed" })
+    .eq("id", input.appointment_id);
+
   revalidatePath("/dashboard");
   return data;
 }

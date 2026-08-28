@@ -8,6 +8,10 @@ export const appointmentStatus = pgEnum("appointment_status", [
   "completed",
   "cancelled",
   "no_show",
+  "confirmed",
+  "diagnosed",
+  "finished",
+  "paid",
 ]);
 
 export const checkInStatus = pgEnum("check_in_status", [
