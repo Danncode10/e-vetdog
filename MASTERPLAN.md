@@ -142,7 +142,7 @@
     - When paid (future billing module), status will change to `Completed`.
     - On the Appointment Detail view, replace the placeholder "Print Details" with a "View/Edit Encounter" button that links back to the Encounter Workspace if a draft or signed record exists.
 
-- [ ] **[P3.3] Deliver print-ready clinical record and prescription views**
+- [x] **[P3.3] Deliver print-ready clinical record and prescription views**
   - **Goal:** Provide authorized staff with print-optimized clinical-record and prescription documents.
   - **Dependencies:** [P3.2].
   - **Acceptance criteria:** Documents contain accurate patient, veterinarian, clinical, prescription, signature, and amendment data; print layouts do not require a server-side PDF engine unless later approved; owner-facing medical visibility remains filtered by permission.
