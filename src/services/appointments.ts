@@ -38,7 +38,7 @@ export async function listAppointments(filters?: {
       veterinarian:profiles!appointments_assigned_veterinarian_id_fkey (id, full_name),
       services (id, name, duration_minutes, price_from, price_to)
     `)
-    .order("scheduled_start", { ascending: true, nullsFirst: false });
+    .order("scheduled_start", { ascending: false, nullsFirst: false });
 
   if (filters?.status) {
     query = query.eq("status", filters.status);
@@ -387,7 +387,7 @@ export async function listOwnerAppointments(ownerId: string) {
     `
     )
     .eq("owner_id", ownerId)
-    .order("scheduled_start", { ascending: true, nullsFirst: false });
+    .order("scheduled_start", { ascending: false, nullsFirst: false });
   if (error) throw error;
   return data;
 }
@@ -405,7 +405,7 @@ export async function listPetAppointments(petId: string) {
     `
     )
     .eq("pet_id", petId)
-    .order("scheduled_start", { ascending: true, nullsFirst: false });
+    .order("scheduled_start", { ascending: false, nullsFirst: false });
   if (error) throw error;
   return data;
 }
@@ -448,7 +448,7 @@ export async function getVeterinarianSchedule(veterinarianId: string, date: stri
     .gte("scheduled_start", startOfDay.toISOString())
     .lte("scheduled_start", endOfDay.toISOString())
     .in("status", ["booked"])
-    .order("scheduled_start", { ascending: true });
+    .order("scheduled_start", { ascending: false });
   if (error) throw error;
   return data;
 }
