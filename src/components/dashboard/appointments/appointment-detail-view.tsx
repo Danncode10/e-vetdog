@@ -196,17 +196,28 @@ export function AppointmentDetailView({
             <ExternalLink className="h-3.5 w-3.5" />
             Print Details
           </Button>
-          {/* ── Charge & Mark Paid button — only for diagnosed appointments ── */}
-          {(userRole === "admin" || userRole === "veterinarian") &&
-            appointment.status === "diagnosed" && (
-              <button
-                onClick={() => setShowBillingDialog(true)}
-                className="inline-flex items-center gap-2 text-xs h-9 px-3 rounded-md bg-emerald-600 text-white hover:bg-emerald-700 transition-colors shadow-sm font-medium"
-              >
-                <Receipt className="h-3.5 w-3.5" />
-                Charge & Mark Paid
-              </button>
-            )}
+          {/* ── Charge & Mark Paid button ── */}
+          {(userRole === "admin" || userRole === "veterinarian") && (
+            <button
+              onClick={() => {
+                if (appointment.status !== "diagnosed") {
+                  toast.error("Encounter not signed", {
+                    description: "The appointment encounter must be Signed & Locked before you can charge and mark paid.",
+                  });
+                  return;
+                }
+                setShowBillingDialog(true);
+              }}
+              className={`inline-flex items-center gap-2 text-xs h-9 px-3 rounded-md shadow-sm font-medium transition-colors ${
+                appointment.status === "diagnosed"
+                  ? "bg-emerald-600 text-white hover:bg-emerald-700"
+                  : "bg-muted text-muted-foreground border border-border hover:bg-muted/80"
+              }`}
+            >
+              <Receipt className="h-3.5 w-3.5" />
+              Charge & Mark Paid
+            </button>
+          )}
         </div>
       </div>
 
