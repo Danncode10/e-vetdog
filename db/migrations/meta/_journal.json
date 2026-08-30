@@ -162,6 +162,13 @@
       "when": 1788085167814,
       "tag": "0023_billing_rules",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1788090501594,
+      "tag": "0024_living_vance_astro",
+      "breakpoints": true
     }
   ]
 }
