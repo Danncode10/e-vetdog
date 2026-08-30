@@ -1,0 +1,56 @@
+import { config } from "dotenv";
+config({ path: ".env.local" });
+import { eq } from "drizzle-orm";
+import { db } from "../db/client";
+import { invoices, invoiceItems, payments, paymentCorrections } from "../db/schema/billing";
+import { profiles } from "../db/schema/core";
+import { pets } from "../db/schema/clinical";
+
+async function verifyP41() {
+  console.log("Verifying Phase 4.1: Billing Rules and Ledger Schema...");
+
+  // Insert a test user
+  const [testUser] = await db.insert(profiles).values({
+    id: "00000000-0000-0000-0000-000000000004", // Dummy ID
+    firstName: "Test",
+    lastName: "Owner",
+    email: "test.billing@example.com",
+    role: "owner"
+  }).returning().onConflictDoNothing();
+
+  if (!testUser) {
+     console.log("User already exists or could not be created.");
+  }
+  
+  // Insert an invoice to trigger sequence
+  try {
+    const [invoice] = await db.insert(invoices).values({
+        ownerId: "00000000-0000-0000-0000-000000000004",
+        status: "draft",
+        vatableSales: "100.00",
+        totalAmount: "100.00"
+    }).returning();
+    
+    console.log("✅ Invoice created with generated number:", invoice.invoiceNumber);
+
+    const [payment] = await db.insert(payments).values({
+        invoiceId: invoice.id,
+        amountPaid: "100.00",
+        method: "cash",
+        recordedBy: "00000000-0000-0000-0000-000000000004"
+    }).returning();
+    
+    console.log("✅ Payment created with generated receipt number:", payment.receiptNumber);
+
+    // Clean up
+    await db.delete(payments).where(eq(payments.id, payment.id));
+    await db.delete(invoices).where(eq(invoices.id, invoice.id));
+    console.log("✅ Cleanup successful");
+
+  } catch (error) {
+    console.error("❌ Test failed:", error);
+  }
+  process.exit(0);
+}
+
+verifyP41();

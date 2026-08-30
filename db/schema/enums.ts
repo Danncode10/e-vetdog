@@ -29,3 +29,17 @@ export const prescriptionStatus = pgEnum("prescription_status", [
   "completed",
 ]);
 
+export const invoiceStatus = pgEnum("invoice_status", [
+  "draft",
+  "unpaid",
+  "partial",
+  "paid",
+  "voided",
+]);
+
+export const paymentMethod = pgEnum("payment_method", [
+  "cash",
+  "gcash",
+  "card",
+  "bank_transfer",
+]);

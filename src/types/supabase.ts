@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.17"
+    PostgrestVersion: "14.5"
   }
   public: {
     Tables: {
@@ -473,6 +473,116 @@ export type Database = {
           },
         ]
       }
+      invoice_items: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          invoice_id: string
+          is_vatable: boolean
+          quantity: number
+          unit_price: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          id?: string
+          invoice_id: string
+          is_vatable?: boolean
+          quantity?: number
+          unit_price: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          invoice_id?: string
+          is_vatable?: boolean
+          quantity?: number
+          unit_price?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_items_invoice_id_invoices_id_fk"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoices: {
+        Row: {
+          created_at: string
+          discount_amount: number
+          due_date: string | null
+          encounter_id: string | null
+          id: string
+          invoice_number: string
+          issue_date: string
+          owner_id: string
+          status: Database["public"]["Enums"]["invoice_status"]
+          total_amount: number
+          updated_at: string
+          vat_amount: number
+          vat_exempt_sales: number
+          vatable_sales: number
+          zero_rated_sales: number
+        }
+        Insert: {
+          created_at?: string
+          discount_amount?: number
+          due_date?: string | null
+          encounter_id?: string | null
+          id?: string
+          invoice_number: string
+          issue_date?: string
+          owner_id: string
+          status?: Database["public"]["Enums"]["invoice_status"]
+          total_amount?: number
+          updated_at?: string
+          vat_amount?: number
+          vat_exempt_sales?: number
+          vatable_sales?: number
+          zero_rated_sales?: number
+        }
+        Update: {
+          created_at?: string
+          discount_amount?: number
+          due_date?: string | null
+          encounter_id?: string | null
+          id?: string
+          invoice_number?: string
+          issue_date?: string
+          owner_id?: string
+          status?: Database["public"]["Enums"]["invoice_status"]
+          total_amount?: number
+          updated_at?: string
+          vat_amount?: number
+          vat_exempt_sales?: number
+          vatable_sales?: number
+          zero_rated_sales?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_encounter_id_encounters_id_fk"
+            columns: ["encounter_id"]
+            isOneToOne: false
+            referencedRelation: "encounters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_owner_id_profiles_id_fk"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           body: string | null
@@ -505,6 +615,99 @@ export type Database = {
           type?: string
         }
         Relationships: []
+      }
+      payment_corrections: {
+        Row: {
+          corrected_by: string
+          correction_amount: number
+          created_at: string
+          id: string
+          payment_id: string
+          reason: string
+        }
+        Insert: {
+          corrected_by: string
+          correction_amount: number
+          created_at?: string
+          id?: string
+          payment_id: string
+          reason: string
+        }
+        Update: {
+          corrected_by?: string
+          correction_amount?: number
+          created_at?: string
+          id?: string
+          payment_id?: string
+          reason?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_corrections_corrected_by_profiles_id_fk"
+            columns: ["corrected_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_corrections_payment_id_payments_id_fk"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payments: {
+        Row: {
+          amount_paid: number
+          created_at: string
+          id: string
+          invoice_id: string
+          method: Database["public"]["Enums"]["payment_method"]
+          payment_date: string
+          receipt_number: string
+          recorded_by: string
+          reference_number: string | null
+        }
+        Insert: {
+          amount_paid: number
+          created_at?: string
+          id?: string
+          invoice_id: string
+          method: Database["public"]["Enums"]["payment_method"]
+          payment_date?: string
+          receipt_number: string
+          recorded_by: string
+          reference_number?: string | null
+        }
+        Update: {
+          amount_paid?: number
+          created_at?: string
+          id?: string
+          invoice_id?: string
+          method?: Database["public"]["Enums"]["payment_method"]
+          payment_date?: string
+          receipt_number?: string
+          recorded_by?: string
+          reference_number?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_invoice_id_invoices_id_fk"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_recorded_by_profiles_id_fk"
+            columns: ["recorded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       pet_owners: {
         Row: {
@@ -917,7 +1120,9 @@ export type Database = {
         | "other"
       check_in_status: "checked_in" | "in_progress" | "completed"
       encounter_status: "draft" | "signed"
+      invoice_status: "draft" | "unpaid" | "partial" | "paid" | "voided"
       owner_relationship: "owner" | "co_owner" | "family" | "caretaker"
+      payment_method: "cash" | "gcash" | "card" | "bank_transfer"
       pet_sex: "male" | "female" | "unknown"
       pet_species: "dog" | "cat" | "bird" | "rabbit" | "reptile" | "other"
       prescription_status: "active" | "cancelled" | "completed"
@@ -1079,7 +1284,9 @@ export const Constants = {
       ],
       check_in_status: ["checked_in", "in_progress", "completed"],
       encounter_status: ["draft", "signed"],
+      invoice_status: ["draft", "unpaid", "partial", "paid", "voided"],
       owner_relationship: ["owner", "co_owner", "family", "caretaker"],
+      payment_method: ["cash", "gcash", "card", "bank_transfer"],
       pet_sex: ["male", "female", "unknown"],
       pet_species: ["dog", "cat", "bird", "rabbit", "reptile", "other"],
       prescription_status: ["active", "cancelled", "completed"],
