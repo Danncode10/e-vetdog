@@ -38,7 +38,7 @@ export async function listInvoices(filters?: {
   let query = supabase
     .from("invoices")
     .select(
-      `*, owner:profiles!invoices_owner_id_fkey (id, full_name, email, phone)`
+      `*, owner:profiles!invoices_owner_id_profiles_id_fk (id, full_name, email, phone)`
     )
     .order("created_at", { ascending: false });
 
@@ -62,7 +62,7 @@ export async function getInvoiceById(id: string): Promise<InvoiceWithDetails | n
   const { data, error } = await supabase
     .from("invoices")
     .select(
-      `*, invoice_items(*), payments(*), owner:profiles!invoices_owner_id_fkey (id, full_name, email, phone)`
+      `*, invoice_items(*), payments(*), owner:profiles!invoices_owner_id_profiles_id_fk (id, full_name, email, phone)`
     )
     .eq("id", id)
     .single();
