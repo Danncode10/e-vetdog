@@ -156,7 +156,7 @@
   - **Dependencies:** [P3.1], [P2.1].
   - **Acceptance criteria:** Invoice and receipt numbering is separate, sequential, atomic, and server-side; invoice states and transitions are documented; payments are append-only; minimum correction records preserve original payments; billing RLS and integrity tests prove non-admins cannot change payment history and duplicate numbers are prevented.
 
-- [ ] **[P4.2] Deliver invoice, cash payment, and receipt workflow**
+- [x] **[P4.2] Deliver invoice, cash payment, and receipt workflow**
   - **Goal:** Let admins create itemized invoices, record in-clinic cash payments, and generate linked receipts from one protected workflow.
   - **Dependencies:** [P4.1].
   - **Acceptance criteria:** Totals are calculated server-side; line items are validated; invoices can relate to pets, appointments, or encounters without exposing unrelated data; payment amount, method, time, notes/reference, and recording admin are retained; partial and paid statuses are accurate.
