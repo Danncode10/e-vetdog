@@ -1,6 +1,7 @@
 import { createAdminClient } from "@/utils/supabase/server";
 import fs from "fs";
 import path from "path";
+import nodemailer from "nodemailer";
 
 // A utility helper to format currency
 function fmt(n: number | string) {
@@ -16,7 +17,7 @@ function fmtDate(d: string) {
   });
 }
 
-// Function to resolve template, replace variables, and send via Resend or log to console
+// Function to resolve template, replace variables, and send via SMTP or log to console
 async function sendTransactionalEmail(options: {
   to: string;
   subject: string;
@@ -24,7 +25,8 @@ async function sendTransactionalEmail(options: {
   variables: Record<string, string>;
   items: Array<{ description: string; quantity: number; unitPrice: string }>;
 }) {
-  const apiKey = process.env.RESEND_API_KEY;
+  const smtpUser = process.env.SMTP_USER;
+  const smtpPassword = process.env.SMTP_PASSWORD;
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
   // Load the template
@@ -63,31 +65,29 @@ async function sendTransactionalEmail(options: {
     html = html.replace(itemRegex, renderedRows);
   }
 
-  // Send email via Resend if API Key exists, otherwise fallback to logging
-  if (apiKey) {
+  // Send email via SMTP if credentials exist, otherwise fallback to logging
+  if (smtpUser && smtpPassword) {
     try {
-      const response = await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKey}`,
+      const transporter = nodemailer.createTransport({
+        host: "smtp.gmail.com",
+        port: 465,
+        secure: true,
+        auth: {
+          user: smtpUser,
+          pass: smtpPassword,
         },
-        body: JSON.stringify({
-          from: "E-VetDoc Clinic <billing@e-vetdoc.com>",
-          to: [options.to],
-          subject: options.subject,
-          html: html,
-        }),
       });
 
-      if (!response.ok) {
-        const errText = await response.text();
-        console.error("Resend API returned an error:", errText);
-      } else {
-        console.log(`✅ Transactional email successfully sent to ${options.to}`);
-      }
+      await transporter.sendMail({
+        from: `"E-VetDoc Clinic" <${smtpUser}>`,
+        to: options.to,
+        subject: options.subject,
+        html: html,
+      });
+
+      console.log(`✅ Transactional email successfully sent to ${options.to}`);
     } catch (err) {
-      console.error("Failed to send email via Resend:", err);
+      console.error("Failed to send email via SMTP:", err);
     }
   } else {
     // Graceful fallback logging for development
@@ -101,7 +101,7 @@ async function sendTransactionalEmail(options: {
     console.log("Items:", JSON.stringify(options.items, null, 2));
     console.log("--------------------------------------------------------");
     console.log("Email body loaded and verified.");
-    console.log("Set RESEND_API_KEY in .env.local to send live emails.");
+    console.log("Set SMTP_USER and SMTP_PASSWORD in .env.local to send live emails.");
     console.log("========================================================\n");
   }
 }
