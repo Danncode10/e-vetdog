@@ -166,10 +166,10 @@
   - **Dependencies:** [P4.2].
   - **Acceptance criteria:** HTML templates are saved; invoice creation triggers an "Invoice Created" email with billing details; payment completion triggers an "Invoice Paid / Receipt" email; email sending uses a unified backend service (e.g. Resend HTTP API) and falls back gracefully when the API key is not configured.
 
-- [ ] **[P4.3] Deliver minimum correction flow and printable invoice/receipt views**
-  - **Goal:** Provide the MVP correction path for billing mistakes and print-ready invoice and receipt views.
+- [ ] **[P4.3] Deliver minimum correction flow**
+  - **Goal:** Provide the MVP correction path for billing mistakes.
   - **Dependencies:** [P4.2].
-  - **Acceptance criteria:** Original payments are never edited or deleted; correction reason, actor, time, amount, and linked payment are retained; invoice status reflects corrections; printable invoice and receipt views include accurate numbering, line items, payment breakdown, correction context, and clinic wording.
+  - **Acceptance criteria:** Original payments are never edited or deleted; correction reason, actor, time, amount, and linked payment are retained; invoice status reflects corrections.
 
 ## **PHASE 5: Owner portal and MVP release verification**
 

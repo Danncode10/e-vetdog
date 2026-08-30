@@ -109,7 +109,7 @@ Each pet profile should include at least name, species, breed, sex, and date of 
 1. An admin creates or updates an invoice and its itemized lines.
 2. The owner pays at the clinic; the first supported method is cash.
 3. An authorized admin records the amount, method, payment time, optional reference/notes, and staff member.
-4. The system creates a printable receipt that the owner can access.
+4. The system sends an email receipt to the owner.
 5. Any error is resolved by a correction record, not an edit or deletion of the original payment.
 
 ---
@@ -182,7 +182,7 @@ paid ────────────────────→ refunded/co
 - Payments record amount, method, time, optional reference/notes, and the admin who entered the payment.
 - Recorded payments are never overwritten or deleted.
 - A linked void, refund, or correction record resolves payment mistakes and preserves the original entry.
-- Owners can view invoices and receipts; admins issue printable receipts.
+- Owners can view invoices and receipts; admins issue email receipts.
 
 The exact tax treatment, receipt wording, and refund/correction fields require a business decision before the invoice schema is final.
 
@@ -197,8 +197,8 @@ The exact tax treatment, receipt wording, and refund/correction fields require a
 | Appointments and visits | Appointment requests, scheduling, statuses, history, walk-ins, and check-in logbook. |
 | Clinical workspace | Pet history, encounters, diagnoses, treatments, and signed prescriptions. |
 | Billing | Invoices, itemized charges, cash payment recording, receipt creation, and correction records. |
-| Owner portal | Linked pets, appointments, permitted medical history, invoices, receipts, and printable appointment details. |
-| Documents and reports | Printable patient record, prescription, invoice, receipt, and basic patient/diagnosis/payment reports. |
+| Owner portal | Linked pets, appointments, permitted medical history, invoices, and email receipts. |
+| Documents and reports | Printable patient record, prescription, and basic patient/diagnosis/payment reports. |
 | Notifications | Appointment reminders/status updates and receipt messages through the simplest initial channel. |
 
 ---
@@ -247,7 +247,7 @@ The database schema is authored in `db/schema/` using Drizzle. Generate a review
 3. Build appointment requests, scheduling, statuses, walk-ins, and check-in.
 4. Build the clinical workspace and signing/amendment workflow.
 5. Build invoices, cash payments, receipts, and corrections.
-6. Add owner-facing history, invoices, receipts, and printable-document views.
+6. Add owner-facing history, invoices, email receipts, and printable-document views for clinical records.
 7. Add basic notifications and reports after the core workflows work end-to-end.
 
 ## Current focus
