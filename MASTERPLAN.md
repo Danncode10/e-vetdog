@@ -151,7 +151,7 @@
 
 **Exit state:** Admins can issue itemized invoices, record cash payments, print receipts, and correct mistakes without rewriting financial history.
 
-- [ ] **[P4.1] Implement billing rules, ledger schema, numbering, RLS, and integrity checks**
+- [x] **[P4.1] Implement billing rules, ledger schema, numbering, RLS, and integrity checks**
   - **Goal:** Finalize MVP tax/receipt/correction decisions, then model invoices, items, payments, payment corrections, receipts, sequential numbering, and financial RLS.
   - **Dependencies:** [P3.1], [P2.1].
   - **Acceptance criteria:** Invoice and receipt numbering is separate, sequential, atomic, and server-side; invoice states and transitions are documented; payments are append-only; minimum correction records preserve original payments; billing RLS and integrity tests prove non-admins cannot change payment history and duplicate numbers are prevented.
