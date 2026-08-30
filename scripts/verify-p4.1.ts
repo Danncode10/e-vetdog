@@ -12,8 +12,7 @@ async function verifyP41() {
   // Insert a test user
   const [testUser] = await db.insert(profiles).values({
     id: "00000000-0000-0000-0000-000000000004", // Dummy ID
-    firstName: "Test",
-    lastName: "Owner",
+    fullName: "Test Owner",
     email: "test.billing@example.com",
     role: "owner"
   }).returning().onConflictDoNothing();
