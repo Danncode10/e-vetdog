@@ -300,3 +300,98 @@ export async function voidInvoice(invoiceId: string): Promise<void> {
   revalidatePath(`/dashboard/billing/${invoiceId}`);
   revalidatePath("/dashboard/billing");
 }
+
+/**
+ * Quick-bill an appointment in one action:
+ *  1. Create a draft invoice linked to the appointment
+ *  2. Add the consultation line item
+ *  3. Finalize the invoice (→ unpaid)
+ *  4. Record the payment (→ paid)
+ *  5. Flip appointment status to "paid"
+ *
+ * Returns the created invoice ID for navigation.
+ */
+export async function quickBillAppointment(input: {
+  appointmentId: string;
+  ownerId: string;
+  encounterId?: string;
+  serviceDescription: string;
+  amount: number;
+  isVatable: boolean;
+  method: "cash" | "gcash" | "card" | "bank_transfer";
+  referenceNumber?: string;
+}): Promise<{ invoiceId: string; receiptNumber: string }> {
+  const staff = await requireStaff();
+  const supabase = await createClient();
+
+  if (input.amount <= 0) throw new Error("Amount must be greater than 0.");
+  if (!input.serviceDescription.trim()) throw new Error("Service description is required.");
+
+  // 1. Create invoice
+  const { data: invoice, error: invErr } = await supabase
+    .from("invoices")
+    .insert({
+      owner_id: input.ownerId,
+      encounter_id: input.encounterId ?? null,
+      status: "draft",
+    })
+    .select()
+    .single();
+  if (invErr) throw invErr;
+
+  // 2. Add line item
+  const { error: itemErr } = await supabase.from("invoice_items").insert({
+    invoice_id: invoice.id,
+    description: input.serviceDescription.trim(),
+    quantity: 1,
+    unit_price: input.amount,
+    is_vatable: input.isVatable,
+  });
+  if (itemErr) throw itemErr;
+
+  // 3. Compute and persist totals
+  const vatAmount = input.isVatable ? input.amount * VAT_RATE : 0;
+  const vatableSales = input.isVatable ? input.amount : 0;
+  const vatExemptSales = input.isVatable ? 0 : input.amount;
+  const totalAmount = input.amount + vatAmount;
+
+  await supabase.from("invoices").update({
+    vatable_sales: vatableSales.toFixed(2),
+    vat_exempt_sales: vatExemptSales.toFixed(2),
+    vat_amount: vatAmount.toFixed(2),
+    total_amount: totalAmount.toFixed(2),
+    status: "unpaid",
+  }).eq("id", invoice.id);
+
+  // 4. Record payment
+  const { data: payment, error: payErr } = await supabase
+    .from("payments")
+    .insert({
+      invoice_id: invoice.id,
+      amount_paid: totalAmount,
+      method: input.method,
+      reference_number: input.referenceNumber ?? null,
+      recorded_by: staff.id,
+    })
+    .select("receipt_number")
+    .single();
+  if (payErr) throw payErr;
+
+  // 5. Mark invoice as paid
+  await supabase.from("invoices").update({ status: "paid" }).eq("id", invoice.id);
+
+  // 6. Update appointment status to "paid"
+  await supabase
+    .from("appointments")
+    .update({ status: "paid", updated_at: new Date().toISOString() })
+    .eq("id", input.appointmentId);
+
+  revalidatePath(`/dashboard/appointments/${input.appointmentId}`);
+  revalidatePath("/dashboard/billing");
+
+  return {
+    invoiceId: invoice.id,
+    receiptNumber: payment.receipt_number ?? "",
+  };
+}
+
