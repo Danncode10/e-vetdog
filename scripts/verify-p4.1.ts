@@ -4,7 +4,7 @@ import { eq } from "drizzle-orm";
 import { db } from "../db/client";
 import { invoices, invoiceItems, payments, paymentCorrections } from "../db/schema/billing";
 import { profiles } from "../db/schema/core";
-import { pets } from "../db/schema/clinical";
+
 
 async function verifyP41() {
   console.log("Verifying Phase 4.1: Billing Rules and Ledger Schema...");
