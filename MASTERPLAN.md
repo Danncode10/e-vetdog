@@ -161,6 +161,11 @@
   - **Dependencies:** [P4.1].
   - **Acceptance criteria:** Totals are calculated server-side; line items are validated; invoices can relate to pets, appointments, or encounters without exposing unrelated data; payment amount, method, time, notes/reference, and recording admin are retained; partial and paid statuses are accurate.
 
+- [ ] **[P4.2.1] Implement transactional billing emails for owners**
+  - **Goal:** Add HTML email templates in `docs/supabase/email-templates/` and configure email delivery to automatically notify pet owners when an invoice is created or marked as paid.
+  - **Dependencies:** [P4.2].
+  - **Acceptance criteria:** HTML templates are saved; invoice creation triggers an "Invoice Created" email with billing details; payment completion triggers an "Invoice Paid / Receipt" email; email sending uses a unified backend service (e.g. Resend HTTP API) and falls back gracefully when the API key is not configured.
+
 - [ ] **[P4.3] Deliver minimum correction flow and printable invoice/receipt views**
   - **Goal:** Provide the MVP correction path for billing mistakes and print-ready invoice and receipt views.
   - **Dependencies:** [P4.2].

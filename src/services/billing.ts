@@ -4,6 +4,7 @@ import { createClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
 import { requireRole } from "@/services/authorization";
 import type { Tables, TablesInsert } from "@/types/supabase";
+import { sendInvoiceCreatedEmail, sendInvoicePaidEmail } from "./email";
 
 export type Invoice = Tables<"invoices">;
 export type InvoiceItem = Tables<"invoice_items">;
@@ -216,6 +217,9 @@ export async function finalizeInvoice(invoiceId: string): Promise<Invoice> {
   if (error) throw error;
   if (!data) throw new Error("Invoice not found or is not in draft status.");
 
+  // Send transactional email
+  await sendInvoiceCreatedEmail(invoiceId);
+
   revalidatePath(`/dashboard/billing/${invoiceId}`);
   revalidatePath("/dashboard/billing");
   return data;
@@ -277,6 +281,11 @@ export async function recordPayment(input: {
   }
 
   await supabase.from("invoices").update({ status: newStatus }).eq("id", input.invoiceId);
+
+  // Send transactional email if fully paid
+  if (newStatus === "paid") {
+    await sendInvoicePaidEmail(input.invoiceId);
+  }
 
   revalidatePath(`/dashboard/billing/${input.invoiceId}`);
   revalidatePath("/dashboard/billing");
@@ -385,6 +394,9 @@ export async function quickBillAppointment(input: {
     .from("appointments")
     .update({ status: "paid", updated_at: new Date().toISOString() })
     .eq("id", input.appointmentId);
+
+  // Send transactional email
+  await sendInvoicePaidEmail(invoice.id);
 
   revalidatePath(`/dashboard/appointments/${input.appointmentId}`);
   revalidatePath("/dashboard/billing");
