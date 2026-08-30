@@ -333,9 +333,14 @@ export function AppointmentRequestForm() {
   const slotsQuery = useQuery({
     queryKey: ["available-slots", formData.preferredDate],
     queryFn: async () => {
-      if (!formData.preferredDate) return [];
-      const result = await getAvailableSlots(undefined, formData.preferredDate);
-      return (result.slots || []) as SlotOption[];
+      try {
+        if (!formData.preferredDate) return [];
+        const result = await getAvailableSlots(undefined, formData.preferredDate);
+        return (result.slots || []) as SlotOption[];
+      } catch (err) {
+        console.error("SLOTS_QUERY_ERROR:", err);
+        throw err;
+      }
     },
     enabled: !!formData.preferredDate,
     refetchOnWindowFocus: false,

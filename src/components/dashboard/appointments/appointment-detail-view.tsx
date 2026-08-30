@@ -21,11 +21,13 @@ import {
   XCircle,
   ChevronRight,
   Sparkles,
+  Receipt,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { cancelAppointment } from "@/services/appointments";
 import { CancelModal } from "@/components/dashboard/appointments/cancel-modal";
+import { QuickBillingDialog } from "@/components/dashboard/billing/quick-billing-dialog";
 import { useRouter } from "next/navigation";
 function fmtDate(iso: string) {
   return new Intl.DateTimeFormat("en-US", {
@@ -122,6 +124,7 @@ export function AppointmentDetailView({
   const [activeTab, setActiveTab] = React.useState<"pets" | "history">("pets");
   const [isStarting, setIsStarting] = React.useState(false);
   const [showCancelModal, setShowCancelModal] = React.useState(false);
+  const [showBillingDialog, setShowBillingDialog] = React.useState(false);
   const router = useRouter();
 
   const owner = appointment.owner || appointment.profiles;
@@ -184,27 +187,52 @@ export function AppointmentDetailView({
               </Button>
             )
           )}
-          {existingEncounter ? (
-            <Link
-              href={`/dashboard/encounters/${existingEncounter.id}`}
-              className="inline-flex items-center gap-2 text-xs h-9 px-3 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => window.print()}
+            className="gap-2 text-xs h-9"
+          >
+            <ExternalLink className="h-3.5 w-3.5" />
+            Print Details
+          </Button>
+          {/* ── Charge & Mark Paid button ── */}
+          {(userRole === "admin" || userRole === "veterinarian") && (
+            <button
+              onClick={() => {
+                if (appointment.status !== "diagnosed") {
+                  toast.error("Encounter not signed", {
+                    description: "The appointment encounter must be Signed & Locked before you can charge and mark paid.",
+                  });
+                  return;
+                }
+                setShowBillingDialog(true);
+              }}
+              className={`inline-flex items-center gap-2 text-xs h-9 px-3 rounded-md shadow-sm font-medium transition-colors ${
+                appointment.status === "diagnosed"
+                  ? "bg-emerald-600 text-white hover:bg-emerald-700"
+                  : "bg-muted text-muted-foreground border border-border hover:bg-muted/80"
+              }`}
             >
-              <ExternalLink className="h-3.5 w-3.5" />
-              View/Edit Encounter
-            </Link>
-          ) : (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => window.print()}
-              className="gap-2 text-xs"
-            >
-              <ExternalLink className="h-3.5 w-3.5" />
-              Print Details
-            </Button>
+              <Receipt className="h-3.5 w-3.5" />
+              Charge & Mark Paid
+            </button>
           )}
         </div>
       </div>
+
+      {/* ── Quick Billing Dialog ── */}
+      {(userRole === "admin" || userRole === "veterinarian") && (
+        <QuickBillingDialog
+          appointmentId={appointment.id}
+          ownerId={appointment.owner_id}
+          encounterId={existingEncounter?.id}
+          serviceDescription={service?.name ?? "Veterinary Consultation"}
+          suggestedAmount={service?.price_from ? Number(service.price_from) : 0}
+          open={showBillingDialog}
+          onOpenChange={setShowBillingDialog}
+        />
+      )}
 
       {/* ── Header Title & Reference ── */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">

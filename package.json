@@ -43,6 +43,7 @@
     "lucide-react": "^1.21.0",
     "marked": "^18.0.5",
     "next": "16.2.9",
+    "nodemailer": "^9.0.6",
     "postgres": "^3.4.9",
     "react": "19.2.7",
     "react-clock": "^6.0.0",
@@ -55,6 +56,7 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^26",
+    "@types/nodemailer": "^8.0.1",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "drizzle-kit": "^0.31.10",

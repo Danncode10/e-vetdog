@@ -38,6 +38,8 @@ Keep these values in a password manager or approved secret store only: `DATABASE
    | `SUPABASE_SERVICE_ROLE_KEY` | Supabase → Project Settings → Data API; server-only |
    | `NEXT_PUBLIC_SITE_NAME` | Product configuration |
    | `NEXT_PUBLIC_SITE_URL` | Local or production app origin |
+   | `SMTP_USER` | Approved clinic Gmail address |
+   | `SMTP_PASSWORD` | Gmail App Password |
 
 4. Run `pnpm dev`, then open `http://localhost:3000/login`.
 
@@ -258,6 +260,8 @@ When a setting, provider, URL, or workflow changes, update this file in the same
    | `NEXT_PUBLIC_GITHUB_URL` | Production; Preview if tested | Product/project GitHub URL, if the existing configuration uses it. |
    | `UPSTASH_REDIS_REST_URL` | Production when rate limiting is enabled | Server-only secret value. |
    | `UPSTASH_REDIS_REST_TOKEN` | Production when rate limiting is enabled | Server-only secret value. |
+   | `SMTP_USER` | Production | Secret; approved clinic Gmail address for sending emails. |
+   | `SMTP_PASSWORD` | Production | Secret; Gmail App Password for sending emails. |
 
    Do **not** add `DATABASE_URL`, `SUPABASE_PROJECT_ID`, or GitHub Project board variables unless a future Vercel build or runtime feature explicitly reads them. Migrations run from the controlled local/CI workflow, not during a Vercel app deployment.
 5. Click **Deploy**. Once it succeeds, open the production deployment and copy its domain. If you later add a custom domain in **Project → Settings → Domains**, make that custom HTTPS domain the canonical origin and repeat sections B–D with it.

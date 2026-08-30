@@ -18,7 +18,7 @@ The MVP is for one clinic. Multi-clinic support, online payments, and advanced l
 2. An admin schedules the request or records a walk-in check-in.
 3. A veterinarian reviews the pet's history, documents the encounter, and signs the final clinical record or prescription.
 4. An admin creates an itemized invoice and records an in-clinic cash payment.
-5. The owner views permitted pet history, appointment details, invoices, and printable receipts.
+5. The owner views permitted pet history, appointment details, invoices, and email receipts.
 
 Appointment states are `requested`, `confirmed/scheduled`, `completed`, `cancelled`, and `no-show`.
 

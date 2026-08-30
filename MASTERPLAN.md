@@ -151,20 +151,25 @@
 
 **Exit state:** Admins can issue itemized invoices, record cash payments, print receipts, and correct mistakes without rewriting financial history.
 
-- [ ] **[P4.1] Implement billing rules, ledger schema, numbering, RLS, and integrity checks**
+- [x] **[P4.1] Implement billing rules, ledger schema, numbering, RLS, and integrity checks**
   - **Goal:** Finalize MVP tax/receipt/correction decisions, then model invoices, items, payments, payment corrections, receipts, sequential numbering, and financial RLS.
   - **Dependencies:** [P3.1], [P2.1].
   - **Acceptance criteria:** Invoice and receipt numbering is separate, sequential, atomic, and server-side; invoice states and transitions are documented; payments are append-only; minimum correction records preserve original payments; billing RLS and integrity tests prove non-admins cannot change payment history and duplicate numbers are prevented.
 
-- [ ] **[P4.2] Deliver invoice, cash payment, and receipt workflow**
+- [x] **[P4.2] Deliver invoice, cash payment, and receipt workflow**
   - **Goal:** Let admins create itemized invoices, record in-clinic cash payments, and generate linked receipts from one protected workflow.
   - **Dependencies:** [P4.1].
   - **Acceptance criteria:** Totals are calculated server-side; line items are validated; invoices can relate to pets, appointments, or encounters without exposing unrelated data; payment amount, method, time, notes/reference, and recording admin are retained; partial and paid statuses are accurate.
 
-- [ ] **[P4.3] Deliver minimum correction flow and printable invoice/receipt views**
-  - **Goal:** Provide the MVP correction path for billing mistakes and print-ready invoice and receipt views.
+- [ ] **[P4.2.1] Implement transactional billing emails for owners**
+  - **Goal:** Add HTML email templates in `docs/supabase/email-templates/` and configure email delivery to automatically notify pet owners when an invoice is created or marked as paid.
   - **Dependencies:** [P4.2].
-  - **Acceptance criteria:** Original payments are never edited or deleted; correction reason, actor, time, amount, and linked payment are retained; invoice status reflects corrections; printable invoice and receipt views include accurate numbering, line items, payment breakdown, correction context, and clinic wording.
+  - **Acceptance criteria:** HTML templates are saved; invoice creation triggers an "Invoice Created" email with billing details; payment completion triggers an "Invoice Paid / Receipt" email; email sending uses a unified backend service (e.g. Resend HTTP API) and falls back gracefully when the API key is not configured.
+
+- [ ] **[P4.3] Deliver minimum correction flow**
+  - **Goal:** Provide the MVP correction path for billing mistakes.
+  - **Dependencies:** [P4.2].
+  - **Acceptance criteria:** Original payments are never edited or deleted; correction reason, actor, time, amount, and linked payment are retained; invoice status reflects corrections.
 
 ## **PHASE 5: Owner portal and MVP release verification**
 
