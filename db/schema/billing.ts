@@ -14,7 +14,7 @@ import { profiles } from "./core";
 
 export const invoices = pgTable("invoices", {
   id: uuid("id").defaultRandom().primaryKey(),
-  invoiceNumber: text("invoice_number").notNull().unique(), // e.g. INV-000001
+  invoiceNumber: text("invoice_number").notNull().default("").unique(), // e.g. INV-000001 — filled by DB trigger
   encounterId: uuid("encounter_id").references(() => encounters.id, {
     onDelete: "set null",
   }),
@@ -61,7 +61,7 @@ export const payments = pgTable("payments", {
   invoiceId: uuid("invoice_id")
     .notNull()
     .references(() => invoices.id, { onDelete: "cascade" }),
-  receiptNumber: text("receipt_number").notNull().unique(), // e.g. RCT-000001
+  receiptNumber: text("receipt_number").notNull().default("").unique(), // e.g. RCPT-000001 — filled by DB trigger
   amountPaid: numeric("amount_paid", { precision: 10, scale: 2 }).notNull(),
   method: paymentMethod("method").notNull(),
   referenceNumber: text("reference_number"), // e.g. GCash Ref No

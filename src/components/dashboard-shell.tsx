@@ -14,6 +14,7 @@ import {
   X,
   Menu,
   ShieldCheck,
+  Receipt,
   type LucideIcon,
 } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -190,6 +191,22 @@ export function DashboardShell({ user, profile, children }: DashboardShellProps)
               <CalendarDays className="w-4 h-4 shrink-0" strokeWidth={1.5} />
               <span className={collapsed ? "md:hidden" : ""}>Schedules</span>
             </button>
+          )}
+          {/* Billing — staff only */}
+          {isFeatureEnabled("staff-only", userRole) && (
+            <Link
+              href="/dashboard/billing"
+              title={collapsed ? "Billing" : undefined}
+              className={`w-full flex items-center gap-3 rounded-lg text-[13px] transition-colors
+                ${collapsed ? "md:justify-center px-0 py-2.5" : "px-3 py-2"}
+                ${pathname.startsWith("/dashboard/billing")
+                  ? "bg-primary/10 text-primary font-medium"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                }`}
+            >
+              <Receipt className="w-4 h-4 shrink-0" strokeWidth={1.5} />
+              <span className={collapsed ? "md:hidden" : ""}>Billing</span>
+            </Link>
           )}
         </nav>
 
