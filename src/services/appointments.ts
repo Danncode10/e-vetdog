@@ -460,7 +460,8 @@ export async function getVeterinarianSchedule(veterinarianId: string, date: stri
  * If not provided, checks all appointments (global capacity).
  */
 export async function listAppointmentSchedules() {
-  const supabase = await createClient();
+  const { createAdminClient } = await import("@/utils/supabase/server");
+  const supabase = createAdminClient();
   try {
     const { data, error } = await supabase
       .from("appointment_schedules")
@@ -641,7 +642,10 @@ export async function getAvailableSlots(
   veterinarianId?: string,
   date?: string
 ) {
-  const supabase = await createClient();
+  // Use admin client to count ALL appointments, otherwise owners only see their own bookings
+  // and slots will appear available even if they are fully booked by others.
+  const { createAdminClient } = await import("@/utils/supabase/server");
+  const supabase = createAdminClient();
   if (!date) return { slots: [], scheduled: [] };
 
   let schedules: any[] = [];
