@@ -187,25 +187,15 @@ export function AppointmentDetailView({
               </Button>
             )
           )}
-          {existingEncounter ? (
-            <Link
-              href={`/dashboard/encounters/${existingEncounter.id}`}
-              className="inline-flex items-center gap-2 text-xs h-9 px-3 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
-            >
-              <ExternalLink className="h-3.5 w-3.5" />
-              View/Edit Encounter
-            </Link>
-          ) : (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => window.print()}
-              className="gap-2 text-xs"
-            >
-              <ExternalLink className="h-3.5 w-3.5" />
-              Print Details
-            </Button>
-          )}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => window.print()}
+            className="gap-2 text-xs h-9"
+          >
+            <ExternalLink className="h-3.5 w-3.5" />
+            Print Details
+          </Button>
           {/* ── Charge & Mark Paid button — only for diagnosed appointments ── */}
           {(userRole === "admin" || userRole === "veterinarian") &&
             appointment.status === "diagnosed" && (
