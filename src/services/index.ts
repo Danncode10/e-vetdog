@@ -8,3 +8,4 @@ export * from "./services";
 export * from "./staff";
 export * from "./users";
 export * from "./appointments";
+export * from "./clinical";

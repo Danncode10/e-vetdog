@@ -13,7 +13,7 @@ import {
   Calendar,
   Stethoscope,
   ExternalLink,
-  Printer,
+  Download,
   History,
   FileText,
   CheckCircle2,
@@ -23,7 +23,10 @@ import {
   Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
+import { toast } from "sonner";
+import { cancelAppointment } from "@/services/appointments";
+import { CancelModal } from "@/components/dashboard/appointments/cancel-modal";
+import { useRouter } from "next/navigation";
 function fmtDate(iso: string) {
   return new Intl.DateTimeFormat("en-US", {
     weekday: "long",
@@ -51,15 +54,15 @@ function fmtDateTime(iso: string) {
 }
 
 const STATUS_CONFIG: Record<string, { label: string; badge: string; dot: string }> = {
-  requested: {
-    label: "Requested",
-    badge: "bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-950/40 dark:text-amber-300",
-    dot: "bg-amber-500",
-  },
-  scheduled: {
-    label: "Confirmed",
+  booked: {
+    label: "Booked",
     badge: "bg-blue-100 text-blue-900 border-blue-300 dark:bg-blue-950/40 dark:text-blue-300",
     dot: "bg-blue-500",
+  },
+  diagnosed: {
+    label: "Diagnosed",
+    badge: "bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-950/40 dark:text-amber-300",
+    dot: "bg-amber-500",
   },
   completed: {
     label: "Completed",
@@ -70,11 +73,6 @@ const STATUS_CONFIG: Record<string, { label: string; badge: string; dot: string 
     label: "Cancelled",
     badge: "bg-red-100 text-red-900 border-red-300 dark:bg-red-950/40 dark:text-red-300",
     dot: "bg-red-500",
-  },
-  no_show: {
-    label: "No Show",
-    badge: "bg-gray-200 text-gray-800 border-gray-300 dark:bg-gray-800 dark:text-gray-300",
-    dot: "bg-gray-500",
   },
 };
 
@@ -106,14 +104,25 @@ interface AppointmentDetailViewProps {
   appointment: any;
   ownerAppointments: any[];
   ownerPets: any[];
+  userRole?: string;
+  onStartEncounter?: () => Promise<void>;
+  existingEncounter?: { id: string; status: string } | null;
+  encounterDetails?: any;
 }
 
 export function AppointmentDetailView({
   appointment,
   ownerAppointments,
   ownerPets,
+  userRole,
+  onStartEncounter,
+  existingEncounter,
+  encounterDetails,
 }: AppointmentDetailViewProps) {
   const [activeTab, setActiveTab] = React.useState<"pets" | "history">("pets");
+  const [isStarting, setIsStarting] = React.useState(false);
+  const [showCancelModal, setShowCancelModal] = React.useState(false);
+  const router = useRouter();
 
   const owner = appointment.owner || appointment.profiles;
   const petProfile = appointment.pets;
@@ -134,15 +143,67 @@ export function AppointmentDetailView({
           <ArrowLeft className="h-4 w-4 group-hover:-translate-x-0.5 transition-transform" />
           Back to appointments
         </Link>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => window.print()}
-          className="gap-2 text-xs"
-        >
-          <Printer className="h-3.5 w-3.5" />
-          Print Details
-        </Button>
+        <div className="flex items-center gap-2">
+          {existingEncounter ? (
+            userRole === "admin" || userRole === "veterinarian" ? (
+              <Link
+                href={`/dashboard/encounters/${existingEncounter.id}`}
+                className="inline-flex items-center gap-2 text-xs h-9 px-3 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm font-medium"
+              >
+                <Stethoscope className="h-3.5 w-3.5" />
+                {existingEncounter.status === "signed" ? "View Finalized Record" : "View / Edit Encounter"}
+              </Link>
+            ) : (
+              <Link
+                href={`/dashboard/appointments/${appointment.id}/prescriptions`}
+                className="inline-flex items-center gap-2 text-xs h-9 px-3 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm font-medium"
+              >
+                <FileText className="h-3.5 w-3.5" />
+                View Prescription
+              </Link>
+            )
+          ) : (
+            (userRole === "admin" || userRole === "veterinarian") && onStartEncounter && (
+              <Button
+                variant="default"
+                size="sm"
+                className="gap-2 text-xs"
+                disabled={isStarting}
+                onClick={async () => {
+                  setIsStarting(true);
+                  try {
+                    await onStartEncounter();
+                  } catch (e) {
+                    console.error(e);
+                    setIsStarting(false);
+                  }
+                }}
+              >
+                <Stethoscope className="h-3.5 w-3.5" />
+                {isStarting ? "Starting..." : "Start Encounter"}
+              </Button>
+            )
+          )}
+          {existingEncounter ? (
+            <Link
+              href={`/dashboard/encounters/${existingEncounter.id}`}
+              className="inline-flex items-center gap-2 text-xs h-9 px-3 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
+            >
+              <ExternalLink className="h-3.5 w-3.5" />
+              View/Edit Encounter
+            </Link>
+          ) : (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => window.print()}
+              className="gap-2 text-xs"
+            >
+              <ExternalLink className="h-3.5 w-3.5" />
+              Print Details
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* ── Header Title & Reference ── */}
@@ -343,41 +404,44 @@ export function AppointmentDetailView({
               </div>
             </div>
 
-            {/* Other Pets Owned by User */}
-            {ownerPets.filter((p: any) => p.id !== petProfile?.id).length > 0 && (
-              <div className="space-y-3 pt-2">
-                <h4 className="text-sm font-semibold text-foreground">Other Pets Owned by {owner?.full_name || "Owner"}</h4>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  {ownerPets
-                    .filter((p: any) => p.id !== petProfile?.id)
-                    .map((otherPet: any) => (
-                      <div
-                        key={otherPet.id}
-                        className="flex items-center justify-between gap-3 p-4 rounded-xl border border-border bg-card shadow-xs"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-muted text-muted-foreground">
-                            <PawPrint className="h-5 w-5" />
-                          </div>
-                          <div>
-                            <p className="font-semibold text-foreground text-sm">{otherPet.name}</p>
-                            <p className="text-xs capitalize text-muted-foreground">
-                              {[otherPet.species, otherPet.breed].filter(Boolean).join(" • ")}
-                            </p>
-                          </div>
-                        </div>
-                        <Link
-                          href={`/user/${appointment.owner_id}/pet/${otherPet.id}`}
-                          className="text-xs text-primary hover:underline font-medium inline-flex items-center gap-1"
-                        >
-                          Records <ChevronRight className="h-3.5 w-3.5" />
-                        </Link>
-                      </div>
-                    ))}
+            {/* Cancel Appointment Button */}
+            {["booked", "requested", "scheduled", "confirmed"].includes(appointment.status) && (
+              <div className="mt-8 rounded-xl border border-destructive/20 bg-destructive/5 p-5 flex items-center justify-between gap-4">
+                <div>
+                  <h4 className="text-sm font-semibold text-destructive">Cancel this appointment</h4>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    This action cannot be undone. You will need to book a new appointment if you change your mind.
+                  </p>
                 </div>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => setShowCancelModal(true)}
+                  className="shrink-0"
+                >
+                  <XCircle className="mr-2 h-4 w-4" />
+                  Cancel Appointment
+                </Button>
               </div>
             )}
           </div>
+        )}
+
+        {showCancelModal && (
+          <CancelModal
+            appointment={appointment}
+            onClose={() => setShowCancelModal(false)}
+            onConfirm={async (reason) => {
+              try {
+                await cancelAppointment(appointment.id, reason);
+                toast.success("Appointment cancelled successfully");
+                setShowCancelModal(false);
+                router.refresh();
+              } catch (error: any) {
+                toast.error(error.message || "Failed to cancel appointment");
+              }
+            }}
+          />
         )}
 
         {/* ── TAB 2: APPOINTMENT HISTORY ── */}
@@ -479,6 +543,7 @@ export function AppointmentDetailView({
           </div>
         )}
       </div>
+
     </div>
   );
 }

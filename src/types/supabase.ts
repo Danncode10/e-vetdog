@@ -297,6 +297,182 @@ export type Database = {
           },
         ]
       }
+      clinical_notes: {
+        Row: {
+          assessment: string | null
+          chief_complaint: string | null
+          created_at: string
+          encounter_id: string
+          id: string
+          objective: string | null
+          plan: string | null
+          subjective: string | null
+          updated_at: string
+        }
+        Insert: {
+          assessment?: string | null
+          chief_complaint?: string | null
+          created_at?: string
+          encounter_id: string
+          id?: string
+          objective?: string | null
+          plan?: string | null
+          subjective?: string | null
+          updated_at?: string
+        }
+        Update: {
+          assessment?: string | null
+          chief_complaint?: string | null
+          created_at?: string
+          encounter_id?: string
+          id?: string
+          objective?: string | null
+          plan?: string | null
+          subjective?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clinical_notes_encounter_id_fkey"
+            columns: ["encounter_id"]
+            isOneToOne: false
+            referencedRelation: "encounters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      diagnoses: {
+        Row: {
+          created_at: string
+          description: string
+          diagnosis_code: string | null
+          encounter_id: string
+          id: string
+          notes: string | null
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          diagnosis_code?: string | null
+          encounter_id: string
+          id?: string
+          notes?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          diagnosis_code?: string | null
+          encounter_id?: string
+          id?: string
+          notes?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "diagnoses_encounter_id_fkey"
+            columns: ["encounter_id"]
+            isOneToOne: false
+            referencedRelation: "encounters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      encounter_amendments: {
+        Row: {
+          amendment_text: string
+          created_at: string
+          encounter_id: string
+          id: string
+          veterinarian_id: string
+        }
+        Insert: {
+          amendment_text: string
+          created_at?: string
+          encounter_id: string
+          id?: string
+          veterinarian_id: string
+        }
+        Update: {
+          amendment_text?: string
+          created_at?: string
+          encounter_id?: string
+          id?: string
+          veterinarian_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "encounter_amendments_encounter_id_fkey"
+            columns: ["encounter_id"]
+            isOneToOne: false
+            referencedRelation: "encounters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "encounter_amendments_veterinarian_id_fkey"
+            columns: ["veterinarian_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      encounters: {
+        Row: {
+          appointment_id: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          pet_id: string
+          signed_at: string | null
+          status: Database["public"]["Enums"]["encounter_status"]
+          updated_at: string
+          veterinarian_id: string
+        }
+        Insert: {
+          appointment_id?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          pet_id: string
+          signed_at?: string | null
+          status?: Database["public"]["Enums"]["encounter_status"]
+          updated_at?: string
+          veterinarian_id: string
+        }
+        Update: {
+          appointment_id?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          pet_id?: string
+          signed_at?: string | null
+          status?: Database["public"]["Enums"]["encounter_status"]
+          updated_at?: string
+          veterinarian_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "encounters_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "encounters_pet_id_fkey"
+            columns: ["pet_id"]
+            isOneToOne: false
+            referencedRelation: "pets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "encounters_veterinarian_id_fkey"
+            columns: ["veterinarian_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           body: string | null
@@ -425,6 +601,73 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      prescriptions: {
+        Row: {
+          created_at: string
+          dosage: string
+          duration: string
+          encounter_id: string
+          frequency: string
+          id: string
+          instructions: string | null
+          medication_name: string
+          pet_id: string
+          status: Database["public"]["Enums"]["prescription_status"]
+          updated_at: string
+          veterinarian_id: string
+        }
+        Insert: {
+          created_at?: string
+          dosage: string
+          duration: string
+          encounter_id: string
+          frequency: string
+          id?: string
+          instructions?: string | null
+          medication_name: string
+          pet_id: string
+          status?: Database["public"]["Enums"]["prescription_status"]
+          updated_at?: string
+          veterinarian_id: string
+        }
+        Update: {
+          created_at?: string
+          dosage?: string
+          duration?: string
+          encounter_id?: string
+          frequency?: string
+          id?: string
+          instructions?: string | null
+          medication_name?: string
+          pet_id?: string
+          status?: Database["public"]["Enums"]["prescription_status"]
+          updated_at?: string
+          veterinarian_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prescriptions_encounter_id_fkey"
+            columns: ["encounter_id"]
+            isOneToOne: false
+            referencedRelation: "encounters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prescriptions_pet_id_fkey"
+            columns: ["pet_id"]
+            isOneToOne: false
+            referencedRelation: "pets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prescriptions_veterinarian_id_fkey"
+            columns: ["veterinarian_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -570,6 +813,41 @@ export type Database = {
           },
         ]
       }
+      treatments: {
+        Row: {
+          cost: number | null
+          created_at: string
+          description: string | null
+          encounter_id: string
+          id: string
+          name: string
+        }
+        Insert: {
+          cost?: number | null
+          created_at?: string
+          description?: string | null
+          encounter_id: string
+          id?: string
+          name: string
+        }
+        Update: {
+          cost?: number | null
+          created_at?: string
+          description?: string | null
+          encounter_id?: string
+          id?: string
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "treatments_encounter_id_fkey"
+            columns: ["encounter_id"]
+            isOneToOne: false
+            referencedRelation: "encounters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -626,6 +904,10 @@ export type Database = {
         | "completed"
         | "cancelled"
         | "no_show"
+        | "confirmed"
+        | "diagnosed"
+        | "finished"
+        | "paid"
       cancellation_reason:
         | "owner_request"
         | "clinic_emergency"
@@ -634,9 +916,11 @@ export type Database = {
         | "pet_health_issue"
         | "other"
       check_in_status: "checked_in" | "in_progress" | "completed"
+      encounter_status: "draft" | "signed"
       owner_relationship: "owner" | "co_owner" | "family" | "caretaker"
       pet_sex: "male" | "female" | "unknown"
       pet_species: "dog" | "cat" | "bird" | "rabbit" | "reptile" | "other"
+      prescription_status: "active" | "cancelled" | "completed"
       reschedule_reason:
         | "owner_request"
         | "veterinarian_unavailable"
@@ -780,6 +1064,10 @@ export const Constants = {
         "completed",
         "cancelled",
         "no_show",
+        "confirmed",
+        "diagnosed",
+        "finished",
+        "paid",
       ],
       cancellation_reason: [
         "owner_request",
@@ -790,9 +1078,11 @@ export const Constants = {
         "other",
       ],
       check_in_status: ["checked_in", "in_progress", "completed"],
+      encounter_status: ["draft", "signed"],
       owner_relationship: ["owner", "co_owner", "family", "caretaker"],
       pet_sex: ["male", "female", "unknown"],
       pet_species: ["dog", "cat", "bird", "rabbit", "reptile", "other"],
+      prescription_status: ["active", "cancelled", "completed"],
       reschedule_reason: [
         "owner_request",
         "veterinarian_unavailable",

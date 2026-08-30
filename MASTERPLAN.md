@@ -126,17 +126,23 @@
 
 **Exit state:** Veterinarians can safely complete, sign, amend, print, and review longitudinal clinical records without altering signed history.
 
-- [ ] **[P3.1] Implement encounter, prescription, signing, amendment, and RLS foundations**
+- [x] **[P3.1] Implement encounter, prescription, signing, amendment, and RLS foundations**
   - **Goal:** Add the clinical schema and service rules for encounters, notes, diagnoses, treatments, prescriptions, draft editing, signing authority, append-only amendments, and role-aware RLS.
   - **Dependencies:** [P2.3].
   - **Acceptance criteria:** Veterinarians can read the clinic history required for care, edit only permitted drafts, sign encounters and prescriptions, and create linked amendments; signed records are not directly editable; service/RLS tests prove clinical visibility, draft editing, signing, prescription authority, and amendment boundaries.
 
-- [ ] **[P3.2] Deliver veterinarian encounter workspace and pet history**
+- [x] **[P3.2] Deliver veterinarian encounter workspace and pet history**
   - **Goal:** Build the veterinarian dashboard and encounter workspace for today's visits, longitudinal pet history, questionnaire data, clinical notes, diagnoses, treatments, and prescriptions.
   - **Dependencies:** [P3.1].
   - **Acceptance criteria:** The workflow opens from appointment/check-in context; history is ordered and readable; questionnaire, note, diagnosis, treatment, and prescription data are tied to the encounter; draft recovery, validation, saving, loading, and error states are clear.
+  - **Requested Revisions (Post-P3.2 Verification):**
+    - Update the appointment status flow and ENUMs to exclusively use: `Booked`, `Diagnosed`, `Completed`, and `Cancelled`.
+    - When an owner creates an appointment, its status is `Booked`.
+    - When a veterinarian signs/locks the clinical record, its status changes to `Diagnosed`.
+    - When paid (future billing module), status will change to `Completed`.
+    - On the Appointment Detail view, replace the placeholder "Print Details" with a "View/Edit Encounter" button that links back to the Encounter Workspace if a draft or signed record exists.
 
-- [ ] **[P3.3] Deliver print-ready clinical record and prescription views**
+- [x] **[P3.3] Deliver print-ready clinical record and prescription views**
   - **Goal:** Provide authorized staff with print-optimized clinical-record and prescription documents.
   - **Dependencies:** [P3.2].
   - **Acceptance criteria:** Documents contain accurate patient, veterinarian, clinical, prescription, signature, and amendment data; print layouts do not require a server-side PDF engine unless later approved; owner-facing medical visibility remains filtered by permission.

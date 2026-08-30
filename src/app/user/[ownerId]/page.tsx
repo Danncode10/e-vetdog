@@ -32,13 +32,13 @@ function fmtTime(iso: string) {
 }
 
 const STATUS_CONFIG: Record<string, { label: string; badge: string }> = {
-  requested: {
-    label: "Requested",
-    badge: "bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-950/40 dark:text-amber-300",
-  },
-  scheduled: {
-    label: "Confirmed",
+  booked: {
+    label: "Booked",
     badge: "bg-blue-100 text-blue-900 border-blue-300 dark:bg-blue-950/40 dark:text-blue-300",
+  },
+  diagnosed: {
+    label: "Diagnosed",
+    badge: "bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-950/40 dark:text-amber-300",
   },
   completed: {
     label: "Completed",
@@ -47,10 +47,6 @@ const STATUS_CONFIG: Record<string, { label: string; badge: string }> = {
   cancelled: {
     label: "Cancelled",
     badge: "bg-red-100 text-red-900 border-red-300 dark:bg-red-950/40 dark:text-red-300",
-  },
-  no_show: {
-    label: "No Show",
-    badge: "bg-gray-200 text-gray-800 border-gray-300 dark:bg-gray-800 dark:text-gray-300",
   },
 };
 
@@ -75,7 +71,7 @@ export default async function OwnerRecordPage({ params }: { params: Promise<{ ow
 
   if (!owner) notFound();
 
-  const activeVisits = appointments.filter((a: any) => ["requested", "scheduled", "confirmed"].includes(a.status));
+  const activeVisits = appointments.filter((a: any) => ["booked"].includes(a.status));
   const completedVisits = appointments.filter((a: any) => a.status === "completed");
 
   return (

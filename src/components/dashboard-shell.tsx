@@ -263,7 +263,7 @@ export function DashboardShell({ user, profile, children }: DashboardShellProps)
 
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
 
-        <header className="h-14 flex items-center justify-between px-5 border-b border-border bg-background shrink-0">
+        <header className="h-14 flex items-center justify-between px-5 border-b border-border bg-background shrink-0 print:hidden">
           <button onClick={() => setSidebarOpen(true)} className="md:hidden p-2 -ml-2 text-muted-foreground hover:text-foreground rounded-lg hover:bg-muted transition-colors">
             <Menu className="w-5 h-5" />
           </button>
@@ -271,7 +271,7 @@ export function DashboardShell({ user, profile, children }: DashboardShellProps)
           <div className="flex-1 md:hidden" />
         </header>
 
-        <main className="flex-1 overflow-y-auto p-6 md:p-8">
+        <main className="flex-1 overflow-y-auto p-6 md:p-8 print:p-0">
           {pathname === "/dashboard" ? (
             <>
               {activeTab === "overview" && <OverviewTab displayName={displayName} setTab={setTab} role={userRole} />}
