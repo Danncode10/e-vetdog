@@ -30,6 +30,8 @@ export interface ClinicActivityLog {
 export interface ActivityLogFilters {
   category?: LogCategory;
   search?: string;
+  startDate?: string;
+  endDate?: string;
   limit?: number;
 }
 
@@ -43,7 +45,7 @@ export async function getClinicActivityLogs(
   await requireRole(["admin"]);
 
   const adminClient = createAdminClient();
-  const limit = filters.limit ?? 100;
+  const limit = filters.limit ?? 250;
   const logs: ClinicActivityLog[] = [];
 
   // 1. Fetch Appointment Status History
@@ -342,6 +344,16 @@ export async function getClinicActivityLogs(
         l.actor.name.toLowerCase().includes(q) ||
         (l.target?.label && l.target.label.toLowerCase().includes(q))
     );
+  }
+
+  if (filters.startDate) {
+    const start = new Date(filters.startDate).getTime();
+    filtered = filtered.filter((l) => new Date(l.timestamp).getTime() >= start);
+  }
+
+  if (filters.endDate) {
+    const end = new Date(filters.endDate).getTime();
+    filtered = filtered.filter((l) => new Date(l.timestamp).getTime() <= end);
   }
 
   return filtered.slice(0, limit);
