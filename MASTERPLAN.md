@@ -190,7 +190,7 @@
   - **Dependencies:** [P5.1], [P3.3], [P4.4], [P2.2].
   - **Acceptance criteria:** Medical visibility follows `can_view_medical_records`; financial access follows `pet_owners`; owner views never expose another owner's pets, appointments, records, invoices, or receipts; data aggregation remains in services; empty, loading, error, and print states are complete.
 
-- [ ] **[P5.3] Run end-to-end MVP authorization and workflow verification**
+- [x] **[P5.3] Run end-to-end MVP authorization and workflow verification**
   - **Goal:** Verify the owner appointment-to-care-to-invoice-to-receipt journey and all MVP role boundaries with automated and manual acceptance checks.
   - **Dependencies:** [P5.2].
   - **Acceptance criteria:** Tests prove owners cannot access another owner's pets, appointments, encounters, invoices, receipts, or permitted records; admin and veterinarian restrictions hold; migrations and generated types are current; the main clinic workflow is manually verified.
