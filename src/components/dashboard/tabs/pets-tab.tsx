@@ -255,7 +255,20 @@ export function PetsTab({ role }: { role: UserRole }) {
                     <div className="flex items-center gap-2 text-muted-foreground">
                       <Calendar className="w-3.5 h-3.5 shrink-0 text-primary" />
                       <span className="truncate">
-                        {pet.date_of_birth ? `DOB: ${pet.date_of_birth}` : pet.age !== null && pet.age !== undefined ? `Age: ${pet.age} ${pet.age === 1 ? "yr" : "yrs"}` : "Age: Unknown"}
+                        {pet.age !== null && pet.age !== undefined
+                          ? `Age: ${pet.age} ${pet.age === 1 ? "year" : "years"}`
+                          : pet.date_of_birth
+                          ? (() => {
+                              const d = new Date(pet.date_of_birth);
+                              if (isNaN(d.getTime())) return "Age: Unknown";
+                              const today = new Date();
+                              let y = today.getFullYear() - d.getFullYear();
+                              const m = today.getMonth() - d.getMonth();
+                              if (m < 0 || (m === 0 && today.getDate() < d.getDate())) y--;
+                              const calc = Math.max(0, y);
+                              return `Age: ${calc} ${calc === 1 ? "year" : "years"}`;
+                            })()
+                          : "Age: Unknown"}
                       </span>
                     </div>
                     <div className="flex items-center gap-2 text-muted-foreground">
