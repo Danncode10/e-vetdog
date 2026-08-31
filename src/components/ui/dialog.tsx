@@ -9,39 +9,48 @@ type DialogProps = {
 };
 
 export function Dialog({ children, open, onOpenChange }: DialogProps) {
-  const dialogRef = React.useRef<HTMLDialogElement>(null);
-
+  // Handle escape key
   React.useEffect(() => {
-    const dialog = dialogRef.current;
-    if (!dialog) return;
+    if (!open) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onOpenChange(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [open, onOpenChange]);
 
-    if (open && !dialog.open) {
-      dialog.showModal();
-      return;
+  // Lock body scroll when open
+  React.useEffect(() => {
+    if (open) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
     }
-
-    if (!open && dialog.open) {
-      dialog.close();
-    }
+    return () => {
+      document.body.style.overflow = "";
+    };
   }, [open]);
 
+  if (!open) return null;
+
   return (
-    <dialog
-      ref={dialogRef}
-      className="fixed inset-0 z-50 m-0 h-full w-full max-h-none max-w-none bg-background/80 backdrop-blur-sm p-4 flex items-center justify-center border-0 outline-none open:flex"
-      onCancel={(event) => {
-        event.preventDefault();
-        onOpenChange(false);
-      }}
-      onClick={(event) => {
-        if (event.target === event.currentTarget) {
-          onOpenChange(false);
-        }
-      }}
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      role="dialog"
+      aria-modal="true"
     >
-      <div className="w-full max-w-md animate-in fade-in zoom-in-95 duration-200">
+      {/* Backdrop overlay */}
+      <div
+        className="absolute inset-0 bg-background/80 backdrop-blur-sm transition-opacity animate-in fade-in duration-200"
+        onClick={() => onOpenChange(false)}
+      />
+
+      {/* Dialog container */}
+      <div className="relative z-10 w-full max-w-md animate-in fade-in zoom-in-95 duration-200">
         {children}
       </div>
-    </dialog>
+    </div>
   );
 }

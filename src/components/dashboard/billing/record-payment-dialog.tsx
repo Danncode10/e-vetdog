@@ -3,7 +3,6 @@
 import { useState, useTransition } from "react";
 import { Loader2, X, Receipt, CreditCard, Banknote, Smartphone, Building, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Dialog } from "@/components/ui/dialog";
 import { recordPayment } from "@/services/billing";
 
@@ -90,7 +89,7 @@ export function RecordPaymentDialog({
           <button
             type="button"
             onClick={() => onOpenChange(false)}
-            className="text-muted-foreground hover:text-foreground hover:bg-muted p-1.5 rounded-full transition-colors"
+            className="text-muted-foreground hover:text-foreground hover:bg-muted p-2 rounded-xl transition-colors cursor-pointer"
             aria-label="Close"
           >
             <X className="size-4" />
@@ -100,13 +99,13 @@ export function RecordPaymentDialog({
         {/* Form Body */}
         <form onSubmit={handleSubmit}>
           <div className="px-6 py-5 space-y-4">
-            {/* Amount */}
+            {/* Amount with distinct currency addon */}
             <div className="space-y-1.5">
               <label htmlFor="payment-amount" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 Amount to Pay <span className="text-destructive">*</span>
               </label>
-              <div className="relative">
-                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-bold text-muted-foreground">
+              <div className="flex rounded-xl border border-input bg-background overflow-hidden focus-within:ring-2 focus-within:ring-ring transition-all">
+                <span className="flex items-center justify-center bg-muted/60 px-4 text-sm font-bold text-muted-foreground border-r border-border/80 select-none">
                   ₱
                 </span>
                 <input
@@ -118,7 +117,7 @@ export function RecordPaymentDialog({
                   onChange={(e) => setAmount(e.target.value)}
                   placeholder="0.00"
                   required
-                  className="min-h-12 w-full rounded-xl border border-input bg-background pl-8 pr-3.5 text-base font-bold font-mono text-foreground outline-none transition-all focus-visible:ring-2 focus-visible:ring-ring"
+                  className="min-h-12 w-full bg-transparent px-3.5 text-base font-bold font-mono text-foreground outline-none border-0 focus:ring-0"
                 />
               </div>
             </div>
@@ -137,7 +136,7 @@ export function RecordPaymentDialog({
                       key={m.value}
                       type="button"
                       onClick={() => setMethod(m.value)}
-                      className={`flex items-center gap-2 p-2.5 rounded-xl border text-xs font-semibold transition-all ${
+                      className={`flex items-center gap-2 p-2.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
                         isSelected
                           ? "border-primary bg-primary/10 text-primary shadow-xs"
                           : "border-border bg-background text-muted-foreground hover:bg-muted/40 hover:text-foreground"
@@ -182,14 +181,14 @@ export function RecordPaymentDialog({
               variant="outline"
               onClick={() => onOpenChange(false)}
               disabled={isPending}
-              className="min-h-11 rounded-xl font-medium"
+              className="min-h-11 rounded-xl font-medium cursor-pointer"
             >
               Cancel
             </Button>
             <Button
               type="submit"
               disabled={isPending}
-              className="min-h-11 rounded-xl font-semibold gap-2"
+              className="min-h-11 rounded-xl font-semibold gap-2 cursor-pointer"
             >
               {isPending ? <Loader2 className="size-4 animate-spin" /> : <CheckCircle2 className="size-4" />}
               Confirm Payment
