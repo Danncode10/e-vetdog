@@ -4,17 +4,29 @@ import { getStaffPetRecord } from "@/services/pets";
 import { requireRole } from "@/services/authorization";
 import { notFound } from "next/navigation";
 
-export default async function PetRecordPage({ params }: { params: Promise<{ ownerId: string; petId: string }> }) {
+export default async function PetRecordPage({ 
+  params,
+  searchParams
+}: { 
+  params: Promise<{ ownerId: string; petId: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
   await requireRole(["admin", "veterinarian"]);
   const { ownerId, petId } = await params;
+  const resolvedSearchParams = await searchParams;
+  const isFromPets = resolvedSearchParams?.from === "pets";
+  
   const pet = await getStaffPetRecord(ownerId, petId);
   if (!pet) notFound();
 
+  const backHref = isFromPets ? "/dashboard?tab=pets" : `/user/${ownerId}`;
+  const backLabel = isFromPets ? "Back to pets" : "Back to owner record";
+
   return (
     <div className="mx-auto w-full max-w-4xl space-y-8">
-      <Link href={`/user/${ownerId}`} className="inline-flex min-h-12 items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+      <Link href={backHref} className="inline-flex min-h-12 items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
         <ArrowLeft className="size-4" aria-hidden="true" />
-        Back to owner record
+        {backLabel}
       </Link>
       <header className="border-b border-border pb-6">
         <p className="text-sm font-medium text-muted-foreground">Pet record</p>

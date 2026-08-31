@@ -299,7 +299,7 @@ export function PetsTab({ role }: { role: UserRole }) {
                       variant="outline"
                       className="w-full gap-2 text-xs h-9"
                       disabled={!ownerProfileId}
-                      onClick={() => ownerProfileId && router.push(`/user/${ownerProfileId}/pet/${pet.id}`)}
+                      onClick={() => ownerProfileId && router.push(`/user/${ownerProfileId}/pet/${pet.id}?from=pets`)}
                     >
                       <ExternalLink className="w-3.5 h-3.5" />
                       Open Clinical Pet Record
