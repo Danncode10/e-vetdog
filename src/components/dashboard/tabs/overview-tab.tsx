@@ -1,10 +1,31 @@
 "use client";
 
-import { PawPrint, Users, CalendarDays, ArrowRight, ShieldCheck, Sparkles, Clock, ScrollText } from "lucide-react";
+import * as React from "react";
+import {
+  PawPrint,
+  Users,
+  CalendarDays,
+  ArrowRight,
+  ShieldCheck,
+  Sparkles,
+  Clock,
+  ScrollText,
+  Receipt,
+  Heart,
+  PlusCircle,
+  FileText,
+  CheckCircle2,
+  Calendar,
+  AlertCircle,
+} from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import type { DashboardTabId, UserRole } from "@/lib/dashboard-features";
 import { isFeatureEnabled } from "@/lib/dashboard-features";
+import {
+  getOwnerDashboardSummary,
+  type OwnerDashboardSummary,
+} from "@/services/dashboard";
 
 interface OverviewTabProps {
   displayName: string;
@@ -12,16 +33,51 @@ interface OverviewTabProps {
   role: UserRole;
 }
 
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+function formatTime(isoStr: string): string {
+  if (!isoStr) return "—";
+  const d = new Date(isoStr);
+  if (isNaN(d.getTime())) return isoStr;
+  const month = MONTHS[d.getMonth()];
+  const day = d.getDate();
+  let hours = d.getHours();
+  const minutes = d.getMinutes().toString().padStart(2, "0");
+  const ampm = hours >= 12 ? "PM" : "AM";
+  hours = hours % 12 || 12;
+  return `${month} ${day} at ${hours}:${minutes} ${ampm}`;
+}
+
 const statCards = [
   {
     icon: PawPrint,
-    label: "Patients",
-    description: "View pet records & medical history",
+    label: "Pets",
+    description: "View pet profiles & health records",
     badge: "Pet Registry",
     tab: "pets" as DashboardTabId,
     feature: "pets" as const,
     color: "from-emerald-500/10 to-teal-500/5 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
     iconBg: "bg-emerald-500 text-white dark:bg-emerald-600",
+  },
+  {
+    icon: CalendarDays,
+    label: "Appointments",
+    description: "Book visits & track appointments",
+    badge: "Booking Hub",
+    tab: "appointments" as DashboardTabId,
+    feature: "appointments" as const,
+    color: "from-amber-500/10 to-orange-500/5 text-amber-600 dark:text-amber-400 border-amber-500/20",
+    iconBg: "bg-amber-500 text-white dark:bg-amber-600",
+  },
+  {
+    icon: Receipt,
+    label: "Billing",
+    description: "Itemized invoices & payment receipts",
+    badge: "Receipts & Billing",
+    tab: "billing" as DashboardTabId,
+    feature: "billing" as const,
+    color: "from-blue-500/10 to-indigo-500/5 text-blue-600 dark:text-blue-400 border-blue-500/20",
+    iconBg: "bg-blue-500 text-white dark:bg-blue-600",
   },
   {
     icon: Users,
@@ -30,18 +86,8 @@ const statCards = [
     badge: "Client Directory",
     tab: "owners" as DashboardTabId,
     feature: "owners" as const,
-    color: "from-blue-500/10 to-indigo-500/5 text-blue-600 dark:text-blue-400 border-blue-500/20",
-    iconBg: "bg-blue-500 text-white dark:bg-blue-600",
-  },
-  {
-    icon: CalendarDays,
-    label: "Appointments",
-    description: "Schedule visits & check-in patients",
-    badge: "Booking Hub",
-    tab: "appointments" as DashboardTabId,
-    feature: "appointments" as const,
-    color: "from-amber-500/10 to-orange-500/5 text-amber-600 dark:text-amber-400 border-amber-500/20",
-    iconBg: "bg-amber-500 text-white dark:bg-amber-600",
+    color: "from-purple-500/10 to-indigo-500/5 text-purple-600 dark:text-purple-400 border-purple-500/20",
+    iconBg: "bg-purple-500 text-white dark:bg-purple-600",
   },
   {
     icon: ScrollText,
@@ -50,12 +96,24 @@ const statCards = [
     badge: "Admin Audit",
     tab: "logs" as DashboardTabId,
     feature: "admin-only" as const,
-    color: "from-purple-500/10 to-indigo-500/5 text-purple-600 dark:text-purple-400 border-purple-500/20",
-    iconBg: "bg-purple-500 text-white dark:bg-purple-600",
+    color: "from-rose-500/10 to-pink-500/5 text-rose-600 dark:text-rose-400 border-rose-500/20",
+    iconBg: "bg-rose-500 text-white dark:bg-rose-600",
   },
 ];
 
 export function OverviewTab({ displayName, setTab, role }: OverviewTabProps) {
+  const [ownerSummary, setOwnerSummary] = React.useState<OwnerDashboardSummary | null>(null);
+  const [loadingOwner, setLoadingOwner] = React.useState(role === "owner");
+
+  React.useEffect(() => {
+    if (role === "owner") {
+      getOwnerDashboardSummary()
+        .then((data) => setOwnerSummary(data))
+        .catch((err) => console.error("Failed to load owner overview:", err))
+        .finally(() => setLoadingOwner(false));
+    }
+  }, [role]);
+
   const visibleCards = statCards.filter((card) => isFeatureEnabled(card.feature, role));
   const todayDateStr = new Intl.DateTimeFormat("en-US", {
     weekday: "long",
@@ -65,16 +123,16 @@ export function OverviewTab({ displayName, setTab, role }: OverviewTabProps) {
   }).format(new Date());
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto pb-6">
+    <div className="space-y-6 max-w-6xl mx-auto pb-10">
       {/* Hero Welcome Banner */}
-      <div className="relative overflow-hidden rounded-3xl border border-border bg-card p-6 sm:p-8 shadow-sm">
+      <div className="relative overflow-hidden rounded-3xl border border-border bg-card p-6 sm:p-8 shadow-xs">
         <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-primary/5 blur-3xl pointer-events-none" />
         <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="space-y-2">
             <div className="flex flex-wrap items-center gap-2">
               <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
                 <Sparkles className="w-3.5 h-3.5" />
-                Welcome Back
+                {role === "owner" ? "Pet Parent Portal" : "Welcome Back"}
               </span>
               {role && (
                 <span className="inline-flex items-center gap-1 rounded-full border border-border bg-muted/60 px-2.5 py-0.5 text-xs font-medium text-foreground capitalize">
@@ -86,8 +144,10 @@ export function OverviewTab({ displayName, setTab, role }: OverviewTabProps) {
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
               Hello, {displayName}
             </h1>
-            <p className="text-sm sm:text-base text-muted-foreground">
-              Here is what is happening at your clinic today.
+            <p className="text-xs sm:text-sm text-muted-foreground">
+              {role === "owner"
+                ? "Here is the latest care, appointment schedule, and medical updates for your pets."
+                : "Here is what is happening at your clinic today."}
             </p>
           </div>
 
@@ -97,6 +157,138 @@ export function OverviewTab({ displayName, setTab, role }: OverviewTabProps) {
           </div>
         </div>
       </div>
+
+      {/* Owner-Specific Dynamic Widgets */}
+      {role === "owner" && ownerSummary && (
+        <div className="space-y-6 animate-in fade-in duration-200">
+          {/* Upcoming Appointments Section */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground px-1 flex items-center gap-1.5">
+                <Calendar className="size-3.5 text-primary" />
+                Upcoming Appointments & Visits
+              </h2>
+              <button
+                onClick={() => setTab("appointments")}
+                className="text-xs font-semibold text-primary hover:underline cursor-pointer"
+              >
+                View all visits →
+              </button>
+            </div>
+
+            {ownerSummary.upcomingAppointments.length === 0 ? (
+              <Card className="rounded-2xl border border-border bg-card p-5">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
+                  <div className="space-y-1">
+                    <p className="text-sm font-semibold text-foreground">No upcoming visits scheduled</p>
+                    <p className="text-xs text-muted-foreground">
+                      Book routine vaccinations, checkups, or surgical consultations with our veterinary team.
+                    </p>
+                  </div>
+                  <Button
+                    size="sm"
+                    onClick={() => setTab("appointments")}
+                    className="rounded-xl gap-2 text-xs font-semibold cursor-pointer shrink-0"
+                  >
+                    <PlusCircle className="size-3.5" />
+                    Book an Appointment
+                  </Button>
+                </div>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {ownerSummary.upcomingAppointments.map((apt) => (
+                  <Card
+                    key={apt.id}
+                    className="rounded-2xl border border-border bg-card p-4 hover:border-primary/40 transition-all cursor-pointer"
+                    onClick={() => setTab("appointments")}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-sm text-foreground">
+                            {apt.pet?.name || "Pet"}
+                          </span>
+                          <span className="rounded-md bg-muted px-2 py-0.5 text-[10px] font-semibold uppercase text-muted-foreground">
+                            {apt.service?.name || "Consultation"}
+                          </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Clock className="size-3 text-primary" />
+                          {formatTime(apt.scheduled_start)}
+                        </p>
+                      </div>
+                      <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-[11px] font-semibold text-primary capitalize">
+                        {apt.status.replace("_", " ")}
+                      </span>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Linked Pets Section */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground px-1 flex items-center gap-1.5">
+                <Heart className="size-3.5 text-primary" />
+                My Pets ({ownerSummary.pets.length})
+              </h2>
+              <button
+                onClick={() => setTab("pets")}
+                className="text-xs font-semibold text-primary hover:underline cursor-pointer"
+              >
+                Manage pets →
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {ownerSummary.pets.map((pet) => (
+                <Card
+                  key={pet.id}
+                  className="rounded-2xl border border-border bg-card p-4 hover:shadow-xs hover:border-primary/40 transition-all"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                      <PawPrint className="size-5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-sm font-bold text-foreground truncate">{pet.name}</h4>
+                        <span className="text-[10px] uppercase font-semibold rounded-md bg-muted px-1.5 py-0.5 text-muted-foreground">
+                          {pet.relationship_type.replace("_", " ")}
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground capitalize truncate">
+                        {pet.species} {pet.breed ? `· ${pet.breed}` : ""}
+                      </p>
+                      <div className="mt-3 flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setTab("pets")}
+                          className="h-7 text-[11px] rounded-lg px-2.5 font-semibold cursor-pointer"
+                        >
+                          View Records
+                        </Button>
+                        <Button
+                          variant="default"
+                          size="sm"
+                          onClick={() => setTab("appointments")}
+                          className="h-7 text-[11px] rounded-lg px-2.5 font-semibold cursor-pointer"
+                        >
+                          Book Visit
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Feature Navigation Grid */}
       <div>
@@ -138,37 +330,6 @@ export function OverviewTab({ displayName, setTab, role }: OverviewTabProps) {
           ))}
         </div>
       </div>
-
-      {/* Quick Action Tiles */}
-      <div className="rounded-2xl border border-border bg-card p-5 sm:p-6 space-y-4">
-        <div>
-          <h3 className="text-base sm:text-lg font-semibold text-foreground">Common Actions</h3>
-          <p className="text-xs sm:text-sm text-muted-foreground">Shortcuts to manage records and schedules.</p>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {visibleCards.map(({ icon: Icon, label, description, tab }) => (
-            <Button
-              key={tab}
-              variant="outline"
-              onClick={() => setTab(tab)}
-              className="h-auto p-4 flex items-start gap-3 text-left justify-start rounded-xl border-border/80 hover:bg-muted/50 hover:border-primary/40 transition-all min-h-[52px]"
-            >
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                <Icon className="w-4 h-4" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <span className="font-semibold text-sm text-foreground block truncate">
-                  Manage {label}
-                </span>
-                <span className="text-xs text-muted-foreground line-clamp-1">
-                  {description}
-                </span>
-              </div>
-            </Button>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }
-
