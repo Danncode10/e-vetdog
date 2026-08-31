@@ -132,19 +132,19 @@ export function OwnerBillingTab() {
   const summary = React.useMemo(() => {
     let totalBilled = 0;
     let totalPaid = 0;
-    let totalOutstanding = 0;
+    let paidCount = 0;
 
     for (const inv of invoices) {
       const total = Number(inv.total_amount) || 0;
       const paid = getPaidAmount(inv);
       totalBilled += total;
       totalPaid += paid;
-      if (inv.status !== "paid" && inv.status !== "voided") {
-        totalOutstanding += Math.max(0, total - paid);
+      if (inv.status === "paid") {
+        paidCount++;
       }
     }
 
-    return { totalBilled, totalPaid, totalOutstanding };
+    return { totalBilled, totalPaid, totalCount: invoices.length, paidCount };
   }, [invoices]);
 
   const handlePrint = (invoice: InvoiceWithDetails) => {
@@ -278,17 +278,19 @@ export function OwnerBillingTab() {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <Card className="rounded-2xl border border-border bg-card p-4 shadow-xs">
+        <Card className="rounded-2xl border border-border bg-card p-4 shadow-2xs">
           <div className="text-xs font-medium text-muted-foreground">Total Invoiced</div>
           <div className="text-xl font-bold text-foreground mt-1 font-mono">{formatCurrency(summary.totalBilled)}</div>
         </Card>
-        <Card className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-4 shadow-xs">
+        <Card className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-4 shadow-2xs">
           <div className="text-xs font-medium text-emerald-600 dark:text-emerald-400">Total Paid & Settled</div>
           <div className="text-xl font-bold text-foreground mt-1 font-mono">{formatCurrency(summary.totalPaid)}</div>
         </Card>
-        <Card className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-4 shadow-xs">
-          <div className="text-xs font-medium text-amber-600 dark:text-amber-400">Outstanding Balance</div>
-          <div className="text-xl font-bold text-foreground mt-1 font-mono">{formatCurrency(summary.totalOutstanding)}</div>
+        <Card className="rounded-2xl border border-blue-500/20 bg-blue-500/5 p-4 shadow-2xs">
+          <div className="text-xs font-medium text-blue-600 dark:text-blue-400">Invoices & Receipts</div>
+          <div className="text-xl font-bold text-foreground mt-1 font-mono">
+            {summary.totalCount} <span className="text-xs font-normal text-muted-foreground">({summary.paidCount} Settled)</span>
+          </div>
         </Card>
       </div>
 
