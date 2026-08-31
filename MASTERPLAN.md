@@ -185,7 +185,7 @@
   - **Dependencies:** [P4.4], [P3.2], [P2.3.2].
   - **Acceptance criteria:** Dedicated "Logs" tab in dashboard navigation visible only to `admin`; chronological searchable and filterable activity table with actor, action type, target entity, timestamp, and details; data aggregation is strictly housed in services; admin-only access guarded by `requireRole(['admin'])`.
 
-- [ ] **[P5.2] Deliver owner portal for linked pets, appointments, permitted records, invoices, and receipts**
+- [x] **[P5.2] Deliver owner portal for linked pets, appointments, permitted records, invoices, and receipts**
   - **Goal:** Build the owner home and pet-detail views for linked pets, upcoming appointments, recent activity, permitted clinical records, invoices, receipts, and approved print views.
   - **Dependencies:** [P5.1], [P3.3], [P4.4], [P2.2].
   - **Acceptance criteria:** Medical visibility follows `can_view_medical_records`; financial access follows `pet_owners`; owner views never expose another owner's pets, appointments, records, invoices, or receipts; data aggregation remains in services; empty, loading, error, and print states are complete.
