@@ -66,6 +66,11 @@ const STATUS_CONFIG: Record<string, { label: string; badge: string; dot: string 
     badge: "bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-950/40 dark:text-amber-300",
     dot: "bg-amber-500",
   },
+  paid: {
+    label: "Paid",
+    badge: "bg-emerald-100 text-emerald-900 border-emerald-300 dark:bg-emerald-950/40 dark:text-emerald-300",
+    dot: "bg-emerald-500",
+  },
   completed: {
     label: "Completed",
     badge: "bg-green-100 text-green-900 border-green-300 dark:bg-green-950/40 dark:text-green-300",

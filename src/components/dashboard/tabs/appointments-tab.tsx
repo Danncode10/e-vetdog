@@ -50,6 +50,12 @@ const STATUS_CONFIG: Record<string, { label: string; dot: string; badge: string;
     badge: "bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-700",
     stripe: "bg-amber-400",
   },
+  paid: {
+    label: "Paid",
+    dot: "bg-emerald-500",
+    badge: "bg-emerald-100 text-emerald-900 border-emerald-300 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-700",
+    stripe: "bg-emerald-500",
+  },
   completed: {
     label: "Completed",
     dot: "bg-green-500",
@@ -269,7 +275,7 @@ export function AppointmentsTab({ role, userId }: { role: UserRole; userId: stri
                 { id: "all", label: "All" },
                 { id: "booked", label: "Booked" },
                 { id: "diagnosed", label: "Diagnosed" },
-                { id: "completed", label: "Completed" },
+                { id: "paid", label: "Paid" },
                 { id: "cancelled", label: "Cancelled" },
               ].map((tab) => {
                 const isActive = statusFilter === tab.id;
