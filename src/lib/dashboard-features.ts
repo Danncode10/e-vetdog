@@ -9,6 +9,7 @@ export type DashboardTabId =
   | "owners"
   | "appointments"
   | "team"
+  | "logs"
   | "settings"
   | "schedules";
 
@@ -34,6 +35,7 @@ export const TAB_CONFIG: TabConfig[] = [
   { id: "appointments", label: "Appointments", feature: "appointments" },
   { id: "schedules", label: "Schedule", feature: "staff-only" },
   { id: "team", label: "Team", feature: "admin-only" },
+  { id: "logs", label: "Logs", feature: "admin-only" },
   { id: "settings", label: "Settings", feature: "always" },
 ];
 

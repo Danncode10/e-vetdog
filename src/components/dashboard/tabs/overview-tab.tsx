@@ -1,6 +1,6 @@
 "use client";
 
-import { PawPrint, Users, CalendarDays, ArrowRight, ShieldCheck, Sparkles, Clock } from "lucide-react";
+import { PawPrint, Users, CalendarDays, ArrowRight, ShieldCheck, Sparkles, Clock, ScrollText } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import type { DashboardTabId, UserRole } from "@/lib/dashboard-features";
@@ -42,6 +42,16 @@ const statCards = [
     feature: "appointments" as const,
     color: "from-amber-500/10 to-orange-500/5 text-amber-600 dark:text-amber-400 border-amber-500/20",
     iconBg: "bg-amber-500 text-white dark:bg-amber-600",
+  },
+  {
+    icon: ScrollText,
+    label: "Audit Logs",
+    description: "Monitor staff actions, diagnostics & receipts",
+    badge: "Admin Audit",
+    tab: "logs" as DashboardTabId,
+    feature: "admin-only" as const,
+    color: "from-purple-500/10 to-indigo-500/5 text-purple-600 dark:text-purple-400 border-purple-500/20",
+    iconBg: "bg-purple-500 text-white dark:bg-purple-600",
   },
 ];
 

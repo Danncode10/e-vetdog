@@ -15,6 +15,7 @@ import {
   Menu,
   ShieldCheck,
   Receipt,
+  ScrollText,
   type LucideIcon,
 } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -31,6 +32,7 @@ import { OwnersTab } from "@/components/dashboard/tabs/owners-tab";
 import { AppointmentsTab } from "@/components/dashboard/tabs/appointments-tab";
 import { SettingsTab } from "@/components/dashboard/tabs/settings-tab";
 import { SchedulesTab } from "@/app/dashboard/schedules/page";
+import { LogsTab } from "@/components/dashboard/tabs/logs-tab";
 
 const ICONS: Record<DashboardTabId | "schedules", LucideIcon> = {
   overview: LayoutDashboard,
@@ -39,6 +41,7 @@ const ICONS: Record<DashboardTabId | "schedules", LucideIcon> = {
   appointments: CalendarDays,
   schedules: CalendarDays, // Schedules tab
   team: ShieldCheck,
+  logs: ScrollText,
   settings: Settings,
 };
 
@@ -299,6 +302,7 @@ export function DashboardShell({ user, profile, children }: DashboardShellProps)
               ) : null}
               {activeTab === "settings" && <SettingsTab profile={currentProfile} onProfileUpdated={setCurrentProfile} />}
               {activeTab === "schedules" && <SchedulesTab role={userRole} />}
+              {activeTab === "logs" && <LogsTab />}
             </>
           ) : children}
         </main>
