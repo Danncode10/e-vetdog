@@ -82,12 +82,7 @@ const STATUS_CONFIG: Record<
   },
 };
 
-function getPaidAmount(inv: InvoiceWithDetails): number {
-  if (inv.payments && inv.payments.length > 0) {
-    return inv.payments.reduce((sum, p) => sum + (Number(p.amount_paid) || 0), 0);
-  }
-  return inv.status === "paid" ? Number(inv.total_amount) : 0;
-}
+import { printOfficialReceipt, getPaidAmount } from "@/lib/print-receipt";
 
 export function OwnerBillingTab() {
   const [invoices, setInvoices] = React.useState<InvoiceWithDetails[]>([]);
@@ -145,100 +140,7 @@ export function OwnerBillingTab() {
   }, [invoices]);
 
   const handlePrint = (invoice: InvoiceWithDetails) => {
-    const printWindow = window.open("", "_blank");
-    if (!printWindow) return;
-
-    const receipt = invoice.payments[0];
-
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>Receipt - ${invoice.invoice_number}</title>
-          <style>
-            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 40px; color: #111; max-width: 600px; margin: 0 auto; }
-            .header { text-align: center; border-bottom: 2px dashed #ccc; padding-bottom: 20px; margin-bottom: 20px; }
-            .title { font-size: 24px; font-weight: bold; }
-            .meta { font-size: 13px; color: #666; margin-top: 5px; }
-            .items { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px; }
-            .items th { text-align: left; border-bottom: 1px solid #ddd; padding: 8px 4px; }
-            .items td { padding: 8px 4px; border-bottom: 1px solid #eee; }
-            .totals { margin-top: 20px; border-top: 1px solid #ddd; padding-top: 10px; font-size: 14px; }
-            .totals-row { display: flex; justify-content: space-between; padding: 4px 0; }
-            .grand-total { font-size: 18px; font-weight: bold; border-top: 2px solid #111; padding-top: 8px; margin-top: 8px; }
-            .footer { text-align: center; margin-top: 40px; font-size: 12px; color: #888; border-top: 1px dashed #ccc; padding-top: 15px; }
-            @media print { body { padding: 0; } }
-          </style>
-        </head>
-        <body>
-          <div class="header">
-            <div class="title">E-VetDoc Clinic</div>
-            <div class="meta">Official Veterinary Care Receipt</div>
-            <div class="meta">Invoice: <strong>${invoice.invoice_number}</strong> ${receipt ? `| Receipt: <strong>${receipt.receipt_number || ""}</strong>` : ""}</div>
-            <div class="meta">Date: ${formatDate(invoice.created_at)}</div>
-          </div>
-          <div>
-            <strong>Billed To:</strong> ${invoice.owner?.full_name || "Pet Owner"}<br/>
-            ${invoice.owner?.email ? `Email: ${invoice.owner.email}<br/>` : ""}
-            ${invoice.owner?.phone ? `Phone: ${invoice.owner.phone}<br/>` : ""}
-          </div>
-          <table class="items">
-            <thead>
-              <tr>
-                <th>Item / Service</th>
-                <th style="text-align: right;">Qty</th>
-                <th style="text-align: right;">Amount</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${invoice.invoice_items
-                .map(
-                  (item) => `
-                <tr>
-                  <td>${item.description}</td>
-                  <td style="text-align: right;">${item.quantity}</td>
-                  <td style="text-align: right;">₱${(item.quantity * item.unit_price).toLocaleString("en-US", { minimumFractionDigits: 2 })}</td>
-                </tr>
-              `
-                )
-                .join("")}
-            </tbody>
-          </table>
-          <div class="totals">
-            <div class="totals-row">
-              <span>Subtotal</span>
-              <span>₱${(Number(invoice.total_amount) - (Number(invoice.vat_amount) || 0)).toLocaleString("en-US", { minimumFractionDigits: 2 })}</span>
-            </div>
-            ${
-              Number(invoice.vat_amount) > 0
-                ? `
-            <div class="totals-row">
-              <span>VAT (12%)</span>
-              <span>₱${Number(invoice.vat_amount).toLocaleString("en-US", { minimumFractionDigits: 2 })}</span>
-            </div>
-            `
-                : ""
-            }
-            <div class="totals-row grand-total">
-              <span>Total Amount</span>
-              <span>₱${Number(invoice.total_amount).toLocaleString("en-US", { minimumFractionDigits: 2 })}</span>
-            </div>
-            <div class="totals-row" style="color: #059669; font-weight: bold; margin-top: 4px;">
-              <span>Amount Paid</span>
-              <span>₱${getPaidAmount(invoice).toLocaleString("en-US", { minimumFractionDigits: 2 })}</span>
-            </div>
-          </div>
-          <div class="footer">
-            <p>Thank you for trusting E-VetDoc for your pet's healthcare!</p>
-            <p>This document serves as an official electronic record.</p>
-          </div>
-          <script>
-            window.onload = function() { window.print(); };
-          </script>
-        </body>
-      </html>
-    `);
-    printWindow.document.close();
+    printOfficialReceipt(invoice);
   };
 
   return (
