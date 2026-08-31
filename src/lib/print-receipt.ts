@@ -19,10 +19,48 @@ export function getPaidAmount(invoice: InvoiceWithDetails): number {
   return invoice.status === "paid" ? Number(invoice.total_amount) : 0;
 }
 
-export function printOfficialReceipt(invoice: InvoiceWithDetails) {
-  const printWindow = window.open("", "_blank");
-  if (!printWindow) return;
+/**
+ * Universal, popup-blocker-safe printing using a hidden DOM iframe.
+ * Works seamlessly in Safari, Chrome, Firefox, Edge, and iOS/Android without triggering popup blockers.
+ */
+export function printHtmlDocument(html: string) {
+  if (typeof window === "undefined" || typeof document === "undefined") return;
 
+  const iframe = document.createElement("iframe");
+  iframe.style.position = "fixed";
+  iframe.style.right = "0";
+  iframe.style.bottom = "0";
+  iframe.style.width = "0";
+  iframe.style.height = "0";
+  iframe.style.border = "0";
+  iframe.style.visibility = "hidden";
+  document.body.appendChild(iframe);
+
+  const doc = iframe.contentWindow?.document || iframe.contentDocument;
+  if (!doc) {
+    iframe.remove();
+    return;
+  }
+
+  doc.open();
+  doc.write(html);
+  doc.close();
+
+  setTimeout(() => {
+    try {
+      iframe.contentWindow?.focus();
+      iframe.contentWindow?.print();
+    } catch (e) {
+      console.error("Print execution failed:", e);
+    } finally {
+      setTimeout(() => {
+        iframe.remove();
+      }, 3000);
+    }
+  }, 250);
+}
+
+export function printOfficialReceipt(invoice: InvoiceWithDetails) {
   const receipt = invoice.payments && invoice.payments.length > 0 ? invoice.payments[0] : null;
   const clientName = invoice.owner?.full_name || "Walk-in Client";
   const totalPaid = getPaidAmount(invoice);
@@ -30,7 +68,7 @@ export function printOfficialReceipt(invoice: InvoiceWithDetails) {
   const vatAmount = Number(invoice.vat_amount) || 0;
   const subtotal = totalAmount - vatAmount;
 
-  printWindow.document.write(`
+  const html = `
     <!DOCTYPE html>
     <html>
       <head>
@@ -108,11 +146,9 @@ export function printOfficialReceipt(invoice: InvoiceWithDetails) {
           <p>Thank you for trusting E-VetDoc with your pet's healthcare!</p>
           <p style="font-size: 10px; margin-top: 5px;">This is a system-generated official billing statement & receipt.</p>
         </div>
-        <script>
-          window.onload = function() { window.print(); };
-        </script>
       </body>
     </html>
-  `);
-  printWindow.document.close();
+  `;
+
+  printHtmlDocument(html);
 }
