@@ -18,8 +18,10 @@ export interface OwnerPetSummary {
 
 export interface OwnerAppointmentSummary {
   id: string;
-  scheduled_start: string;
-  scheduled_end: string;
+  scheduled_start: string | null;
+  scheduled_end: string | null;
+  preferred_date?: string | null;
+  preferred_time?: string | null;
   status: string;
   reason: string | null;
   pet: { id: string; name: string; species: string } | null;
@@ -76,26 +78,34 @@ export async function getOwnerDashboardSummary(): Promise<OwnerDashboardSummary>
     });
 
   // 2. Fetch upcoming & active appointments
-  const { data: appointments } = await supabase
+  const { data: appointments, error: aptErr } = await supabase
     .from('appointments')
     .select(`
       id,
       scheduled_start,
       scheduled_end,
+      preferred_date,
+      preferred_time,
       status,
       reason,
       pet:pets!appointments_pet_id_fkey (id, name, species),
       service:services!appointments_service_id_fkey (id, name, duration_minutes, price_from)
     `)
     .eq('owner_id', profile.id)
-    .in('status', ['booked', 'confirmed', 'in_progress', 'diagnosed'])
-    .order('scheduled_start', { ascending: true })
+    .in('status', ['booked', 'confirmed', 'scheduled', 'requested', 'diagnosed', 'paid'])
+    .order('preferred_date', { ascending: true, nullsFirst: false })
     .limit(5);
+
+  if (aptErr) {
+    console.error("Error fetching owner appointments summary:", aptErr);
+  }
 
   const upcomingAppointments: OwnerAppointmentSummary[] = (appointments || []).map((a: any) => ({
     id: a.id,
     scheduled_start: a.scheduled_start,
     scheduled_end: a.scheduled_end,
+    preferred_date: a.preferred_date,
+    preferred_time: a.preferred_time,
     status: a.status,
     reason: a.reason,
     pet: a.pet,

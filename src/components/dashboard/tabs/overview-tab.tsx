@@ -35,17 +35,49 @@ interface OverviewTabProps {
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-function formatTime(isoStr: string): string {
-  if (!isoStr) return "—";
-  const d = new Date(isoStr);
-  if (isNaN(d.getTime())) return isoStr;
-  const month = MONTHS[d.getMonth()];
-  const day = d.getDate();
-  let hours = d.getHours();
-  const minutes = d.getMinutes().toString().padStart(2, "0");
-  const ampm = hours >= 12 ? "PM" : "AM";
-  hours = hours % 12 || 12;
-  return `${month} ${day} at ${hours}:${minutes} ${ampm}`;
+function formatAppointmentTime(apt: {
+  scheduled_start?: string | null;
+  preferred_date?: string | null;
+  preferred_time?: string | null;
+}): string {
+  if (apt.preferred_date) {
+    const parts = apt.preferred_date.split("-");
+    let dateStr = apt.preferred_date;
+    if (parts.length === 3) {
+      const year = parseInt(parts[0], 10);
+      const monthIdx = parseInt(parts[1], 10) - 1;
+      const day = parseInt(parts[2], 10);
+      dateStr = `${MONTHS[monthIdx]} ${day}, ${year}`;
+    }
+
+    if (apt.preferred_time) {
+      const timeParts = apt.preferred_time.split(":");
+      if (timeParts.length >= 2) {
+        let hour = parseInt(timeParts[0], 10);
+        const min = timeParts[1];
+        const ampm = hour >= 12 ? "PM" : "AM";
+        hour = hour % 12 || 12;
+        return `${dateStr} at ${hour}:${min} ${ampm}`;
+      }
+    }
+    return dateStr;
+  }
+
+  if (apt.scheduled_start) {
+    const d = new Date(apt.scheduled_start);
+    if (!isNaN(d.getTime())) {
+      const month = MONTHS[d.getMonth()];
+      const day = d.getDate();
+      const year = d.getFullYear();
+      let hours = d.getHours();
+      const minutes = d.getMinutes().toString().padStart(2, "0");
+      const ampm = hours >= 12 ? "PM" : "AM";
+      hours = hours % 12 || 12;
+      return `${month} ${day}, ${year} at ${hours}:${minutes} ${ampm}`;
+    }
+  }
+
+  return "Date pending";
 }
 
 const statCards = [
@@ -215,7 +247,7 @@ export function OverviewTab({ displayName, setTab, role }: OverviewTabProps) {
                         </div>
                         <p className="text-xs text-muted-foreground flex items-center gap-1">
                           <Clock className="size-3 text-primary" />
-                          {formatTime(apt.scheduled_start)}
+                          {formatAppointmentTime(apt)}
                         </p>
                       </div>
                       <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-[11px] font-semibold text-primary capitalize">
