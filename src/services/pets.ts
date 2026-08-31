@@ -64,7 +64,7 @@ function nullableValue(value: string): string | null {
 
 function parseAge(value: string): number | null {
   const normalized = value.trim();
-  if (!normalized) return null;
+  if (!normalized || normalized.toLowerCase() === "unknown") return null;
   const age = Number(normalized);
   if (!Number.isInteger(age) || age < 0) throw new Error("Age must be a whole number that is zero or greater.");
   return age;

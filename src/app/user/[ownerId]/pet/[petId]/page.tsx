@@ -89,17 +89,17 @@ export default async function PetRecordPage({
       <dl className="grid gap-4 rounded-2xl border border-border bg-card p-5 text-sm sm:grid-cols-2 lg:grid-cols-4 shadow-xs">
         <div>
           <dt className="text-xs font-medium text-muted-foreground">Date of birth</dt>
-          <dd className="mt-1 font-semibold text-foreground">{pet.date_of_birth ?? "Not recorded"}</dd>
+          <dd className="mt-1 font-semibold text-foreground">{pet.date_of_birth ? fmtDate(pet.date_of_birth) : "Unknown"}</dd>
         </div>
         <div>
           <dt className="text-xs font-medium text-muted-foreground">Age</dt>
           <dd className="mt-1 font-semibold text-foreground">
-            {pet.age === null ? "Not recorded" : `${pet.age} years`}
+            {pet.age === null || pet.age === undefined ? "Unknown" : `${pet.age} ${pet.age === 1 ? "year" : "years"}`}
           </dd>
         </div>
         <div>
           <dt className="text-xs font-medium text-muted-foreground">Colour</dt>
-          <dd className="mt-1 font-semibold capitalize text-foreground">{pet.color ?? "Not recorded"}</dd>
+          <dd className="mt-1 font-semibold capitalize text-foreground">{pet.color ?? "Unknown"}</dd>
         </div>
         <div>
           <dt className="text-xs font-medium text-muted-foreground">Notes</dt>
