@@ -2,7 +2,6 @@ export * from "./auth";
 export * from "./auth-server";
 export * from "./authorization";
 export * from "./dashboard";
-export * from "./notifications";
 export * from "./pets";
 export * from "./services";
 export * from "./staff";

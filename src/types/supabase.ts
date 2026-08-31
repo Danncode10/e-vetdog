@@ -230,73 +230,6 @@ export type Database = {
           },
         ]
       }
-      check_ins: {
-        Row: {
-          appointment_id: string | null
-          arrival_time: string
-          created_at: string
-          id: string
-          notes: string | null
-          owner_id: string | null
-          pet_id: string | null
-          service_end: string | null
-          service_start: string | null
-          status: Database["public"]["Enums"]["check_in_status"]
-          updated_at: string
-          walk_in: boolean
-        }
-        Insert: {
-          appointment_id?: string | null
-          arrival_time?: string
-          created_at?: string
-          id?: string
-          notes?: string | null
-          owner_id?: string | null
-          pet_id?: string | null
-          service_end?: string | null
-          service_start?: string | null
-          status?: Database["public"]["Enums"]["check_in_status"]
-          updated_at?: string
-          walk_in?: boolean
-        }
-        Update: {
-          appointment_id?: string | null
-          arrival_time?: string
-          created_at?: string
-          id?: string
-          notes?: string | null
-          owner_id?: string | null
-          pet_id?: string | null
-          service_end?: string | null
-          service_start?: string | null
-          status?: Database["public"]["Enums"]["check_in_status"]
-          updated_at?: string
-          walk_in?: boolean
-        }
-        Relationships: [
-          {
-            foreignKeyName: "check_ins_appointment_id_fkey"
-            columns: ["appointment_id"]
-            isOneToOne: false
-            referencedRelation: "appointments"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "check_ins_owner_id_fkey"
-            columns: ["owner_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "check_ins_pet_id_fkey"
-            columns: ["pet_id"]
-            isOneToOne: false
-            referencedRelation: "pets"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       clinical_notes: {
         Row: {
           assessment: string | null
@@ -579,81 +512,6 @@ export type Database = {
             columns: ["owner_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      notifications: {
-        Row: {
-          body: string | null
-          created_at: string
-          id: string
-          is_read: boolean
-          link: string | null
-          metadata: Json
-          title: string
-          type: string
-        }
-        Insert: {
-          body?: string | null
-          created_at?: string
-          id?: string
-          is_read?: boolean
-          link?: string | null
-          metadata?: Json
-          title: string
-          type: string
-        }
-        Update: {
-          body?: string | null
-          created_at?: string
-          id?: string
-          is_read?: boolean
-          link?: string | null
-          metadata?: Json
-          title?: string
-          type?: string
-        }
-        Relationships: []
-      }
-      payment_corrections: {
-        Row: {
-          corrected_by: string
-          correction_amount: number
-          created_at: string
-          id: string
-          payment_id: string
-          reason: string
-        }
-        Insert: {
-          corrected_by: string
-          correction_amount: number
-          created_at?: string
-          id?: string
-          payment_id: string
-          reason: string
-        }
-        Update: {
-          corrected_by?: string
-          correction_amount?: number
-          created_at?: string
-          id?: string
-          payment_id?: string
-          reason?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "payment_corrections_corrected_by_profiles_id_fk"
-            columns: ["corrected_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "payment_corrections_payment_id_payments_id_fk"
-            columns: ["payment_id"]
-            isOneToOne: false
-            referencedRelation: "payments"
             referencedColumns: ["id"]
           },
         ]
@@ -1119,7 +977,6 @@ export type Database = {
         | "no_veterinarian_available"
         | "pet_health_issue"
         | "other"
-      check_in_status: "checked_in" | "in_progress" | "completed"
       encounter_status: "draft" | "signed"
       invoice_status: "draft" | "unpaid" | "partial" | "paid" | "voided"
       owner_relationship: "owner" | "co_owner" | "family" | "caretaker"
@@ -1284,7 +1141,6 @@ export const Constants = {
         "pet_health_issue",
         "other",
       ],
-      check_in_status: ["checked_in", "in_progress", "completed"],
       encounter_status: ["draft", "signed"],
       invoice_status: ["draft", "unpaid", "partial", "paid", "voided"],
       owner_relationship: ["owner", "co_owner", "family", "caretaker"],

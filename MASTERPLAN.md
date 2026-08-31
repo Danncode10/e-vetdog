@@ -171,6 +171,11 @@
   - **Dependencies:** [P4.2].
   - **Acceptance criteria:** Original payments are never edited or deleted; correction reason, actor, time, amount, and linked payment are retained; invoice status reflects corrections.
 
+- [x] **[P4.4] Schema streamlining, bug remediation, and UI refinement**
+  - **Goal:** Clean up confusing and unused database entities (prune `notifications`, `check_ins`, and `payment_corrections`), resolve clinical and pet navigation bugs, eliminate SSR hydration mismatches, and upgrade pet and billing interfaces to high-end design standards.
+  - **Dependencies:** [P4.2], [P3.2].
+  - **Acceptance criteria:** Tracked migration `0025_streamline_schema.sql` drops unused tables cleanly; generated types stay in sync; pet profile back navigation correctly retains previous tab state; pet registration provides DOB-to-Age auto-calculation and color input; pet cards and clinical history show compact appointment links; billing interfaces (invoice builder, invoice details, payment modal, invoice list) use cohesive document styling and centered dialogs; all automated tests pass.
+
 ## **PHASE 5: Owner portal and MVP release verification**
 
 **Exit state:** Owners have a controlled portal for care and billing information, and the core appointment-to-care-to-invoice-to-receipt workflow is verified for MVP release.

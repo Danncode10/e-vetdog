@@ -252,18 +252,29 @@ export function PetsTab({ role }: { role: UserRole }) {
 
                   {/* Info Metadata */}
                   <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-border/60">
-                    {pet.date_of_birth && (
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <Calendar className="w-3.5 h-3.5 shrink-0 text-primary" />
-                        <span className="truncate">DOB: {pet.date_of_birth}</span>
-                      </div>
-                    )}
-                    {pet.color && (
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <Sparkles className="w-3.5 h-3.5 shrink-0 text-primary" />
-                        <span className="truncate capitalize">{pet.color}</span>
-                      </div>
-                    )}
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <Calendar className="w-3.5 h-3.5 shrink-0 text-primary" />
+                      <span className="truncate">
+                        {pet.age !== null && pet.age !== undefined
+                          ? `Age: ${pet.age} ${pet.age === 1 ? "year" : "years"}`
+                          : pet.date_of_birth
+                          ? (() => {
+                              const d = new Date(pet.date_of_birth);
+                              if (isNaN(d.getTime())) return "Age: Unknown";
+                              const today = new Date();
+                              let y = today.getFullYear() - d.getFullYear();
+                              const m = today.getMonth() - d.getMonth();
+                              if (m < 0 || (m === 0 && today.getDate() < d.getDate())) y--;
+                              const calc = Math.max(0, y);
+                              return `Age: ${calc} ${calc === 1 ? "year" : "years"}`;
+                            })()
+                          : "Age: Unknown"}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <Sparkles className="w-3.5 h-3.5 shrink-0 text-primary" />
+                      <span className="truncate capitalize">{pet.color || "Color: Unknown"}</span>
+                    </div>
                   </div>
 
                   {/* Owners list for staff */}
@@ -299,7 +310,7 @@ export function PetsTab({ role }: { role: UserRole }) {
                       variant="outline"
                       className="w-full gap-2 text-xs h-9"
                       disabled={!ownerProfileId}
-                      onClick={() => ownerProfileId && router.push(`/user/${ownerProfileId}/pet/${pet.id}`)}
+                      onClick={() => ownerProfileId && router.push(`/user/${ownerProfileId}/pet/${pet.id}?from=pets`)}
                     >
                       <ExternalLink className="w-3.5 h-3.5" />
                       Open Clinical Pet Record

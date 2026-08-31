@@ -480,11 +480,10 @@ export async function getPetClinicalHistory(petId: string) {
     .select(`
       *,
       veterinarian:profiles!encounters_veterinarian_id_fkey (id, full_name, email),
-      appointment:appointments (id, reason, scheduled_start)
+      appointment:appointments (id, reason, scheduled_start, status, services(id, name))
     `)
     .eq("pet_id", petId)
-    .eq("status", "signed")
-    .order("signed_at", { ascending: false });
+    .order("created_at", { ascending: false });
 
   if (encountersError) throw encountersError;
   if (!encounters || encounters.length === 0) return [];
