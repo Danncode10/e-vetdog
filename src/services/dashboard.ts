@@ -133,6 +133,81 @@ export async function getOwnerDashboardSummary(): Promise<OwnerDashboardSummary>
   };
 }
 
+export interface AdminDashboardSummary {
+  petCount: number;
+  ownerCount: number;
+  activeAppointmentsCount: number;
+  unpaidInvoicesCount: number;
+  recentAppointments: {
+    id: string;
+    scheduled_start: string | null;
+    preferred_date?: string | null;
+    preferred_time?: string | null;
+    status: string;
+    reason: string | null;
+    pet_name: string;
+    species: string;
+    owner_name: string;
+    service_name: string;
+  }[];
+}
+
+/**
+ * Fetch dynamic summary metrics for an authenticated admin or staff member.
+ */
+export async function getAdminDashboardSummary(): Promise<AdminDashboardSummary> {
+  const { profile } = await requireAuth();
+  const supabase = await createClient();
+
+  const [petsRes, ownersRes, apptsRes, unpaidRes, recentApptsRes] = await Promise.all([
+    supabase.from("pets").select("id", { count: "exact", head: true }),
+    supabase.from("profiles").select("id", { count: "exact", head: true }).eq("role", "owner"),
+    supabase
+      .from("appointments")
+      .select("id", { count: "exact", head: true })
+      .in("status", ["booked", "confirmed", "scheduled", "requested", "diagnosed", "paid"]),
+    supabase
+      .from("invoices")
+      .select("id", { count: "exact", head: true })
+      .in("status", ["unpaid", "partial"]),
+    supabase
+      .from("appointments")
+      .select(`
+        id,
+        scheduled_start,
+        preferred_date,
+        preferred_time,
+        status,
+        reason,
+        pets!appointments_pet_id_fkey (name, species),
+        owner:profiles!appointments_owner_id_fkey (full_name),
+        services!appointments_service_id_fkey (name)
+      `)
+      .order("created_at", { ascending: false })
+      .limit(4),
+  ]);
+
+  const recentAppointments = (recentApptsRes.data || []).map((a: any) => ({
+    id: a.id,
+    scheduled_start: a.scheduled_start,
+    preferred_date: a.preferred_date,
+    preferred_time: a.preferred_time,
+    status: a.status,
+    reason: a.reason,
+    pet_name: a.pets?.name || "Unknown Patient",
+    species: a.pets?.species || "pet",
+    owner_name: a.owner?.full_name || "Pet Owner",
+    service_name: a.services?.name || "Consultation",
+  }));
+
+  return {
+    petCount: petsRes.count || 0,
+    ownerCount: ownersRes.count || 0,
+    activeAppointmentsCount: apptsRes.count || 0,
+    unpaidInvoicesCount: unpaidRes.count || 0,
+    recentAppointments,
+  };
+}
 
 export async function getVibeCheckDataPaginated({ pageParam = 0 }: { pageParam?: number } = {}) {
   try {

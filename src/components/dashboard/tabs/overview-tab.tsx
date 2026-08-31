@@ -13,10 +13,11 @@ import {
   Receipt,
   Heart,
   PlusCircle,
-  FileText,
-  CheckCircle2,
   Calendar,
+  Activity,
+  CheckCircle2,
   AlertCircle,
+  Stethoscope,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -24,7 +25,9 @@ import type { DashboardTabId, UserRole } from "@/lib/dashboard-features";
 import { isFeatureEnabled } from "@/lib/dashboard-features";
 import {
   getOwnerDashboardSummary,
+  getAdminDashboardSummary,
   type OwnerDashboardSummary,
+  type AdminDashboardSummary,
 } from "@/services/dashboard";
 
 interface OverviewTabProps {
@@ -80,73 +83,75 @@ function formatAppointmentTime(apt: {
   return "Date pending";
 }
 
-const statCards = [
+const ADMIN_QUICK_ACTIONS = [
   {
     icon: PawPrint,
     label: "Pets",
-    description: "View pet profiles & health records",
+    description: "Medical profiles, species, breeds, and patient demographics",
     badge: "Pet Registry",
     tab: "pets" as DashboardTabId,
     feature: "pets" as const,
-    color: "from-emerald-500/10 to-teal-500/5 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
-    iconBg: "bg-emerald-500 text-white dark:bg-emerald-600",
+    iconTheme: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
   },
   {
     icon: CalendarDays,
     label: "Appointments",
-    description: "Book visits & track appointments",
+    description: "Manage clinical schedule, requests, and triage visits",
     badge: "Booking Hub",
     tab: "appointments" as DashboardTabId,
     feature: "appointments" as const,
-    color: "from-amber-500/10 to-orange-500/5 text-amber-600 dark:text-amber-400 border-amber-500/20",
-    iconBg: "bg-amber-500 text-white dark:bg-amber-600",
-  },
-  {
-    icon: Receipt,
-    label: "Billing",
-    description: "Itemized invoices & payment receipts",
-    badge: "Receipts & Billing",
-    tab: "billing" as DashboardTabId,
-    feature: "billing" as const,
-    color: "from-blue-500/10 to-indigo-500/5 text-blue-600 dark:text-blue-400 border-blue-500/20",
-    iconBg: "bg-blue-500 text-white dark:bg-blue-600",
+    iconTheme: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20",
   },
   {
     icon: Users,
     label: "Owners",
-    description: "Owner profiles & co-owner links",
+    description: "Client directory, emergency contacts, and co-owner links",
     badge: "Client Directory",
     tab: "owners" as DashboardTabId,
     feature: "owners" as const,
-    color: "from-purple-500/10 to-indigo-500/5 text-purple-600 dark:text-purple-400 border-purple-500/20",
-    iconBg: "bg-purple-500 text-white dark:bg-purple-600",
+    iconTheme: "bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20",
+  },
+  {
+    icon: Receipt,
+    label: "Billing",
+    description: "Official invoices, BIR tax breakdown, and receipts",
+    badge: "Billing & Receipts",
+    tab: "billing" as DashboardTabId,
+    feature: "billing" as const,
+    iconTheme: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
   },
   {
     icon: ScrollText,
     label: "Audit Logs",
-    description: "Monitor staff actions, diagnostics & receipts",
+    description: "Review staff activity, diagnostic history, and system events",
     badge: "Admin Audit",
     tab: "logs" as DashboardTabId,
     feature: "admin-only" as const,
-    color: "from-rose-500/10 to-pink-500/5 text-rose-600 dark:text-rose-400 border-rose-500/20",
-    iconBg: "bg-rose-500 text-white dark:bg-rose-600",
+    iconTheme: "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20",
   },
 ];
 
 export function OverviewTab({ displayName, setTab, role }: OverviewTabProps) {
   const [ownerSummary, setOwnerSummary] = React.useState<OwnerDashboardSummary | null>(null);
-  const [loadingOwner, setLoadingOwner] = React.useState(role === "owner");
+  const [adminSummary, setAdminSummary] = React.useState<AdminDashboardSummary | null>(null);
+  const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
+    setLoading(true);
     if (role === "owner") {
       getOwnerDashboardSummary()
         .then((data) => setOwnerSummary(data))
         .catch((err) => console.error("Failed to load owner overview:", err))
-        .finally(() => setLoadingOwner(false));
+        .finally(() => setLoading(false));
+    } else {
+      getAdminDashboardSummary()
+        .then((data) => setAdminSummary(data))
+        .catch((err) => console.error("Failed to load admin overview:", err))
+        .finally(() => setLoading(false));
     }
   }, [role]);
 
-  const visibleCards = statCards.filter((card) => isFeatureEnabled(card.feature, role));
+  const visibleActions = ADMIN_QUICK_ACTIONS.filter((card) => isFeatureEnabled(card.feature, role));
   const todayDateStr = new Intl.DateTimeFormat("en-US", {
     weekday: "long",
     month: "long",
@@ -164,7 +169,7 @@ export function OverviewTab({ displayName, setTab, role }: OverviewTabProps) {
             <div className="flex flex-wrap items-center gap-2">
               <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
                 <Sparkles className="w-3.5 h-3.5" />
-                {role === "owner" ? "Pet Parent Portal" : "Welcome Back"}
+                {role === "owner" ? "Pet Parent Portal" : "Clinic Command Center"}
               </span>
               {role && (
                 <span className="inline-flex items-center gap-1 rounded-full border border-border bg-muted/60 px-2.5 py-0.5 text-xs font-medium text-foreground capitalize">
@@ -179,7 +184,7 @@ export function OverviewTab({ displayName, setTab, role }: OverviewTabProps) {
             <p className="text-xs sm:text-sm text-muted-foreground">
               {role === "owner"
                 ? "Here is the latest care, appointment schedule, and medical updates for your pets."
-                : "Here is what is happening at your clinic today."}
+                : "Here is what is happening at your veterinary clinic today."}
             </p>
           </div>
 
@@ -190,7 +195,172 @@ export function OverviewTab({ displayName, setTab, role }: OverviewTabProps) {
         </div>
       </div>
 
-      {/* Owner-Specific Dynamic Widgets */}
+      {/* ADMIN & STAFF VIEW */}
+      {role !== "owner" && (
+        <div className="space-y-6 animate-in fade-in duration-200">
+          {/* Key Metric KPI Cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+            <Card className="rounded-2xl border border-border bg-card p-4 hover:border-emerald-500/40 transition-all shadow-2xs">
+              <div className="flex items-center gap-3">
+                <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                  <PawPrint className="size-5" />
+                </div>
+                <div>
+                  <div className="text-xl sm:text-2xl font-bold text-foreground font-mono">
+                    {loading ? "—" : adminSummary?.petCount ?? 0}
+                  </div>
+                  <div className="text-[11px] font-medium text-muted-foreground">Active Patients</div>
+                </div>
+              </div>
+            </Card>
+
+            <Card className="rounded-2xl border border-border bg-card p-4 hover:border-blue-500/40 transition-all shadow-2xs">
+              <div className="flex items-center gap-3">
+                <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                  <CalendarDays className="size-5" />
+                </div>
+                <div>
+                  <div className="text-xl sm:text-2xl font-bold text-foreground font-mono">
+                    {loading ? "—" : adminSummary?.activeAppointmentsCount ?? 0}
+                  </div>
+                  <div className="text-[11px] font-medium text-muted-foreground">Appointments</div>
+                </div>
+              </div>
+            </Card>
+
+            <Card className="rounded-2xl border border-border bg-card p-4 hover:border-purple-500/40 transition-all shadow-2xs">
+              <div className="flex items-center gap-3">
+                <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">
+                  <Users className="size-5" />
+                </div>
+                <div>
+                  <div className="text-xl sm:text-2xl font-bold text-foreground font-mono">
+                    {loading ? "—" : adminSummary?.ownerCount ?? 0}
+                  </div>
+                  <div className="text-[11px] font-medium text-muted-foreground">Pet Owners</div>
+                </div>
+              </div>
+            </Card>
+
+            <Card className="rounded-2xl border border-border bg-card p-4 hover:border-amber-500/40 transition-all shadow-2xs">
+              <div className="flex items-center gap-3">
+                <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                  <Receipt className="size-5" />
+                </div>
+                <div>
+                  <div className="text-xl sm:text-2xl font-bold text-foreground font-mono">
+                    {loading ? "—" : adminSummary?.unpaidInvoicesCount ?? 0}
+                  </div>
+                  <div className="text-[11px] font-medium text-muted-foreground">Unpaid Invoices</div>
+                </div>
+              </div>
+            </Card>
+          </div>
+
+          {/* Recent Appointments & Queue */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground px-1 flex items-center gap-1.5">
+                <Calendar className="size-3.5 text-primary" />
+                Recent Booking & Clinical Queue
+              </h2>
+              <button
+                onClick={() => setTab("appointments")}
+                className="text-xs font-semibold text-primary hover:underline cursor-pointer"
+              >
+                View full schedule →
+              </button>
+            </div>
+
+            {loading ? (
+              <Card className="rounded-2xl border border-border bg-card p-6 text-center text-xs text-muted-foreground">
+                <Activity className="size-5 animate-pulse text-primary mx-auto mb-2" />
+                Loading clinic metrics...
+              </Card>
+            ) : !adminSummary || adminSummary.recentAppointments.length === 0 ? (
+              <Card className="rounded-2xl border border-border bg-card p-6 text-center text-xs text-muted-foreground">
+                No recent appointments found.
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {adminSummary.recentAppointments.map((apt) => (
+                  <Card
+                    key={apt.id}
+                    className="rounded-2xl border border-border bg-card p-4 hover:border-primary/40 transition-all cursor-pointer shadow-2xs"
+                    onClick={() => setTab("appointments")}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-sm text-foreground">
+                            {apt.pet_name}
+                          </span>
+                          <span className="rounded-md bg-muted px-2 py-0.5 text-[10px] font-semibold uppercase text-muted-foreground">
+                            {apt.service_name}
+                          </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Owner: <span className="font-medium text-foreground">{apt.owner_name}</span>
+                        </p>
+                        <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                          <Clock className="size-3 text-primary" />
+                          {formatAppointmentTime(apt)}
+                        </p>
+                      </div>
+                      <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-[11px] font-semibold text-primary capitalize">
+                        {apt.status.replace("_", " ")}
+                      </span>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Clean Quick Access Hub for Admin */}
+          <div>
+            <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3 px-1">
+              Management & Operations
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+              {visibleActions.map(({ icon: Icon, label, description, badge, tab, iconTheme }) => (
+                <Card
+                  key={tab}
+                  className="group relative rounded-2xl border border-border bg-card hover:border-primary/50 transition-all duration-150 cursor-pointer shadow-2xs hover:shadow-xs"
+                  onClick={() => setTab(tab)}
+                >
+                  <CardContent className="p-4 sm:p-5 flex flex-col justify-between h-full space-y-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className={`flex size-11 items-center justify-center rounded-xl border ${iconTheme} transition-transform duration-150 group-hover:scale-105`}>
+                        <Icon className="size-5" />
+                      </div>
+                      <span className="text-[10px] font-semibold tracking-wide uppercase px-2.5 py-1 rounded-lg bg-muted text-muted-foreground border border-border/50">
+                        {badge}
+                      </span>
+                    </div>
+
+                    <div className="space-y-1">
+                      <h3 className="text-base font-bold text-foreground group-hover:text-primary transition-colors">
+                        {label}
+                      </h3>
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                        {description}
+                      </p>
+                    </div>
+
+                    <div className="pt-1 flex items-center text-xs font-semibold text-primary gap-1 group-hover:translate-x-1 transition-transform">
+                      <span>Open {label.toLowerCase()}</span>
+                      <ArrowRight className="size-3.5" />
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* PET OWNER VIEW */}
       {role === "owner" && ownerSummary && (
         <div className="space-y-6 animate-in fade-in duration-200">
           {/* Upcoming Appointments Section */}
@@ -319,49 +489,49 @@ export function OverviewTab({ displayName, setTab, role }: OverviewTabProps) {
               ))}
             </div>
           </div>
+
+          {/* Owner Quick Access Grid */}
+          <div>
+            <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3 px-1">
+              Quick Access Hub
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+              {visibleActions.map(({ icon: Icon, label, description, badge, tab, iconTheme }) => (
+                <Card
+                  key={tab}
+                  className="group relative rounded-2xl border border-border bg-card hover:border-primary/50 transition-all duration-150 cursor-pointer shadow-2xs hover:shadow-xs"
+                  onClick={() => setTab(tab)}
+                >
+                  <CardContent className="p-4 sm:p-5 flex flex-col justify-between h-full space-y-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className={`flex size-11 items-center justify-center rounded-xl border ${iconTheme} transition-transform duration-150 group-hover:scale-105`}>
+                        <Icon className="size-5" />
+                      </div>
+                      <span className="text-[10px] font-semibold tracking-wide uppercase px-2.5 py-1 rounded-lg bg-muted text-muted-foreground border border-border/50">
+                        {badge}
+                      </span>
+                    </div>
+
+                    <div className="space-y-1">
+                      <h3 className="text-base font-bold text-foreground group-hover:text-primary transition-colors">
+                        {label}
+                      </h3>
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                        {description}
+                      </p>
+                    </div>
+
+                    <div className="pt-1 flex items-center text-xs font-semibold text-primary gap-1 group-hover:translate-x-1 transition-transform">
+                      <span>Open {label.toLowerCase()}</span>
+                      <ArrowRight className="size-3.5" />
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
         </div>
       )}
-
-      {/* Feature Navigation Grid */}
-      <div>
-        <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3 px-1">
-          Quick Access Hub
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {visibleCards.map(({ icon: Icon, label, description, badge, tab, color, iconBg }) => (
-            <Card
-              key={tab}
-              className={`group relative overflow-hidden transition-all duration-200 hover:shadow-md hover:border-primary/40 bg-gradient-to-br ${color} cursor-pointer`}
-              onClick={() => setTab(tab)}
-            >
-              <CardContent className="p-5 flex flex-col justify-between h-full space-y-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${iconBg} shadow-sm transition-transform duration-200 group-hover:scale-105`}>
-                    <Icon className="w-6 h-6" strokeWidth={1.75} />
-                  </div>
-                  <span className="text-[11px] font-semibold tracking-wide uppercase px-2.5 py-1 rounded-full bg-background/80 border border-border/60 text-muted-foreground backdrop-blur-xs">
-                    {badge}
-                  </span>
-                </div>
-
-                <div className="space-y-1">
-                  <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors flex items-center gap-1.5">
-                    {label}
-                  </h3>
-                  <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                    {description}
-                  </p>
-                </div>
-
-                <div className="pt-2 flex items-center text-xs font-semibold text-primary gap-1 group-hover:translate-x-1 transition-transform">
-                  <span>Open {label.toLowerCase()}</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }
