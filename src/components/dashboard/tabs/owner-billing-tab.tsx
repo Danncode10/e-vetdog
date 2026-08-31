@@ -103,16 +103,13 @@ export function OwnerBillingTab() {
     try {
       const data = await getOwnerInvoices();
       setInvoices(data);
-      if (data.length > 0 && !expandedId) {
-        setExpandedId(data[0].id); // Auto-expand latest invoice
-      }
     } catch (err) {
       console.error("Failed to load owner invoices:", err);
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [expandedId]);
+  }, []);
 
   React.useEffect(() => {
     fetchInvoices();
