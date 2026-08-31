@@ -13,9 +13,6 @@ import { listPetsForCurrentUser } from "@/services/pets";
 export type Appointment = Tables<"appointments">;
 export type AppointmentInsert = TablesInsert<"appointments">;
 export type AppointmentUpdate = TablesUpdate<"appointments">;
-export type CheckIn = Tables<"check_ins">;
-export type CheckInInsert = TablesInsert<"check_ins">;
-export type CheckInUpdate = TablesUpdate<"check_ins">;
 export type AppointmentStatusHistory = Tables<"appointment_status_history">;
 
 export async function listAppointments(filters?: {
@@ -275,89 +272,9 @@ export async function rescheduleAppointment(
   return data;
 }
 
-export async function createCheckIn(input: CheckInInsert) {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("check_ins")
-    .insert({
-      ...input,
-      arrival_time: new Date().toISOString(),
-    })
-    .select()
-    .single();
-  if (error) throw error;
-  revalidatePath("/dashboard/appointments");
-  return data;
-}
 
-export async function updateCheckIn(id: string, updates: CheckInUpdate) {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("check_ins")
-    .update({ ...updates, updated_at: new Date().toISOString() })
-    .eq("id", id)
-    .select()
-    .single();
-  if (error) throw error;
-  revalidatePath("/dashboard/appointments");
-  return data;
-}
 
-export async function getCheckInByAppointmentId(appointmentId: string) {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("check_ins")
-    .select("*")
-    .eq("appointment_id", appointmentId)
-    .single();
-  if (error && error.code !== "PGRST116") throw error;
-  return data;
-}
 
-export async function listCheckIns(filters?: {
-  status?: CheckIn["status"];
-  petId?: string;
-  ownerId?: string;
-  fromDate?: string;
-  toDate?: string;
-  walkIn?: boolean;
-}) {
-  const supabase = await createClient();
-  let query = supabase
-    .from("check_ins")
-    .select(
-      `
-      *,
-      appointments (id, status, scheduled_start, pets (id, name)),
-      pets (id, name, species, breed),
-      profiles!check_ins_owner_id_fkey (id, full_name, email, phone)
-    `
-    )
-    .order("arrival_time", { ascending: false });
-
-  if (filters?.status) {
-    query = query.eq("status", filters.status);
-  }
-  if (filters?.petId) {
-    query = query.eq("pet_id", filters.petId);
-  }
-  if (filters?.ownerId) {
-    query = query.eq("owner_id", filters.ownerId);
-  }
-  if (filters?.walkIn !== undefined) {
-    query = query.eq("walk_in", filters.walkIn);
-  }
-  if (filters?.fromDate) {
-    query = query.gte("arrival_time", filters.fromDate);
-  }
-  if (filters?.toDate) {
-    query = query.lte("arrival_time", filters.toDate);
-  }
-
-  const { data, error } = await query;
-  if (error) throw error;
-  return data;
-}
 
 export async function getAppointmentStatusHistory(appointmentId: string) {
   const supabase = await createClient();

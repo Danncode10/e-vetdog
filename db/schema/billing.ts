@@ -72,15 +72,4 @@ export const payments = pgTable("payments", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
-export const paymentCorrections = pgTable("payment_corrections", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  paymentId: uuid("payment_id")
-    .notNull()
-    .references(() => payments.id, { onDelete: "cascade" }),
-  correctionAmount: numeric("correction_amount", { precision: 10, scale: 2 }).notNull(), // can be negative to reduce, positive to increase
-  reason: text("reason").notNull(),
-  correctedBy: uuid("corrected_by")
-    .notNull()
-    .references(() => profiles.id),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-});
+

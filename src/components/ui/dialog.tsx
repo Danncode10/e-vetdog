@@ -28,7 +28,7 @@ export function Dialog({ children, open, onOpenChange }: DialogProps) {
   return (
     <dialog
       ref={dialogRef}
-      className="fixed inset-0 z-50"
+      className="fixed inset-0 z-50 m-0 h-full w-full max-h-none max-w-none bg-background/80 backdrop-blur-sm p-4 flex items-center justify-center border-0 outline-none open:flex"
       onCancel={(event) => {
         event.preventDefault();
         onOpenChange(false);
@@ -39,7 +39,7 @@ export function Dialog({ children, open, onOpenChange }: DialogProps) {
         }
       }}
     >
-      <div className="p-6 w-[500px] max-w-full">
+      <div className="w-full max-w-md animate-in fade-in zoom-in-95 duration-200">
         {children}
       </div>
     </dialog>

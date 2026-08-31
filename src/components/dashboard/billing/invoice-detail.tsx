@@ -3,64 +3,104 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Receipt, ChevronLeft, CheckCircle2, AlertCircle,
-  Clock, Ban, Loader2, CreditCard
+  Receipt,
+  ChevronLeft,
+  CheckCircle2,
+  AlertCircle,
+  Clock,
+  Ban,
+  Loader2,
+  CreditCard,
+  User,
+  Calendar,
+  Sparkles,
+  DollarSign,
+  Printer,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { finalizeInvoice, voidInvoice } from "@/services/billing";
 import { RecordPaymentDialog } from "@/components/dashboard/billing/record-payment-dialog";
 import type { InvoiceWithDetails } from "@/services/billing";
 import Link from "next/link";
 
-const STATUS_META: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
+const STATUS_META: Record<
+  string,
+  { label: string; icon: React.ReactNode; bg: string; text: string; border: string }
+> = {
   draft: {
     label: "Draft",
-    icon: <Clock className="h-4 w-4" />,
-    color: "text-muted-foreground",
+    icon: <Clock className="size-3.5" />,
+    bg: "bg-muted",
+    text: "text-muted-foreground",
+    border: "border-border",
   },
   unpaid: {
     label: "Unpaid",
-    icon: <AlertCircle className="h-4 w-4" />,
-    color: "text-destructive",
+    icon: <AlertCircle className="size-3.5" />,
+    bg: "bg-amber-500/10 dark:bg-amber-500/20",
+    text: "text-amber-600 dark:text-amber-400",
+    border: "border-amber-500/30",
   },
   partial: {
     label: "Partially Paid",
-    icon: <CreditCard className="h-4 w-4" />,
-    color: "text-blue-600 dark:text-blue-400",
+    icon: <CreditCard className="size-3.5" />,
+    bg: "bg-blue-500/10 dark:bg-blue-500/20",
+    text: "text-blue-600 dark:text-blue-400",
+    border: "border-blue-500/30",
   },
   paid: {
     label: "Paid",
-    icon: <CheckCircle2 className="h-4 w-4" />,
-    color: "text-emerald-600 dark:text-emerald-400",
+    icon: <CheckCircle2 className="size-3.5" />,
+    bg: "bg-emerald-500/10 dark:bg-emerald-500/20",
+    text: "text-emerald-600 dark:text-emerald-400",
+    border: "border-emerald-500/30",
   },
   voided: {
     label: "Voided",
-    icon: <Ban className="h-4 w-4" />,
-    color: "text-muted-foreground",
+    icon: <Ban className="size-3.5" />,
+    bg: "bg-muted",
+    text: "text-muted-foreground",
+    border: "border-border",
   },
 };
 
 const METHOD_LABELS: Record<string, string> = {
   cash: "Cash",
   gcash: "GCash",
-  card: "Card",
+  card: "Credit / Debit Card",
   bank_transfer: "Bank Transfer",
 };
+
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 function fmt(n: number | string) {
   return Number(n).toLocaleString("en-PH", { style: "currency", currency: "PHP" });
 }
 
-function fmtDate(d: string) {
-  return new Date(d).toLocaleString("en-PH", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+function formatDateOnly(isoOrDate: string | Date | null | undefined): string {
+  if (!isoOrDate) return "—";
+  const d = new Date(isoOrDate);
+  if (isNaN(d.getTime())) return String(isoOrDate);
+  const month = MONTHS[d.getMonth()];
+  const day = d.getDate();
+  const year = d.getFullYear();
+  return `${month} ${day}, ${year}`;
+}
+
+function formatDateTime(isoOrDate: string | Date | null | undefined): string {
+  if (!isoOrDate) return "—";
+  const d = new Date(isoOrDate);
+  if (isNaN(d.getTime())) return String(isoOrDate);
+  const month = MONTHS[d.getMonth()];
+  const day = d.getDate();
+  const year = d.getFullYear();
+  let hours = d.getHours();
+  const minutes = d.getMinutes().toString().padStart(2, "0");
+  const ampm = hours >= 12 ? "PM" : "AM";
+  hours = hours % 12 || 12;
+  return `${month} ${day}, ${year}, ${hours}:${minutes} ${ampm}`;
 }
 
 export function InvoiceDetail({ invoice }: { invoice: InvoiceWithDetails }) {
@@ -71,9 +111,9 @@ export function InvoiceDetail({ invoice }: { invoice: InvoiceWithDetails }) {
 
   const statusMeta = STATUS_META[invoice.status] ?? STATUS_META.draft;
   const totalPaid = invoice.payments.reduce((sum, p) => sum + Number(p.amount_paid), 0);
-  const balance = Number(invoice.total_amount) - totalPaid;
+  const balance = Math.max(0, Number(invoice.total_amount) - totalPaid);
   const canFinalize = invoice.status === "draft" && invoice.invoice_items.length > 0;
-  const canPay = invoice.status === "unpaid" || invoice.status === "partial";
+  const canPay = (invoice.status === "unpaid" || invoice.status === "partial") && balance > 0;
   const canVoid = invoice.status === "draft" || invoice.status === "unpaid";
 
   function handleFinalize() {
@@ -102,214 +142,297 @@ export function InvoiceDetail({ invoice }: { invoice: InvoiceWithDetails }) {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Back */}
-      <Link
-        href="/dashboard/billing"
-        className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
-      >
-        <ChevronLeft className="h-4 w-4 mr-1" />
-        All Invoices
-      </Link>
-
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <Receipt className="h-6 w-6 text-primary" />
-          <div>
-            <h1 className="text-2xl font-bold text-foreground font-mono">
-              {invoice.invoice_number || "Pending Number"}
-            </h1>
-            <p className="text-sm text-muted-foreground mt-0.5">
-              Issued {fmtDate(invoice.issue_date)}
-              {invoice.due_date && ` · Due ${new Date(invoice.due_date).toLocaleDateString("en-PH")}`}
-            </p>
+    <div className="max-w-4xl mx-auto space-y-6 pb-12">
+      {/* Top Navigation & Status Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <Link
+            href="/dashboard/billing"
+            className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground transition-colors mb-2"
+          >
+            <ChevronLeft className="h-4 w-4 mr-1" />
+            All Invoices
+          </Link>
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <Receipt className="h-5 w-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2.5">
+                <h1 className="text-2xl font-bold font-mono tracking-tight text-foreground">
+                  {invoice.invoice_number || "Draft Invoice"}
+                </h1>
+                <span
+                  className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold border ${statusMeta.bg} ${statusMeta.text} ${statusMeta.border}`}
+                >
+                  {statusMeta.icon}
+                  {statusMeta.label}
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Issued {formatDateTime(invoice.issue_date)}
+                {invoice.due_date && ` · Due ${formatDateOnly(invoice.due_date)}`}
+              </p>
+            </div>
           </div>
         </div>
 
-        <span className={`flex items-center gap-1.5 font-medium text-sm ${statusMeta.color}`}>
-          {statusMeta.icon}
-          {statusMeta.label}
-        </span>
-      </div>
-
-      {/* Client info */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Billed To</CardTitle>
-        </CardHeader>
-        <CardContent className="text-sm space-y-1">
-          <p className="font-semibold text-foreground">{invoice.owner?.full_name ?? "Unknown Client"}</p>
-          {invoice.owner?.email && <p className="text-muted-foreground">{invoice.owner.email}</p>}
-          {invoice.owner?.phone && <p className="text-muted-foreground">{invoice.owner.phone}</p>}
-        </CardContent>
-      </Card>
-
-      {/* Line Items */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Line Items</CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
-          {invoice.invoice_items.length === 0 ? (
-            <p className="text-sm text-muted-foreground px-6 py-4 italic">No items yet.</p>
-          ) : (
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border bg-muted/40">
-                  <th className="text-left px-6 py-3 font-medium text-muted-foreground">Description</th>
-                  <th className="text-right px-4 py-3 font-medium text-muted-foreground">Qty</th>
-                  <th className="text-right px-4 py-3 font-medium text-muted-foreground">Unit Price</th>
-                  <th className="text-center px-4 py-3 font-medium text-muted-foreground hidden sm:table-cell">VAT</th>
-                  <th className="text-right px-6 py-3 font-medium text-muted-foreground">Subtotal</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {invoice.invoice_items.map((item) => {
-                  const subtotal = Number(item.quantity) * Number(item.unit_price);
-                  return (
-                    <tr key={item.id}>
-                      <td className="px-6 py-3 text-foreground">{item.description}</td>
-                      <td className="px-4 py-3 text-right text-muted-foreground">{Number(item.quantity)}</td>
-                      <td className="px-4 py-3 text-right text-muted-foreground">{fmt(item.unit_price)}</td>
-                      <td className="px-4 py-3 text-center hidden sm:table-cell">
-                        {item.is_vatable ? (
-                          <Badge variant="outline" className="text-xs">VAT</Badge>
-                        ) : (
-                          <span className="text-muted-foreground text-xs">Exempt</span>
-                        )}
-                      </td>
-                      <td className="px-6 py-3 text-right font-medium">{fmt(subtotal)}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+        {/* Action Buttons */}
+        <div className="flex items-center gap-2">
+          {canPay && (
+            <Button
+              onClick={() => setShowPaymentDialog(true)}
+              className="gap-2 min-h-11 rounded-xl font-semibold shadow-sm"
+            >
+              <CreditCard className="size-4" />
+              Record Payment
+            </Button>
           )}
-        </CardContent>
-      </Card>
 
-      {/* Totals */}
-      <Card>
-        <CardContent className="pt-6">
-          <dl className="space-y-2 text-sm max-w-xs ml-auto">
-            <div className="flex justify-between">
-              <dt className="text-muted-foreground">VATable Sales</dt>
-              <dd>{fmt(invoice.vatable_sales)}</dd>
-            </div>
-            <div className="flex justify-between">
-              <dt className="text-muted-foreground">VAT Exempt</dt>
-              <dd>{fmt(invoice.vat_exempt_sales)}</dd>
-            </div>
-            <div className="flex justify-between">
-              <dt className="text-muted-foreground">VAT (12%)</dt>
-              <dd>{fmt(invoice.vat_amount)}</dd>
-            </div>
-            <div className="flex justify-between border-t border-border pt-2 text-base font-semibold">
-              <dt>Total Due</dt>
-              <dd className="text-primary">{fmt(invoice.total_amount)}</dd>
-            </div>
-            {totalPaid > 0 && (
-              <>
-                <div className="flex justify-between text-emerald-600 dark:text-emerald-400">
-                  <dt>Total Paid</dt>
-                  <dd>−{fmt(totalPaid)}</dd>
-                </div>
-                <div className="flex justify-between border-t border-border pt-2 font-bold text-base">
-                  <dt>Balance</dt>
-                  <dd className={balance <= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-destructive"}>
-                    {balance <= 0 ? "Settled" : fmt(balance)}
-                  </dd>
-                </div>
-              </>
-            )}
-          </dl>
-        </CardContent>
-      </Card>
+          {canFinalize && (
+            <Button
+              onClick={handleFinalize}
+              disabled={isPending}
+              className="gap-2 min-h-11 rounded-xl font-semibold shadow-sm"
+            >
+              {isPending ? <Loader2 className="size-4 animate-spin" /> : <CheckCircle2 className="size-4" />}
+              Finalize Invoice
+            </Button>
+          )}
 
-      {/* Payment History */}
-      {invoice.payments.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Payment History</CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border bg-muted/40">
-                  <th className="text-left px-6 py-3 font-medium text-muted-foreground">Receipt #</th>
-                  <th className="text-left px-4 py-3 font-medium text-muted-foreground hidden sm:table-cell">Date</th>
-                  <th className="text-left px-4 py-3 font-medium text-muted-foreground">Method</th>
-                  <th className="text-left px-4 py-3 font-medium text-muted-foreground hidden sm:table-cell">Reference</th>
-                  <th className="text-right px-6 py-3 font-medium text-muted-foreground">Amount</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {invoice.payments.map((payment) => (
-                  <tr key={payment.id}>
-                    <td className="px-6 py-3 font-mono text-xs font-medium text-foreground">
-                      {payment.receipt_number || "—"}
-                    </td>
-                    <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">
-                      {fmtDate(payment.payment_date)}
-                    </td>
-                    <td className="px-4 py-3">
-                      <Badge variant="secondary">{METHOD_LABELS[payment.method] ?? payment.method}</Badge>
-                    </td>
-                    <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">
-                      {payment.reference_number ?? "—"}
-                    </td>
-                    <td className="px-6 py-3 text-right font-semibold text-emerald-600 dark:text-emerald-400">
-                      {fmt(payment.amount_paid)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Error */}
-      {error && (
-        <p className="text-sm text-destructive font-medium" role="alert">
-          {error}
-        </p>
-      )}
-
-      {/* Actions */}
-      <div className="flex flex-wrap gap-3">
-        {canFinalize && (
-          <Button onClick={handleFinalize} disabled={isPending}>
-            {isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
-            Finalize Invoice
-          </Button>
-        )}
-        {canPay && (
-          <Button onClick={() => setShowPaymentDialog(true)} disabled={isPending}>
-            <CreditCard className="h-4 w-4 mr-2" />
-            Record Payment
-          </Button>
-        )}
-        {canVoid && (
-          <Button
-            variant="outline"
-            onClick={handleVoid}
-            disabled={isPending}
-            className="text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground"
-          >
-            Void Invoice
-          </Button>
-        )}
+          {canVoid && (
+            <Button
+              variant="outline"
+              onClick={handleVoid}
+              disabled={isPending}
+              className="text-destructive hover:bg-destructive/10 hover:text-destructive min-h-11 rounded-xl font-medium"
+            >
+              Void Invoice
+            </Button>
+          )}
+        </div>
       </div>
 
-      {/* Payment Dialog */}
+      {error && (
+        <div
+          role="alert"
+          className="rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-sm font-medium text-destructive"
+        >
+          {error}
+        </div>
+      )}
+
+      {/* Main Invoice Document Card */}
+      <Card className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
+        {/* Top Decorative Color Stripe */}
+        <div className="h-1.5 w-full bg-gradient-to-r from-primary/80 via-primary to-primary/80" />
+
+        <div className="p-6 sm:p-8 space-y-8">
+          {/* Header Grid: Client & Invoice Info */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pb-6 border-b border-border/80">
+            <div className="space-y-2">
+              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                <User className="size-3.5 text-primary" /> Billed To
+              </span>
+              <div className="flex items-start gap-3">
+                <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary font-bold text-sm">
+                  {invoice.owner?.full_name ? invoice.owner.full_name.charAt(0).toUpperCase() : "C"}
+                </div>
+                <div>
+                  <p className="font-semibold text-foreground text-base">
+                    {invoice.owner?.full_name ?? "Walk-in Client"}
+                  </p>
+                  {invoice.owner?.email && (
+                    <p className="text-xs text-muted-foreground">{invoice.owner.email}</p>
+                  )}
+                  {invoice.owner?.phone && (
+                    <p className="text-xs text-muted-foreground mt-0.5">{invoice.owner.phone}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="sm:text-right space-y-2">
+              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center sm:justify-end gap-1.5">
+                <Calendar className="size-3.5 text-primary" /> Invoice Schedule
+              </span>
+              <div className="space-y-1 text-xs">
+                <div>
+                  <span className="text-muted-foreground">Issue Date: </span>
+                  <span className="font-semibold text-foreground">{formatDateTime(invoice.issue_date)}</span>
+                </div>
+                {invoice.due_date && (
+                  <div>
+                    <span className="text-muted-foreground">Due Date: </span>
+                    <span className="font-semibold text-foreground">{formatDateOnly(invoice.due_date)}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Line Items Table */}
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                <Receipt className="size-3.5 text-primary" /> Line Items
+              </h2>
+              <span className="text-xs text-muted-foreground">
+                {invoice.invoice_items.length} {invoice.invoice_items.length === 1 ? "item" : "items"}
+              </span>
+            </div>
+
+            <div className="rounded-xl border border-border/80 overflow-hidden">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border bg-muted/40 text-xs font-semibold text-muted-foreground">
+                    <th className="text-left px-5 py-3.5">Description</th>
+                    <th className="text-center px-4 py-3.5 w-20">Qty</th>
+                    <th className="text-right px-4 py-3.5 w-32">Unit Price</th>
+                    <th className="text-center px-4 py-3.5 w-24 hidden sm:table-cell">Tax Status</th>
+                    <th className="text-right px-5 py-3.5 w-32">Subtotal</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/60">
+                  {invoice.invoice_items.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="px-5 py-6 text-center text-sm text-muted-foreground italic">
+                        No line items billed.
+                      </td>
+                    </tr>
+                  ) : (
+                    invoice.invoice_items.map((item) => {
+                      const subtotal = Number(item.quantity) * Number(item.unit_price);
+                      return (
+                        <tr key={item.id} className="hover:bg-muted/20 transition-colors">
+                          <td className="px-5 py-3.5 font-medium text-foreground">{item.description}</td>
+                          <td className="px-4 py-3.5 text-center text-muted-foreground">{Number(item.quantity)}</td>
+                          <td className="px-4 py-3.5 text-right text-muted-foreground font-mono">
+                            {fmt(item.unit_price)}
+                          </td>
+                          <td className="px-4 py-3.5 text-center hidden sm:table-cell">
+                            {item.is_vatable ? (
+                              <span className="inline-flex rounded-md bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary">
+                                12% VAT
+                              </span>
+                            ) : (
+                              <span className="inline-flex rounded-md bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+                                Exempt
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-5 py-3.5 text-right font-semibold text-foreground font-mono">
+                            {fmt(subtotal)}
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Totals Breakdown */}
+          <div className="flex flex-col sm:flex-row justify-end pt-2">
+            <div className="w-full sm:max-w-xs space-y-2.5 rounded-2xl border border-border bg-muted/20 p-5">
+              <div className="space-y-2 text-xs">
+                <div className="flex justify-between text-muted-foreground">
+                  <span>VATable Sales</span>
+                  <span className="font-semibold text-foreground font-mono">{fmt(invoice.vatable_sales)}</span>
+                </div>
+                <div className="flex justify-between text-muted-foreground">
+                  <span>VAT Exempt Sales</span>
+                  <span className="font-semibold text-foreground font-mono">{fmt(invoice.vat_exempt_sales)}</span>
+                </div>
+                <div className="flex justify-between text-muted-foreground">
+                  <span>VAT (12%)</span>
+                  <span className="font-semibold text-foreground font-mono">{fmt(invoice.vat_amount)}</span>
+                </div>
+              </div>
+
+              <div className="border-t border-border/80 pt-2.5 flex items-center justify-between">
+                <span className="text-sm font-bold text-foreground">Total Due</span>
+                <span className="text-lg font-extrabold text-foreground font-mono">{fmt(invoice.total_amount)}</span>
+              </div>
+
+              {totalPaid > 0 && (
+                <>
+                  <div className="flex justify-between text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                    <span>Total Paid</span>
+                    <span className="font-mono">−{fmt(totalPaid)}</span>
+                  </div>
+                  <div className="border-t border-border/80 pt-2 flex items-center justify-between">
+                    <span className="text-sm font-bold text-foreground">Outstanding Balance</span>
+                    <span
+                      className={`text-lg font-extrabold font-mono ${
+                        balance <= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-destructive"
+                      }`}
+                    >
+                      {balance <= 0 ? "Settled" : fmt(balance)}
+                    </span>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Payment History */}
+          {invoice.payments.length > 0 && (
+            <div className="space-y-3 pt-4 border-t border-border/80">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                <DollarSign className="size-3.5 text-primary" /> Official Payment Receipts
+              </h2>
+
+              <div className="rounded-xl border border-border/80 overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border bg-muted/40 text-xs font-semibold text-muted-foreground">
+                      <th className="text-left px-5 py-3">Receipt #</th>
+                      <th className="text-left px-4 py-3 hidden sm:table-cell">Date & Time</th>
+                      <th className="text-left px-4 py-3">Payment Method</th>
+                      <th className="text-left px-4 py-3 hidden sm:table-cell">Reference #</th>
+                      <th className="text-right px-5 py-3">Amount Paid</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border/60">
+                    {invoice.payments.map((payment) => (
+                      <tr key={payment.id} className="hover:bg-muted/20 transition-colors">
+                        <td className="px-5 py-3 font-mono text-xs font-bold text-primary">
+                          {payment.receipt_number}
+                        </td>
+                        <td className="px-4 py-3 text-xs text-muted-foreground hidden sm:table-cell">
+                          {formatDateTime(payment.payment_date)}
+                        </td>
+                        <td className="px-4 py-3 text-xs font-medium text-foreground">
+                          {METHOD_LABELS[payment.method] ?? payment.method}
+                        </td>
+                        <td className="px-4 py-3 font-mono text-xs text-muted-foreground hidden sm:table-cell">
+                          {payment.reference_number || "—"}
+                        </td>
+                        <td className="px-5 py-3 text-right font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                          {fmt(payment.amount_paid)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
+      </Card>
+
+      {/* Record Payment Dialog */}
       <RecordPaymentDialog
         invoiceId={invoice.id}
-        balance={balance}
+        balance={balance > 0 ? balance : Number(invoice.total_amount)}
         open={showPaymentDialog}
         onOpenChange={setShowPaymentDialog}
-        onSuccess={() => router.refresh()}
+        onSuccess={() => {
+          setShowPaymentDialog(false);
+          router.refresh();
+        }}
       />
     </div>
   );

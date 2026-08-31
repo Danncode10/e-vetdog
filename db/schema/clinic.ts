@@ -11,7 +11,7 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 import { profiles } from "./core";
-import { appointmentStatus, checkInStatus } from "./enums";
+import { appointmentStatus } from "./enums";
 
 const createdAt = timestamp("created_at", { withTimezone: true }).notNull().defaultNow();
 const updatedAt = timestamp("updated_at", { withTimezone: true }).notNull().defaultNow();
@@ -98,30 +98,6 @@ export const appointmentStatusHistory = pgTable(
   (t) => ({
     appointmentIdx: index("idx_appointment_status_history_appointment_id").on(t.appointmentId),
     createdAtIdx: index("idx_appointment_status_history_created_at").on(t.createdAt),
-  })
-);
-
-export const checkIns = pgTable(
-  "check_ins",
-  {
-    id: uuid("id").primaryKey().defaultRandom(),
-    appointmentId: uuid("appointment_id").references(() => appointments.id, { onDelete: "set null" }),
-    petId: uuid("pet_id").references(() => pets.id, { onDelete: "set null" }),
-    ownerId: uuid("owner_id").references(() => profiles.id, { onDelete: "set null" }),
-    status: checkInStatus("status").notNull().default("checked_in"),
-    walkIn: boolean("walk_in").notNull().default(false),
-    arrivalTime: timestamp("arrival_time", { withTimezone: true }).notNull().defaultNow(),
-    serviceStart: timestamp("service_start", { withTimezone: true }),
-    serviceEnd: timestamp("service_end", { withTimezone: true }),
-    notes: text("notes"),
-    createdAt,
-    updatedAt,
-  },
-  (t) => ({
-    appointmentIdx: index("idx_check_ins_appointment_id").on(t.appointmentId),
-    petIdx: index("idx_check_ins_pet_id").on(t.petId),
-    ownerIdx: index("idx_check_ins_owner_id").on(t.ownerId),
-    arrivalTimeIdx: index("idx_check_ins_arrival_time").on(t.arrivalTime),
   })
 );
 
