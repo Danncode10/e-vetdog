@@ -14,6 +14,7 @@
     "db:setup": "bash scripts/setup-db.sh",
     "db:types": "bash scripts/update-types.sh --local",
     "db:types:remote": "bash scripts/update-types.sh",
+    "db:test-sync": "bash scripts/test-schema-drift.sh",
     "setup": "npm run setup:env && npm run setup:ruflo && npm run setup:skills",
     "setup:env": "node -e \"const fs=require('fs');!fs.existsSync('.env.local')&&fs.copyFileSync('.env.example','.env.local');console.log('✅ .env.local ready');\"",
     "setup:ruflo": "npm install -g ruflo@latest && npx ruflo@latest init wizard",
