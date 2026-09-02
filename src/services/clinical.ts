@@ -469,13 +469,27 @@ export async function updatePrescription(id: string, updates: PrescriptionUpdate
 }
 
 /**
- * Fetch longitudinal clinical history for a pet (only signed encounters).
+ * Fetch longitudinal clinical history for a pet (only signed encounters for owners).
  */
 export async function getPetClinicalHistory(petId: string) {
-  await requireAuth();
+  const { profile } = await requireAuth();
   const supabase = await createClient();
 
-  const { data: encounters, error: encountersError } = await supabase
+  // If calling user is an owner, verify relationship and medical records viewing permission
+  if (profile.role === "owner") {
+    const { data: link, error: linkError } = await supabase
+      .from("pet_owners")
+      .select("can_view_medical_records")
+      .eq("pet_id", petId)
+      .eq("owner_profile_id", profile.id)
+      .single();
+
+    if (linkError || !link || !link.can_view_medical_records) {
+      return [];
+    }
+  }
+
+  let encountersQuery = supabase
     .from("encounters")
     .select(`
       *,
@@ -484,6 +498,13 @@ export async function getPetClinicalHistory(petId: string) {
     `)
     .eq("pet_id", petId)
     .order("created_at", { ascending: false });
+
+  // Owners only see signed encounters, never drafts
+  if (profile.role === "owner") {
+    encountersQuery = encountersQuery.eq("status", "signed");
+  }
+
+  const { data: encounters, error: encountersError } = await encountersQuery;
 
   if (encountersError) throw encountersError;
   if (!encounters || encounters.length === 0) return [];

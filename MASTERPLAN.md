@@ -161,12 +161,12 @@
   - **Dependencies:** [P4.1].
   - **Acceptance criteria:** Totals are calculated server-side; line items are validated; invoices can relate to pets, appointments, or encounters without exposing unrelated data; payment amount, method, time, notes/reference, and recording admin are retained; partial and paid statuses are accurate.
 
-- [ ] **[P4.2.1] Implement transactional billing emails for owners**
+- [x] **[P4.2.1] Implement transactional billing emails for owners**
   - **Goal:** Add HTML email templates in `docs/supabase/email-templates/` and configure email delivery to automatically notify pet owners when an invoice is created or marked as paid.
   - **Dependencies:** [P4.2].
   - **Acceptance criteria:** HTML templates are saved; invoice creation triggers an "Invoice Created" email with billing details; payment completion triggers an "Invoice Paid / Receipt" email; email sending uses a unified backend service (e.g. Resend HTTP API) and falls back gracefully when the API key is not configured.
 
-- [ ] **[P4.3] Deliver minimum correction flow**
+- [x] **[P4.3] Deliver minimum correction flow**
   - **Goal:** Provide the MVP correction path for billing mistakes.
   - **Dependencies:** [P4.2].
   - **Acceptance criteria:** Original payments are never edited or deleted; correction reason, actor, time, amount, and linked payment are retained; invoice status reflects corrections.
@@ -178,21 +178,26 @@
 
 ## **PHASE 5: Owner portal and MVP release verification**
 
-**Exit state:** Owners have a controlled portal for care and billing information, and the core appointment-to-care-to-invoice-to-receipt workflow is verified for MVP release.
+**Exit state:** Admins have centralized audit logging, owners have a controlled portal for care and billing information, and the core appointment-to-care-to-invoice-to-receipt workflow is verified for MVP release.
 
-- [ ] **[P5.1] Deliver owner portal for linked pets, appointments, permitted records, invoices, and receipts**
+- [x] **[P5.1] Deliver Administrator Audit and Activity Logs Tab**
+  - **Goal:** Build a centralized, admin-only "Logs" tab and service to monitor clinic operations in real time (appointment status transitions such as diagnosed/confirmed/cancelled, encounter signings, payments recorded, schedule changes, and staff account management).
+  - **Dependencies:** [P4.4], [P3.2], [P2.3.2].
+  - **Acceptance criteria:** Dedicated "Logs" tab in dashboard navigation visible only to `admin`; chronological searchable and filterable activity table with actor, action type, target entity, timestamp, and details; data aggregation is strictly housed in services; admin-only access guarded by `requireRole(['admin'])`.
+
+- [x] **[P5.2] Deliver owner portal for linked pets, appointments, permitted records, invoices, and receipts**
   - **Goal:** Build the owner home and pet-detail views for linked pets, upcoming appointments, recent activity, permitted clinical records, invoices, receipts, and approved print views.
-  - **Dependencies:** [P3.3], [P4.3], [P2.2].
+  - **Dependencies:** [P5.1], [P3.3], [P4.4], [P2.2].
   - **Acceptance criteria:** Medical visibility follows `can_view_medical_records`; financial access follows `pet_owners`; owner views never expose another owner's pets, appointments, records, invoices, or receipts; data aggregation remains in services; empty, loading, error, and print states are complete.
 
-- [ ] **[P5.2] Run end-to-end MVP authorization and workflow verification**
+- [x] **[P5.3] Run end-to-end MVP authorization and workflow verification**
   - **Goal:** Verify the owner appointment-to-care-to-invoice-to-receipt journey and all MVP role boundaries with automated and manual acceptance checks.
-  - **Dependencies:** [P5.1].
+  - **Dependencies:** [P5.2].
   - **Acceptance criteria:** Tests prove owners cannot access another owner's pets, appointments, encounters, invoices, receipts, or permitted records; admin and veterinarian restrictions hold; migrations and generated types are current; the main clinic workflow is manually verified.
 
-- [ ] **[P5.3] Complete MVP usability, production, and handoff review**
+- [x] **[P5.4] Complete MVP usability, production, and handoff review**
   - **Goal:** Review the complete workflow for responsive design, accessibility, print quality, production configuration, and documented operational handoff.
-  - **Dependencies:** [P5.2].
+  - **Dependencies:** [P5.3].
   - **Acceptance criteria:** Core workflows work at 375px and clinic desktop widths; interactive controls meet touch-target requirements; unresolved non-MVP ideas are documented rather than implemented.
 
 ---

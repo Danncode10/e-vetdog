@@ -103,6 +103,8 @@ function formatDateTime(isoOrDate: string | Date | null | undefined): string {
   return `${month} ${day}, ${year}, ${hours}:${minutes} ${ampm}`;
 }
 
+import { printOfficialReceipt } from "@/lib/print-receipt";
+
 export function InvoiceDetail({ invoice }: { invoice: InvoiceWithDetails }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -178,11 +180,20 @@ export function InvoiceDetail({ invoice }: { invoice: InvoiceWithDetails }) {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => printOfficialReceipt(invoice)}
+            className="gap-2 min-h-11 rounded-xl font-semibold shadow-xs hover:bg-muted cursor-pointer"
+          >
+            <Printer className="size-4 text-primary" />
+            Print Official Receipt
+          </Button>
+
           {canPay && (
             <Button
               onClick={() => setShowPaymentDialog(true)}
-              className="gap-2 min-h-11 rounded-xl font-semibold shadow-sm"
+              className="gap-2 min-h-11 rounded-xl font-semibold shadow-sm cursor-pointer"
             >
               <CreditCard className="size-4" />
               Record Payment
@@ -193,7 +204,7 @@ export function InvoiceDetail({ invoice }: { invoice: InvoiceWithDetails }) {
             <Button
               onClick={handleFinalize}
               disabled={isPending}
-              className="gap-2 min-h-11 rounded-xl font-semibold shadow-sm"
+              className="gap-2 min-h-11 rounded-xl font-semibold shadow-sm cursor-pointer"
             >
               {isPending ? <Loader2 className="size-4 animate-spin" /> : <CheckCircle2 className="size-4" />}
               Finalize Invoice
@@ -205,7 +216,7 @@ export function InvoiceDetail({ invoice }: { invoice: InvoiceWithDetails }) {
               variant="outline"
               onClick={handleVoid}
               disabled={isPending}
-              className="text-destructive hover:bg-destructive/10 hover:text-destructive min-h-11 rounded-xl font-medium"
+              className="text-destructive hover:bg-destructive/10 hover:text-destructive min-h-11 rounded-xl font-medium cursor-pointer"
             >
               Void Invoice
             </Button>

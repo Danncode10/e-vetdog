@@ -15,6 +15,7 @@ import {
   Menu,
   ShieldCheck,
   Receipt,
+  ScrollText,
   type LucideIcon,
 } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -31,6 +32,8 @@ import { OwnersTab } from "@/components/dashboard/tabs/owners-tab";
 import { AppointmentsTab } from "@/components/dashboard/tabs/appointments-tab";
 import { SettingsTab } from "@/components/dashboard/tabs/settings-tab";
 import { SchedulesTab } from "@/app/dashboard/schedules/page";
+import { LogsTab } from "@/components/dashboard/tabs/logs-tab";
+import { OwnerBillingTab } from "@/components/dashboard/tabs/owner-billing-tab";
 
 const ICONS: Record<DashboardTabId | "schedules", LucideIcon> = {
   overview: LayoutDashboard,
@@ -38,7 +41,9 @@ const ICONS: Record<DashboardTabId | "schedules", LucideIcon> = {
   owners: Users,
   appointments: CalendarDays,
   schedules: CalendarDays, // Schedules tab
+  billing: Receipt,
   team: ShieldCheck,
+  logs: ScrollText,
   settings: Settings,
 };
 
@@ -81,6 +86,12 @@ export function DashboardShell({ user, profile, children }: DashboardShellProps)
 
     if (tab === "team") {
       router.push("/dashboard/team");
+      setSidebarOpen(false);
+      return;
+    }
+
+    if (tab === "billing" && userRole !== "owner") {
+      router.push("/dashboard/billing");
       setSidebarOpen(false);
       return;
     }
@@ -192,22 +203,6 @@ export function DashboardShell({ user, profile, children }: DashboardShellProps)
               <span className={collapsed ? "md:hidden" : ""}>Schedules</span>
             </button>
           )}
-          {/* Billing — staff only */}
-          {isFeatureEnabled("staff-only", userRole) && (
-            <Link
-              href="/dashboard/billing"
-              title={collapsed ? "Billing" : undefined}
-              className={`w-full flex items-center gap-3 rounded-lg text-[13px] transition-colors
-                ${collapsed ? "md:justify-center px-0 py-2.5" : "px-3 py-2"}
-                ${pathname.startsWith("/dashboard/billing")
-                  ? "bg-primary/10 text-primary font-medium"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                }`}
-            >
-              <Receipt className="w-4 h-4 shrink-0" strokeWidth={1.5} />
-              <span className={collapsed ? "md:hidden" : ""}>Billing</span>
-            </Link>
-          )}
         </nav>
 
         <div className="shrink-0 border-t border-border p-2 space-y-0.5">
@@ -299,6 +294,8 @@ export function DashboardShell({ user, profile, children }: DashboardShellProps)
               ) : null}
               {activeTab === "settings" && <SettingsTab profile={currentProfile} onProfileUpdated={setCurrentProfile} />}
               {activeTab === "schedules" && <SchedulesTab role={userRole} />}
+              {activeTab === "logs" && <LogsTab />}
+              {activeTab === "billing" && <OwnerBillingTab />}
             </>
           ) : children}
         </main>

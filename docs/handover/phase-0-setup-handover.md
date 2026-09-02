@@ -41,10 +41,18 @@ Keep these values in a password manager or approved secret store only: `DATABASE
    | `SMTP_USER` | Approved clinic Gmail address |
    | `SMTP_PASSWORD` | Gmail App Password |
 
-4. Run `pnpm dev`, then open `http://localhost:3000/login`.
+4. Sync the database schema to the new Supabase project:
+
+   ```bash
+   pnpm db:migrate
+   ```
+   *(This applies all tables, RLS policies, triggers, and storage buckets to the fresh database.)*
+
+5. Run `pnpm dev`, then open `http://localhost:3000/login`.
 
 ### Done when
 
+- The database schema is fully synchronized without errors.
 - The app starts locally.
 - The login page loads without a Supabase configuration error.
 - No secret was committed or shared in a ticket.

@@ -2,7 +2,7 @@
 
 import { createClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
-import { requireRole } from "@/services/authorization";
+import { requireAuth, requireRole } from "@/services/authorization";
 import type { Tables, TablesInsert } from "@/types/supabase";
 import { sendInvoiceCreatedEmail, sendInvoicePaidEmail } from "./email";
 
@@ -406,4 +406,54 @@ export async function quickBillAppointment(input: {
     receiptNumber: payment.receipt_number ?? "",
   };
 }
+
+/**
+ * List invoices and payment receipts belonging to the authenticated owner.
+ */
+export async function getOwnerInvoices(): Promise<InvoiceWithDetails[]> {
+  const { profile } = await requireAuth();
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("invoices")
+    .select(`
+      *,
+      invoice_items(*),
+      payments(*),
+      owner:profiles!invoices_owner_id_profiles_id_fk (id, full_name, email, phone)
+    `)
+    .eq("owner_id", profile.id)
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+  return (data as InvoiceWithDetails[]) ?? [];
+}
+
+/**
+ * Get a specific invoice by ID for the authenticated owner or staff.
+ */
+export async function getOwnerInvoiceById(id: string): Promise<InvoiceWithDetails | null> {
+  const { profile } = await requireAuth();
+  const supabase = await createClient();
+
+  let query = supabase
+    .from("invoices")
+    .select(`
+      *,
+      invoice_items(*),
+      payments(*),
+      owner:profiles!invoices_owner_id_profiles_id_fk (id, full_name, email, phone)
+    `)
+    .eq("id", id);
+
+  // If caller is an owner, strictly restrict to their own invoice
+  if (profile.role === "owner") {
+    query = query.eq("owner_id", profile.id);
+  }
+
+  const { data, error } = await query.single();
+  if (error) return null;
+  return data as InvoiceWithDetails;
+}
+
 

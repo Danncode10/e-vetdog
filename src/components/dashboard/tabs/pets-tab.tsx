@@ -1,10 +1,11 @@
 "use client";
 
 import * as React from "react";
-import { PawPrint, Pencil, Plus, Search, Calendar, User, Dog, Cat, Sparkles, X, ExternalLink } from "lucide-react";
+import { PawPrint, Pencil, Plus, Search, Calendar, User, Dog, Cat, Sparkles, X, ExternalLink, Stethoscope } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { PetForm } from "@/components/dashboard/pets/pet-form";
+import { OwnerPetMedicalDialog } from "@/components/dashboard/pets/owner-pet-medical-dialog";
 import { listPetsForCurrentUser, updateOwnedPet, type PetFormInput } from "@/services/pets";
 import type { UserRole } from "@/lib/dashboard-features";
 
@@ -68,6 +69,7 @@ export function PetsTab({ role }: { role: UserRole }) {
   const [isLoading, setIsLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
   const [editingPet, setEditingPet] = React.useState<PetRecord | null>(null);
+  const [selectedMedicalPet, setSelectedMedicalPet] = React.useState<PetRecord | null>(null);
 
   const loadPets = React.useCallback(async () => {
     try {
@@ -303,7 +305,7 @@ export function PetsTab({ role }: { role: UserRole }) {
                 </div>
 
                 {/* Footer Action */}
-                {canOpenRecord && (
+                {canOpenRecord ? (
                   <div className="border-t border-border px-5 py-3 bg-muted/20">
                     <Button
                       type="button"
@@ -316,11 +318,34 @@ export function PetsTab({ role }: { role: UserRole }) {
                       Open Clinical Pet Record
                     </Button>
                   </div>
-                )}
+                ) : role === "owner" ? (
+                  <div className="border-t border-border px-5 py-3 bg-muted/20 flex gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="flex-1 gap-2 text-xs h-9 font-semibold"
+                      onClick={() => setSelectedMedicalPet(pet)}
+                    >
+                      <Stethoscope className="w-3.5 h-3.5 text-primary" />
+                      Health & Medical Records
+                    </Button>
+                  </div>
+                ) : null}
               </div>
             );
           })}
         </div>
+      )}
+
+      {/* Owner Medical Record Dialog */}
+      {selectedMedicalPet && (
+        <OwnerPetMedicalDialog
+          open={Boolean(selectedMedicalPet)}
+          onOpenChange={(open) => {
+            if (!open) setSelectedMedicalPet(null);
+          }}
+          pet={selectedMedicalPet}
+        />
       )}
     </div>
   );
