@@ -9,7 +9,7 @@
 | Item | Decision |
 | --- | --- |
 | App name | **E-VetDoc** |
-| Repository | https://github.com/Danncode10/e-vetdog |
+| Repository | https://github.com/Danncode10/e-vetdoc |
 | Product type | Web-based veterinary clinic management system |
 | One-liner | A single-clinic veterinary management system for pet owners, veterinarians, appointments, medical records, invoicing, and receipts. |
 | Primary environment | A modern browser with clinic internet access and an optional printer. |

@@ -278,7 +278,7 @@ When a setting, provider, URL, or workflow changes, update this file in the same
 
 The first successful Vercel deployment reveals the production domain; it does **not** complete P0.8. As soon as the domain is known, complete these actions before calling the deployment ready:
 
-1. The initial deployment uses the current `NEXT_PUBLIC_SITE_URL` copied from `.env.local`. In **Vercel → Project → Settings → Environment Variables**, replace only that Production value with the complete production origin including `https://` (for example, `https://e-vetdog-chi.vercel.app`), then redeploy production. Do not change `NEXT_PUBLIC_SUPABASE_URL`: it must remain `https://zmdtwhqirmkptzobufio.supabase.co`. The deployment that first revealed the URL cannot contain this replacement value.
+1. The initial deployment uses the current `NEXT_PUBLIC_SITE_URL` copied from `.env.local`. In **Vercel → Project → Settings → Environment Variables**, replace only that Production value with the complete production origin including `https://` (for example, `https://e-vetdoc-chi.vercel.app`), then redeploy production. Do not change `NEXT_PUBLIC_SUPABASE_URL`: it must remain `https://zmdtwhqirmkptzobufio.supabase.co`. The deployment that first revealed the URL cannot contain this replacement value.
 2. Complete sections B and C below with that same exact origin.
 3. Complete the three production authentication tests in section D.
 
@@ -286,7 +286,7 @@ Current E-VetDoc deployment record (2026-08-17):
 
 | Item | Value / status |
 | --- | --- |
-| Canonical production origin | `https://e-vetdog-chi.vercel.app` |
+| Canonical production origin | `https://e-vetdoc-chi.vercel.app` |
 | Vercel `NEXT_PUBLIC_SITE_URL` | Pending confirmation |
 | Supabase production URL configuration | Pending confirmation |
 | Google Cloud production JavaScript origin | Added to the existing Web application client on 2026-08-17 |
