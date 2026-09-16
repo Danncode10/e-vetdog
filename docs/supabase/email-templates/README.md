@@ -10,10 +10,10 @@ single-use link and honors the redirect URL sent by the application.
 
 1. In Supabase, open **Authentication > Emails > Templates**.
 2. Select **Confirm sign up**.
-3. Set the subject to `Confirm your E-VetDoc email`.
+3. Set the subject to `Confirm your e-vetdoc email`.
 4. Replace the email body with the contents of `confirm-signup.html` and save.
 5. Select **Reset password**.
-6. Set the subject to `Reset your E-VetDoc password`.
+6. Set the subject to `Reset your e-vetdoc password`.
 7. Replace the email body with the contents of `reset-password.html` and save.
 
 ## Important
