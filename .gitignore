@@ -67,3 +67,8 @@ mcp.json
 
 # Supabase CLI generated files (machine-specific, ephemeral)
 supabase/.temp/
+
+.agents
+.claude
+.claude-flow
+.codex
