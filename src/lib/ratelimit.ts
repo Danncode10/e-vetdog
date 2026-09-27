@@ -74,13 +74,8 @@ export async function verifyRateLimit(
   const key = `${namespace}:${identifier}`;
 
   if (!defaultLimiter) {
-    if (!isProduction) {
-      console.warn("Rate limiter bypassed in local development: missing Upstash Redis env vars.");
-      return localBypassResult();
-    }
-
-    console.error("Rate limiter unavailable in production: missing Upstash Redis env vars.");
-    return unavailableResult("redis_not_configured");
+    console.warn("Rate limiter bypassed: missing Upstash Redis env vars.");
+    return localBypassResult();
   }
 
   try {
