@@ -463,6 +463,14 @@ export async function createAppointmentSchedule(input: {
     throw new Error(error.message || "Failed to create schedule");
   }
 
+  // Insert audit log
+  await supabase.from("schedule_audit_logs").insert([{
+    actor_id: user.id,
+    target_schedule_id: data.id,
+    action: "created",
+    next_values: data,
+  }]);
+
   revalidatePath("/dashboard/schedules");
   return data;
 }
@@ -479,6 +487,9 @@ export async function updateAppointmentSchedule(
   }
 ) {
   const supabase = await createClient();
+
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) throw new Error("User not authenticated");
 
   // Ensure TIME format is HH:MM:SS (PostgreSQL TIME with time zone expects seconds)
   const formatTime = (time: string | undefined) => {
@@ -530,12 +541,24 @@ export async function updateAppointmentSchedule(
     throw new Error(error.message || "Failed to update schedule");
   }
 
+  // Insert audit log
+  await supabase.from("schedule_audit_logs").insert([{
+    actor_id: user.id,
+    target_schedule_id: data.id,
+    action: "updated",
+    previous_values: currentSchedule,
+    next_values: data,
+  }]);
+
   revalidatePath("/dashboard/schedules");
   return data;
 }
 
 export async function deleteAppointmentSchedule(id: string) {
   const supabase = await createClient();
+
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) throw new Error("User not authenticated");
 
   const { data: currentSchedule } = await supabase
     .from("appointment_schedules")
@@ -552,6 +575,15 @@ export async function deleteAppointmentSchedule(id: string) {
     .delete()
     .eq("id", id);
   if (error) throw error;
+
+  // Insert audit log
+  await supabase.from("schedule_audit_logs").insert([{
+    actor_id: user.id,
+    target_schedule_id: id, // It's deleted, but we log the ID
+    action: "deleted",
+    previous_values: currentSchedule,
+  }]);
+
   revalidatePath("/dashboard/schedules");
 }
 

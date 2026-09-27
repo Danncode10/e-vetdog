@@ -325,6 +325,73 @@ export async function getClinicActivityLogs(
     }
   }
 
+  // 5. Fetch Schedule Audit Logs
+  const { data: scheduleLogs } = await adminClient
+    .from("schedule_audit_logs")
+    .select(`
+      id,
+      action,
+      previous_values,
+      next_values,
+      created_at,
+      actor_id,
+      target_schedule_id,
+      actor:profiles!schedule_audit_logs_actor_id_fkey (
+        id,
+        full_name,
+        email,
+        role
+      ),
+      target:appointment_schedules!schedule_audit_logs_target_schedule_id_fkey (
+        id,
+        specific_date,
+        day_of_week,
+        start_time,
+        end_time
+      )
+    `)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (scheduleLogs) {
+    for (const sl of scheduleLogs) {
+      const actorName =
+        (sl.actor as any)?.full_name ||
+        (sl.actor as any)?.email ||
+        "Admin";
+      
+      let targetName = "Schedule";
+      if (sl.target) {
+        const t = sl.target as any;
+        if (t.specific_date) targetName = `Schedule (${t.specific_date})`;
+        else targetName = `Schedule (Day ${t.day_of_week})`;
+      }
+
+      logs.push({
+        id: `schedule-${sl.id}`,
+        category: "staff", // Grouping under staff/admin actions
+        action: `SCHEDULE ${sl.action.toUpperCase()}`,
+        description: `${actorName} ${sl.action} an appointment schedule.`,
+        actor: {
+          id: sl.actor_id,
+          name: actorName,
+          role: (sl.actor as any)?.role || "admin",
+          email: (sl.actor as any)?.email ?? null,
+        },
+        target: {
+          type: "schedule",
+          label: targetName,
+          id: sl.target_schedule_id,
+        },
+        timestamp: sl.created_at,
+        metadata: {
+          previous: sl.previous_values,
+          next: sl.next_values,
+        },
+      });
+    }
+  }
+
   // Sort combined logs descending by timestamp
   logs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
