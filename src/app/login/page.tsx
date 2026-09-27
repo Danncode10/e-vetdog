@@ -126,11 +126,13 @@ export default function AuthPage() {
 
     try {
       if (mode === 'recovery') {
-        await forgotPasswordRateLimited(email, `${window.location.origin}/reset-password`);
+        const result = await forgotPasswordRateLimited(email, `${window.location.origin}/reset-password`);
+        if (result.error) throw new Error(result.error);
         setResetSentTo(email);
         toast.success('Reset email sent', { description: `Check ${email} for the setup link.` });
       } else if (mode === 'login') {
         const result = await signInWithEmailRateLimited(email, password);
+        if (result.error) throw new Error(result.error);
         if (result.requiresMFA) {
           router.push('/auth/mfa');
         } else {
@@ -142,7 +144,8 @@ export default function AuthPage() {
           }, 800);
         }
       } else {
-        await signUpWithEmailRateLimited(email, password, window.location.origin, name.trim());
+        const result = await signUpWithEmailRateLimited(email, password, window.location.origin, name.trim());
+        if (result.error) throw new Error(result.error);
         setSuccess(true);
         setTimeout(() => {
           toast.success('Account created!', { description: 'Check your email for confirmation.' });

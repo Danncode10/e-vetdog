@@ -17,7 +17,7 @@ function getPasswordScore(password: string) {
 
 export async function signInWithEmailRateLimited(email: string, password: string) {
   const { success } = await verifyRateLimit(email, "sign-in");
-  if (!success) throw new Error('Too many login attempts. Try again in a few moments.');
+  if (!success) return { error: 'Too many login attempts. Try again in a few moments.' };
 
   const supabase = await createClient();
   const { error: signInError } = await supabase.auth.signInWithPassword({
@@ -25,10 +25,10 @@ export async function signInWithEmailRateLimited(email: string, password: string
     password,
   });
 
-  if (signInError) throw signInError;
+  if (signInError) return { error: signInError.message };
 
   const { data: mfaData, error: mfaError } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-  if (mfaError) throw mfaError;
+  if (mfaError) return { error: mfaError.message };
 
   if (mfaData.nextLevel === 'aal2' && mfaData.nextLevel !== mfaData.currentLevel) {
     return { success: true, requiresMFA: true };
@@ -44,9 +44,9 @@ export async function signUpWithEmailRateLimited(
   fullName?: string,
 ) {
   const { success } = await verifyRateLimit(email, "sign-up");
-  if (!success) throw new Error('Too many signup attempts. Try again in a few moments.');
+  if (!success) return { error: 'Too many signup attempts. Try again in a few moments.' };
   if (getPasswordScore(password) < MIN_PASSWORD_SCORE) {
-    throw new Error('Use a stronger password before creating your account.');
+    return { error: 'Use a stronger password before creating your account.' };
   }
 
   const supabase = await createClient();
@@ -64,13 +64,13 @@ export async function signUpWithEmailRateLimited(
         : undefined,
     },
   });
-  if (error) throw error;
+  if (error) return { error: error.message };
   return { success: true };
 }
 
 export async function forgotPasswordRateLimited(email: string, redirectUrl: string) {
   const { success } = await verifyRateLimit(email, "password-reset");
-  if (!success) throw new Error('Too many password reset attempts. Try again in a few moments.');
+  if (!success) return { error: 'Too many password reset attempts. Try again in a few moments.' };
 
   // Recovery emails may be opened in a different browser from the one that
   // requested them. Avoid PKCE's browser-local verifier for this one flow.
@@ -89,6 +89,6 @@ export async function forgotPasswordRateLimited(email: string, redirectUrl: stri
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
     redirectTo: redirectUrl,
   });
-  if (error) throw error;
+  if (error) return { error: error.message };
   return { success: true };
 }
