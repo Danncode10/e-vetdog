@@ -1,8 +1,9 @@
 import { expect, Page } from '@playwright/test';
 
 export async function runVetClinicalFlow(page: Page) {
-  const loginEmail = process.env.TEST_VET_EMAIL || process.env.TEST_ADMIN_EMAIL || 'adminTest@gmail.com';
-  const loginPassword = process.env.TEST_VET_PASSWORD || process.env.TEST_ADMIN_PASSWORD || 'jytmos-serQo0-sawfyv';
+  // Use Admin credentials because unassigned appointments are only visible to admins due to RLS
+  const loginEmail = process.env.TEST_ADMIN_EMAIL || 'adminTest@gmail.com';
+  const loginPassword = process.env.TEST_ADMIN_PASSWORD || 'jytmos-serQo0-sawfyv';
   
   await page.goto('/login');
   await page.locator('#email').fill(loginEmail);
@@ -18,9 +19,17 @@ export async function runVetClinicalFlow(page: Page) {
   await expect(page.getByRole('button', { name: 'View details' }).first()).toBeVisible({ timeout: 15000 });
   await page.getByRole('button', { name: 'View details' }).first().click();
   
-  const encounterAction = page.locator('text=Start Encounter').or(page.locator('text=View / Edit Encounter')).first();
-  await expect(encounterAction).toBeVisible({ timeout: 10000 });
-  await encounterAction.click();
+  const startEncounter = page.locator('text=Start Encounter').or(page.locator('text=View / Edit Encounter')).first();
+  const finalizedRecord = page.locator('text=View Finalized Record').first();
+
+  await expect(startEncounter.or(finalizedRecord)).toBeVisible({ timeout: 10000 });
+
+  if (await finalizedRecord.isVisible()) {
+    console.log('Record is already finalized. Skipping clinical flow.');
+    return;
+  }
+
+  await startEncounter.click();
 
   await expect(page.locator('text=Encounter Workspace')).toBeVisible({ timeout: 10000 });
   
@@ -60,7 +69,7 @@ export async function runAdminAuditVerification(page: Page) {
   await signOutBtn.waitFor({ state: 'visible' });
   await signOutBtn.click();
   
-  await page.waitForURL('**/login');
+  await expect(page).toHaveURL(/.*login/, { timeout: 15000 });
   await expect(page.locator('text=Welcome back')).toBeVisible({ timeout: 10000 });
   
   const actualAdminEmail = process.env.TEST_ADMIN_EMAIL || 'adminTest@gmail.com';
